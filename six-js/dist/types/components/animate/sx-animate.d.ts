@@ -1,10 +1,11 @@
-export type AnimationType = 'fade-up' | 'fade-down' | 'fade-in';
 export declare class SxAnimate extends HTMLElement {
-    private static _observer;
+    private static observer?;
+    private once;
     static get observedAttributes(): string[];
-    constructor();
     connectedCallback(): void;
     disconnectedCallback(): void;
-    attributeChangedCallback(name: string, oldValue: string, newValue: string): void;
-    private static _initObserver;
+    attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void;
+    private getBooleanAttr;
+    private setupVariables;
+    private groupDelay;
 }

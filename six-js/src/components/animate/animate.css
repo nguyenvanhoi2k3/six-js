@@ -1,47 +1,42 @@
-/* 1. Cơ chế chống giật giao diện (FOUC) khi JS chưa kịp load */
-sx-animate:not(:defined) {
-  opacity: 0;
-  display: block;
-}
-
-/* 2. Base Style tối ưu hiệu năng */
 sx-animate {
+  --sx-duration: 400ms;
+  --sx-delay: 0ms;
+  --sx-easing: cubic-bezier(0.42, 0, 0.58, 1);
+  --sx-x: 0px;
+  --sx-y: 30px;
+
   display: block;
-  /* Báo trước cho trình duyệt tối ưu GPU cho opacity và transform, tránh giật khung hình */
-  will-change: opacity, transform; 
-}
 
-/* 3. Thiết lập các trạng thái ban đầu (Trình duyệt ẩn) */
-sx-animate[type="fade-up"] {
   opacity: 0;
-  transform: translateY(40px); /* Tăng biên độ lên 40px cho hiệu ứng nhìn rõ và đẹp hơn */
-  transition: opacity 0.8s cubic-bezier(0.215, 0.610, 0.355, 1), 
-              transform 0.8s cubic-bezier(0.215, 0.610, 0.355, 1);
+
+  transform: translate3d(var(--sx-x), var(--sx-y), 0);
+
+  transition-property: opacity, transform;
+
+  transition-duration: var(--sx-duration);
+
+  transition-delay: var(--sx-delay);
+
+  transition-timing-function: var(--sx-easing);
+
+  contain: paint;
 }
 
-sx-animate[type="fade-down"] {
-  opacity: 0;
-  transform: translateY(-40px);
-  transition: opacity 0.8s cubic-bezier(0.215, 0.610, 0.355, 1), 
-              transform 0.8s cubic-bezier(0.215, 0.610, 0.355, 1);
+sx-animate.is-visible {
+  opacity: 1;
+
+  transform: translate3d(0, 0, 0);
 }
 
-sx-animate[type="fade-in"] {
-  opacity: 0;
-  transition: opacity 0.8s ease-in-out;
+sx-animate[type="fade"] {
+  --sx-x: 0px;
+  --sx-y: 0px;
 }
 
-/* 4. Trạng thái KHI ĐÃ CUỘN TỚI (Active) */
-sx-animate.is-animated {
-  opacity: 1 !important;
-  transform: translate(0) !important;
-}
-
-/* 5. Hỗ trợ người khuyết tật hoặc user bật chế độ giảm chuyển động trên hệ điều hành */
 @media (prefers-reduced-motion: reduce) {
-  sx-animate[type="fade-up"],
-  sx-animate[type="fade-down"] {
+  sx-animate {
+    opacity: 1 !important;
     transform: none !important;
-    transition: opacity 0.3s ease !important;
+    transition: none !important;
   }
 }

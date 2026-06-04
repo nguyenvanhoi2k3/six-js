@@ -85,13 +85,13 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: "Six-JS Lab",
+      title: "Six-JS Library",
       items: [
         {
           type: "docSidebar",
           sidebarId: "tutorialSidebar",
           position: "left",
-          label: "Components", // Đổi tên nhãn hiển thị cho rõ ràng
+          label: "COMPONENTS", // Đổi tên nhãn hiển thị cho rõ ràng
         },
         // Có thể thêm link dẫn sang GitHub của bạn ở đây nếu cần
       ],

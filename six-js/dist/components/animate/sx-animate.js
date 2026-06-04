@@ -1,57 +1,106 @@
+import { EASINGS } from "../../easing/easing";
 export class SxAnimate extends HTMLElement {
-    // Tạo một Observer tĩnh (Static) dùng chung cho TẤT CẢ các thẻ sx-animate trên trang
-    // Điều này giúp tiết kiệm bộ nhớ tối đa thay vì mỗi thẻ tạo 1 observer riêng lẻ
-    static _observer = null;
+    static observer;
+    once = true;
     static get observedAttributes() {
-        return ['type'];
-    }
-    constructor() {
-        super();
+        return ["type", "duration", "delay", "strength", "easing", "once"];
     }
     connectedCallback() {
-        if (!this.hasAttribute('type')) {
-            this.setAttribute('type', 'fade-up');
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            this.classList.add("is-visible");
+            return;
         }
-        // Khởi tạo thực thể Observer dùng chung nếu chưa có
-        if (!SxAnimate._observer) {
-            SxAnimate._initObserver();
+        this.once = this.getBooleanAttr("once", true);
+        this.setupVariables();
+        if (!SxAnimate.observer) {
+            SxAnimate.observer = new IntersectionObserver((entries) => {
+                for (const entry of entries) {
+                    const el = entry.target;
+                    if (entry.isIntersecting) {
+                        requestAnimationFrame(() => {
+                            el.classList.add("is-visible");
+                        });
+                        if (el.once) {
+                            SxAnimate.observer?.unobserve(el);
+                        }
+                    }
+                    else if (!el.once) {
+                        requestAnimationFrame(() => {
+                            el.classList.remove("is-visible");
+                        });
+                    }
+                }
+            }, {
+                rootMargin: "0px 0px -15% 0px",
+                threshold: 0.01,
+            });
         }
-        // Đưa phần tử này vào danh sách theo dõi của Observer
-        SxAnimate._observer?.observe(this);
+        SxAnimate.observer.observe(this);
     }
     disconnectedCallback() {
-        // Khi thẻ bị xóa khỏi DOM (ví dụ user chuyển trang trong Single Page App)
-        // Phải bỏ theo dõi để tránh Memory Leak (rò rỉ bộ nhớ)
-        SxAnimate._observer?.unobserve(this);
+        SxAnimate.observer?.unobserve(this);
     }
     attributeChangedCallback(name, oldValue, newValue) {
-        if (name === 'type' && oldValue !== newValue) {
-            // Nếu user đổi type bằng JavaScript khi đang chạy, cập nhật lại trạng thái nếu cần
+        if (oldValue === newValue) {
+            return;
         }
+        if (name === "once") {
+            this.once = this.getBooleanAttr("once", true);
+            return;
+        }
+        this.setupVariables();
     }
-    // Hàm khởi tạo Intersection Observer thông minh
-    static _initObserver() {
-        SxAnimate._observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                // Khi phần tử ló diện vào màn hình ít nhất 10% (threshold: 0.1)
-                if (entry.isIntersecting) {
-                    const target = entry.target;
-                    // Kích hoạt class CSS để chạy hiệu ứng
-                    target.classList.add('is-animated');
-                    // Bắn ra một Custom Event 'animated' để lập trình viên phía ngoài có thể lắng nghe
-                    target.dispatchEvent(new CustomEvent('animated', { bubbles: true }));
-                    // Sau khi chạy hiệu ứng xong thì dừng theo dõi phần tử này để tối ưu CPU
-                    SxAnimate._observer?.unobserve(target);
-                }
-            });
-        }, {
-            root: null, // Lấy viewport của trình duyệt làm khung chuẩn
-            rootMargin: '0px 0px -50px 0px', // Kích hoạt sớm hơn 50px trước khi phần tử kịp cuộn tới
-            threshold: 0.1 // Thấy 10% diện tích là kích hoạt
-        });
+    getBooleanAttr(name, defaultValue = true) {
+        const value = this.getAttribute(name);
+        if (value === null) {
+            return defaultValue;
+        }
+        return !["false", "0", "off"].includes(value.toLowerCase());
+    }
+    setupVariables() {
+        const type = (this.getAttribute("type") || "fade-up");
+        const duration = Math.max(0, Number(this.getAttribute("duration") ?? 400));
+        const delay = Math.max(0, Number(this.getAttribute("delay") ?? 0));
+        const strength = Math.max(0, Number(this.getAttribute("strength") ?? 30));
+        const easingKey = (this.getAttribute("easing") ??
+            "ease-in-out");
+        const easing = EASINGS[easingKey] ?? EASINGS["ease-in-out"];
+        this.style.setProperty("--sx-duration", `${duration}ms`);
+        this.style.setProperty("--sx-delay", `${delay + this.groupDelay()}ms`);
+        this.style.setProperty("--sx-easing", easing);
+        let x = 0;
+        let y = 0;
+        switch (type) {
+            case "fade-up":
+                y = strength;
+                break;
+            case "fade-down":
+                y = -strength;
+                break;
+            case "fade-left":
+                x = strength;
+                break;
+            case "fade-right":
+                x = -strength;
+                break;
+        }
+        this.style.setProperty("--sx-x", `${x}px`);
+        this.style.setProperty("--sx-y", `${y}px`);
+    }
+    groupDelay() {
+        if (!this.hasAttribute("group")) {
+            return 0;
+        }
+        const parent = this.parentElement;
+        if (!parent) {
+            return 0;
+        }
+        const items = Array.from(parent.querySelectorAll("sx-animate[group]"));
+        const index = items.indexOf(this);
+        return index > -1 ? index * 80 : 0;
     }
 }
-if (!customElements.get('sx-animate')) {
-    customElements.define('sx-animate', SxAnimate);
+if (!customElements.get("sx-animate")) {
+    customElements.define("sx-animate", SxAnimate);
 }
 //# sourceMappingURL=sx-animate.js.map

@@ -1,36 +1,95 @@
-//#region src/components/animate/sx-animate.ts
-var e = class e extends HTMLElement {
-	static _observer = null;
+//#region src/easing/easing.ts
+var e = {
+	"ease-in": "cubic-bezier(0.42, 0, 1, 1)",
+	"ease-out": "cubic-bezier(0, 0, 0.58, 1)",
+	"ease-in-out": "cubic-bezier(0.42, 0, 0.58, 1)",
+	linear: "linear",
+	"expo-in": "cubic-bezier(0.7, 0, 0.84, 0)",
+	"expo-out": "cubic-bezier(0.16, 1, 0.3, 1)",
+	"expo-in-out": "cubic-bezier(0.87, 0, 0.13, 1)",
+	"back-in": "cubic-bezier(0.36, 0, 0.66, -0.56)",
+	"back-out": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+	"back-in-out": "cubic-bezier(0.68, -0.6, 0.32, 1.6)"
+}, t = class t extends HTMLElement {
+	static observer;
+	once = !0;
 	static get observedAttributes() {
-		return ["type"];
-	}
-	constructor() {
-		super();
+		return [
+			"type",
+			"duration",
+			"delay",
+			"strength",
+			"easing",
+			"once"
+		];
 	}
 	connectedCallback() {
-		this.hasAttribute("type") || this.setAttribute("type", "fade-up"), e._observer || e._initObserver(), e._observer?.observe(this);
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+			this.classList.add("is-visible");
+			return;
+		}
+		this.once = this.getBooleanAttr("once", !0), this.setupVariables(), t.observer ||= new IntersectionObserver((e) => {
+			for (let n of e) {
+				let e = n.target;
+				n.isIntersecting ? (requestAnimationFrame(() => {
+					e.classList.add("is-visible");
+				}), e.once && t.observer?.unobserve(e)) : e.once || requestAnimationFrame(() => {
+					e.classList.remove("is-visible");
+				});
+			}
+		}, {
+			rootMargin: "0px 0px -15% 0px",
+			threshold: .01
+		}), t.observer.observe(this);
 	}
 	disconnectedCallback() {
-		e._observer?.unobserve(this);
+		t.observer?.unobserve(this);
 	}
-	attributeChangedCallback(e, t, n) {}
-	static _initObserver() {
-		e._observer = new IntersectionObserver((t) => {
-			t.forEach((t) => {
-				if (t.isIntersecting) {
-					let n = t.target;
-					n.classList.add("is-animated"), n.dispatchEvent(new CustomEvent("animated", { bubbles: !0 })), e._observer?.unobserve(n);
-				}
-			});
-		}, {
-			root: null,
-			rootMargin: "0px 0px -50px 0px",
-			threshold: .1
-		});
+	attributeChangedCallback(e, t, n) {
+		if (t !== n) {
+			if (e === "once") {
+				this.once = this.getBooleanAttr("once", !0);
+				return;
+			}
+			this.setupVariables();
+		}
+	}
+	getBooleanAttr(e, t = !0) {
+		let n = this.getAttribute(e);
+		return n === null ? t : ![
+			"false",
+			"0",
+			"off"
+		].includes(n.toLowerCase());
+	}
+	setupVariables() {
+		let t = this.getAttribute("type") || "fade-up", n = Math.max(0, Number(this.getAttribute("duration") ?? 400)), r = Math.max(0, Number(this.getAttribute("delay") ?? 0)), i = Math.max(0, Number(this.getAttribute("strength") ?? 30)), a = e[this.getAttribute("easing") ?? "ease-in-out"] ?? e["ease-in-out"];
+		this.style.setProperty("--sx-duration", `${n}ms`), this.style.setProperty("--sx-delay", `${r + this.groupDelay()}ms`), this.style.setProperty("--sx-easing", a);
+		let o = 0, s = 0;
+		switch (t) {
+			case "fade-up":
+				s = i;
+				break;
+			case "fade-down":
+				s = -i;
+				break;
+			case "fade-left":
+				o = i;
+				break;
+			case "fade-right":
+				o = -i;
+				break;
+		}
+		this.style.setProperty("--sx-x", `${o}px`), this.style.setProperty("--sx-y", `${s}px`);
+	}
+	groupDelay() {
+		if (!this.hasAttribute("group")) return 0;
+		let e = this.parentElement;
+		if (!e) return 0;
+		let t = Array.from(e.querySelectorAll("sx-animate[group]")).indexOf(this);
+		return t > -1 ? t * 80 : 0;
 	}
 };
-customElements.get("sx-animate") || customElements.define("sx-animate", e);
+customElements.get("sx-animate") || customElements.define("sx-animate", t);
 //#endregion
-export { e as SxAnimate };
-
-//# sourceMappingURL=six-js.es.js.map
+export { t as SxAnimate };
