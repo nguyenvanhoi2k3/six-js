@@ -1,0 +1,28 @@
+{
+  "name": "six-js",
+  "author": "Hội Nguyễn",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/six-js.umd.js",
+  "module": "./dist/six-js.es.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/six-js.es.js",
+      "require": "./dist/six-js.umd.js"
+    },
+    "./style.css": "./dist/six.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc && vite build"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16"
+  }
+}

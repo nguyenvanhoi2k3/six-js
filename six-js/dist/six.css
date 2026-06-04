@@ -1,0 +1,2 @@
+sx-animate:not(:defined){opacity:0;display:block}sx-animate{display:block}sx-animate[type=fade-up]{opacity:0;transition:opacity .6s,transform .6s;transform:translateY(30px)}sx-animate[type=fade-down]{opacity:0;transition:opacity .6s,transform .6s;transform:translateY(-30px)}sx-animate[type=fade-in]{opacity:0;transition:opacity .6s}sx-animate.is-animated{opacity:1!important;transform:translate(0)!important}
+/*$vite$:1*/
