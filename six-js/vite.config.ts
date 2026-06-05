@@ -1,18 +1,23 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
+import minifyHTML from 'rollup-plugin-minify-html-literals';
+import type { PreRenderedAsset } from 'rollup';
 
 export default defineConfig({
   build: {
+    minify: 'esbuild',
     lib: {
-      entry: resolve(__dirname, "src/index.ts"), // hoặc src/main.ts tùy dự án của bạn
+      entry: resolve(__dirname, "src/index.ts"),
       name: "SixJS",
       formats: ["es", "umd"],
       fileName: (format) => `six-js.${format}.js`,
     },
     rollupOptions: {
+      plugins: [
+        ((minifyHTML as any).default || (minifyHTML as any))()
+      ],
       output: {
-        // Ép Vite/Rollup luôn đặt tên file CSS xuất ra là style.css thay vì đặt theo tên thư viện
-        assetFileNames: (assetInfo) => {
+        assetFileNames: (assetInfo: PreRenderedAsset) => {
           if (assetInfo.name && assetInfo.name.endsWith(".css")) {
             return "style.css";
           }

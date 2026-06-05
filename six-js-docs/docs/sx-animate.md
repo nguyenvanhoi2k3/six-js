@@ -9,7 +9,7 @@ Thẻ `<sx-animate>` hỗ trợ tạo các hiệu ứng xuất hiện nhanh cho 
 
 ---
 
-### Usage
+## Usage
 
 ```html
 <sx-animate>

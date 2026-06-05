@@ -1,95 +1,260 @@
-//#region src/easing/easing.ts
-var e = {
-	"ease-in": "cubic-bezier(0.42, 0, 1, 1)",
-	"ease-out": "cubic-bezier(0, 0, 0.58, 1)",
-	"ease-in-out": "cubic-bezier(0.42, 0, 0.58, 1)",
-	linear: "linear",
-	"expo-in": "cubic-bezier(0.7, 0, 0.84, 0)",
-	"expo-out": "cubic-bezier(0.16, 1, 0.3, 1)",
-	"expo-in-out": "cubic-bezier(0.87, 0, 0.13, 1)",
-	"back-in": "cubic-bezier(0.36, 0, 0.66, -0.56)",
-	"back-out": "cubic-bezier(0.34, 1.56, 0.64, 1)",
-	"back-in-out": "cubic-bezier(0.68, -0.6, 0.32, 1.6)"
-}, t = class t extends HTMLElement {
-	static observer;
-	once = !0;
-	static get observedAttributes() {
-		return [
-			"type",
-			"duration",
-			"delay",
-			"strength",
-			"easing",
-			"once"
-		];
-	}
-	connectedCallback() {
-		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-			this.classList.add("is-visible");
-			return;
-		}
-		this.once = this.getBooleanAttr("once", !0), this.setupVariables(), t.observer ||= new IntersectionObserver((e) => {
-			for (let n of e) {
-				let e = n.target;
-				n.isIntersecting ? (requestAnimationFrame(() => {
-					e.classList.add("is-visible");
-				}), e.once && t.observer?.unobserve(e)) : e.once || requestAnimationFrame(() => {
-					e.classList.remove("is-visible");
-				});
-			}
-		}, {
-			rootMargin: "0px 0px -15% 0px",
-			threshold: .01
-		}), t.observer.observe(this);
-	}
-	disconnectedCallback() {
-		t.observer?.unobserve(this);
-	}
-	attributeChangedCallback(e, t, n) {
-		if (t !== n) {
-			if (e === "once") {
-				this.once = this.getBooleanAttr("once", !0);
-				return;
-			}
-			this.setupVariables();
-		}
-	}
-	getBooleanAttr(e, t = !0) {
-		let n = this.getAttribute(e);
-		return n === null ? t : ![
-			"false",
-			"0",
-			"off"
-		].includes(n.toLowerCase());
-	}
-	setupVariables() {
-		let t = this.getAttribute("type") || "fade-up", n = Math.max(0, Number(this.getAttribute("duration") ?? 400)), r = Math.max(0, Number(this.getAttribute("delay") ?? 0)), i = Math.max(0, Number(this.getAttribute("strength") ?? 30)), a = e[this.getAttribute("easing") ?? "ease-in-out"] ?? e["ease-in-out"];
-		this.style.setProperty("--sx-duration", `${n}ms`), this.style.setProperty("--sx-delay", `${r + this.groupDelay()}ms`), this.style.setProperty("--sx-easing", a);
-		let o = 0, s = 0;
-		switch (t) {
-			case "fade-up":
-				s = i;
-				break;
-			case "fade-down":
-				s = -i;
-				break;
-			case "fade-left":
-				o = i;
-				break;
-			case "fade-right":
-				o = -i;
-				break;
-		}
-		this.style.setProperty("--sx-x", `${o}px`), this.style.setProperty("--sx-y", `${s}px`);
-	}
-	groupDelay() {
-		if (!this.hasAttribute("group")) return 0;
-		let e = this.parentElement;
-		if (!e) return 0;
-		let t = Array.from(e.querySelectorAll("sx-animate[group]")).indexOf(this);
-		return t > -1 ? t * 80 : 0;
-	}
+var m = Object.defineProperty;
+var b = (a, n, e) => n in a ? m(a, n, { enumerable: !0, configurable: !0, writable: !0, value: e }) : a[n] = e;
+var r = (a, n, e) => b(a, typeof n != "symbol" ? n + "" : n, e);
+const p = {
+  "ease-in": "cubic-bezier(0.42, 0, 1, 1)",
+  "ease-out": "cubic-bezier(0, 0, 0.58, 1)",
+  "ease-in-out": "cubic-bezier(0.42, 0, 0.58, 1)",
+  linear: "linear",
+  "expo-in": "cubic-bezier(0.7, 0, 0.84, 0)",
+  "expo-out": "cubic-bezier(0.16, 1, 0.3, 1)",
+  "expo-in-out": "cubic-bezier(0.87, 0, 0.13, 1)",
+  "back-in": "cubic-bezier(0.36, 0, 0.66, -0.56)",
+  "back-out": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+  "back-in-out": "cubic-bezier(0.68, -0.6, 0.32, 1.6)"
+}, o = class o extends HTMLElement {
+  constructor() {
+    super(...arguments);
+    r(this, "once", !0);
+  }
+  static get observedAttributes() {
+    return ["type", "duration", "delay", "strength", "easing", "once"];
+  }
+  connectedCallback() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      this.classList.add("is-visible");
+      return;
+    }
+    this.once = this.getBooleanAttr("once", !0), this.setupVariables(), o.observer || (o.observer = new IntersectionObserver(
+      (e) => {
+        var t;
+        for (const s of e) {
+          const i = s.target;
+          s.isIntersecting ? (requestAnimationFrame(() => {
+            i.classList.add("is-visible");
+          }), i.once && ((t = o.observer) == null || t.unobserve(i))) : i.once || requestAnimationFrame(() => {
+            i.classList.remove("is-visible");
+          });
+        }
+      },
+      {
+        rootMargin: "0px 0px -15% 0px",
+        threshold: 0.01
+      }
+    )), o.observer.observe(this);
+  }
+  disconnectedCallback() {
+    var e;
+    (e = o.observer) == null || e.unobserve(this);
+  }
+  attributeChangedCallback(e, t, s) {
+    if (t !== s) {
+      if (e === "once") {
+        this.once = this.getBooleanAttr("once", !0);
+        return;
+      }
+      this.setupVariables();
+    }
+  }
+  getBooleanAttr(e, t = !0) {
+    const s = this.getAttribute(e);
+    return s === null ? t : !["false", "0", "off"].includes(s.toLowerCase());
+  }
+  setupVariables() {
+    const e = this.getAttribute("type") || "fade-up", t = Math.max(0, Number(this.getAttribute("duration") ?? 400)), s = Math.max(0, Number(this.getAttribute("delay") ?? 0)), i = Math.max(0, Number(this.getAttribute("strength") ?? 30)), u = this.getAttribute("easing") ?? "ease-in-out", c = p[u] ?? p["ease-in-out"];
+    this.style.setProperty("--sx-duration", `${t}ms`), this.style.setProperty("--sx-delay", `${s + this.groupDelay()}ms`), this.style.setProperty("--sx-easing", c);
+    let l = 0, h = 0;
+    switch (e) {
+      case "fade-up":
+        h = i;
+        break;
+      case "fade-down":
+        h = -i;
+        break;
+      case "fade-left":
+        l = i;
+        break;
+      case "fade-right":
+        l = -i;
+        break;
+    }
+    this.style.setProperty("--sx-x", `${l}px`), this.style.setProperty("--sx-y", `${h}px`);
+  }
+  groupDelay() {
+    if (!this.hasAttribute("group"))
+      return 0;
+    const e = this.parentElement;
+    if (!e)
+      return 0;
+    const s = Array.from(
+      e.querySelectorAll("sx-animate[group]")
+    ).indexOf(this);
+    return s > -1 ? s * 80 : 0;
+  }
 };
-customElements.get("sx-animate") || customElements.define("sx-animate", t);
-//#endregion
-export { t as SxAnimate };
+r(o, "observer");
+let d = o;
+customElements.get("sx-animate") || customElements.define("sx-animate", d);
+class g extends HTMLElement {
+  constructor() {
+    super();
+    r(this, "inner", null);
+    r(this, "resizeObserver", null);
+    r(this, "rafId", null);
+    r(this, "setupRafId", null);
+    r(this, "offset", 0);
+    r(this, "lastTime", 0);
+    r(this, "isHovered", !1);
+    r(this, "cachedResetBounds", 0);
+    r(this, "dirtyBounds", !0);
+    r(this, "isSettingUp", !1);
+    r(this, "onMouseEnter", () => {
+      this.pauseOnHover && (this.isHovered = !0);
+    });
+    r(this, "onMouseLeave", () => {
+      this.isHovered = !1, this.lastTime = performance.now();
+    });
+    this.attachShadow({ mode: "open" });
+  }
+  static get observedAttributes() {
+    return ["direction", "speed", "pause-on-hover", "gap"];
+  }
+  get direction() {
+    return this.getAttribute("direction") === "right" ? "right" : "left";
+  }
+  get speed() {
+    const e = parseFloat(this.getAttribute("speed") ?? "50");
+    return isFinite(e) && e >= 0 ? e : 50;
+  }
+  get pauseOnHover() {
+    return this.getAttribute("pause-on-hover") !== "false";
+  }
+  get gap() {
+    const e = (this.getAttribute("gap") ?? "16").trim();
+    return /^\d+(\.\d+)?$/.test(e) ? `${e}px` : e;
+  }
+  connectedCallback() {
+    if (this.render(), this.inner = this.querySelector("sx-marquee-inner"), !this.inner) {
+      console.warn("sx-marquee: Missing <sx-marquee-inner> child.");
+      return;
+    }
+    this.addEventListener("mouseenter", this.onMouseEnter), this.addEventListener("mouseleave", this.onMouseLeave), this.resizeObserver = new ResizeObserver(() => {
+      this.scheduleSetup();
+    }), this.resizeObserver.observe(this), this.lastTime = performance.now(), this.startAnimation();
+  }
+  disconnectedCallback() {
+    var e;
+    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (e = this.resizeObserver) == null || e.disconnect(), this.rafId !== null && cancelAnimationFrame(this.rafId), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId);
+  }
+  attributeChangedCallback(e, t, s) {
+    t !== s && (e === "gap" ? (this.updateGapVar(), setTimeout(() => {
+      this.dirtyBounds = !0, this.scheduleSetup();
+    }, 50)) : (e === "direction" || e === "speed") && (this.dirtyBounds = !0, this.scheduleSetup()));
+  }
+  scheduleSetup() {
+    this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), this.setupRafId = requestAnimationFrame(() => {
+      this.setupRafId = null, this.setupMarquee();
+    });
+  }
+  render() {
+    this.shadowRoot && (this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+          overflow: hidden;
+          width: 100%;
+          --sx-marquee-gap: 16px;
+        }
+        .container {
+          display: flex;
+          overflow: hidden;
+        }
+        ::slotted(sx-marquee-inner) {
+          display: flex !important;
+          flex-shrink: 0;
+          white-space: nowrap;
+          gap: var(--sx-marquee-gap) !important;
+          will-change: transform;
+        }
+      </style>
+      <div class="container"><slot></slot></div>
+    `, this.updateGapVar());
+  }
+  updateGapVar() {
+    this.style.setProperty("--sx-marquee-gap", this.gap);
+  }
+  setupMarquee() {
+    var e;
+    if (!(!this.inner || this.isSettingUp)) {
+      this.isSettingUp = !0;
+      try {
+        (e = this.resizeObserver) == null || e.unobserve(this.inner);
+        const t = Array.from(
+          this.inner.querySelectorAll(
+            "sx-marquee-item:not([data-clone])"
+          )
+        );
+        this.inner.replaceChildren(...t);
+        const s = this.offsetWidth, i = this.inner.offsetWidth;
+        if (i > 0 && s > 0) {
+          const u = i < s ? Math.ceil(s * 2 / i) : 2, c = document.createDocumentFragment();
+          for (let l = 1; l < u; l++)
+            for (const h of t) {
+              const f = h.cloneNode(!0);
+              f.setAttribute("data-clone", "true"), c.appendChild(f);
+            }
+          this.inner.appendChild(c);
+        }
+        this.offset = 0, this.applyTransform(0), this.dirtyBounds = !0, this.lastTime = performance.now();
+      } finally {
+        this.isSettingUp = !1;
+      }
+    }
+  }
+  getResetBounds() {
+    if (!this.dirtyBounds) return this.cachedResetBounds;
+    if (!this.inner) return 0;
+    const e = this.inner.querySelectorAll(
+      "sx-marquee-item:not([data-clone])"
+    );
+    if (e.length === 0) return 0;
+    let t = 0;
+    for (const i of e) t += i.offsetWidth;
+    const s = parseFloat(getComputedStyle(this.inner).gap) || 0;
+    return t += s * e.length, this.cachedResetBounds = t, this.dirtyBounds = !1, t;
+  }
+  startAnimation() {
+    this.rafId !== null && cancelAnimationFrame(this.rafId);
+    const e = (t) => {
+      const s = (t - this.lastTime) / 1e3;
+      if (this.lastTime = t, !this.isHovered) {
+        const i = this.getResetBounds();
+        if (i > 0) {
+          const u = this.speed * s;
+          this.direction === "left" ? (this.offset -= u, this.offset <= -i && (this.offset += i)) : (this.offset += u, this.offset >= 0 && (this.offset -= i)), this.applyTransform(this.offset);
+        }
+      }
+      this.rafId = requestAnimationFrame(e);
+    };
+    this.rafId = requestAnimationFrame(e);
+  }
+  applyTransform(e) {
+    this.inner && (this.inner.style.transform = `translate3d(${e}px,0,0)`);
+  }
+}
+class v extends HTMLElement {
+}
+class y extends HTMLElement {
+  connectedCallback() {
+    this.style.cssText = "display:inline-block;flex-shrink:0;";
+  }
+}
+customElements.define("sx-marquee", g);
+customElements.define("sx-marquee-inner", v);
+customElements.define("sx-marquee-item", y);
+export {
+  d as SxAnimate,
+  g as SxMarquee,
+  v as SxMarqueeInner,
+  y as SxMarqueeItem
+};

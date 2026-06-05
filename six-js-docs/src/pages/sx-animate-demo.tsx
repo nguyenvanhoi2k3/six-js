@@ -110,7 +110,6 @@ function ReplaySection({ title, description, children }) {
             alignItems: "center",
           }}
         >
-
           <button
             onClick={() => setKey((v) => v + 1)}
             style={{
@@ -201,19 +200,6 @@ export default function SxAnimateDemoPage() {
           >
             Sx Animate
           </h1>
-
-          <p
-            style={{
-              marginTop: 16,
-              opacity: 0.9,
-              maxWidth: 700,
-              marginInline: "auto",
-              fontSize: 18,
-            }}
-          >
-            Lightweight viewport animation component built for performance,
-            accessibility and Core Web Vitals.
-          </p>
         </div>
 
         {/* TYPE */}
