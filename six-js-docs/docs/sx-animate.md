@@ -12,7 +12,7 @@ Thẻ `<sx-animate>` hỗ trợ tạo các hiệu ứng xuất hiện nhanh cho 
 ## Usage
 
 ```html
-<sx-animate>
+<sx-animate type="fade-up" group>
   <div>Nội dung của bạn ở đây</div>
 </sx-animate>
 ```
@@ -24,5 +24,4 @@ Thẻ `<sx-animate>` hỗ trợ tạo các hiệu ứng xuất hiện nhanh cho 
 |delay|number|>= 0|0|Thời gian chờ hiệu ứng chạy|
 |strength|number|>= 0|30|Độ mạnh của hiệu ứng|
 |easing|string|ease-in \| ease-out \| ease-in-out \| expo-in \| expo-out \| expo-in-out \| back-in \| back-out \| back-in-out \| linear|ease-in-out|Kiểu chuyển động|
-|group||||Kích hoạt lần lượt thay vì đồng thời|
-|once|boolean|true \| false|true|Chỉ chạy một lần khi phần tử xuất hiện trong viewport|
+|group|||false|Các thẻ sx-animate có attr group sẽ tự động chạy lần lượt|

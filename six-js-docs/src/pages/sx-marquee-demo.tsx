@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-
+import "@six-js/core"
 // Tái sử dụng hệ thống style đồng bộ với trang trước
 const pageStyle = {
   background: "#f8fafc",
@@ -80,15 +80,7 @@ function StaticSection({ title, description, marqueeHtmlContent }) {
 export default function SxMarqueeDemoPage() {
   const [isLoaded, setIsLoaded] = useState(false);
 
-  useEffect(() => {
-    import("six-js")
-      .then(() => setIsLoaded(true))
-      .catch((err) => console.error("Failed to load six-js:", err));
 
-    return () => {
-      setIsLoaded(false);
-    };
-  }, []);
 
   if (!isLoaded) {
     return <div style={pageStyle}>Đang tải cấu hình phần Marquee...</div>;

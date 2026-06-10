@@ -1,106 +1,117 @@
 import { EASINGS } from "../../easing/easing";
 export class SxAnimate extends HTMLElement {
-    static observer;
-    once = true;
-    static get observedAttributes() {
-        return ["type", "duration", "delay", "strength", "easing", "once"];
+    animation;
+    options;
+    static counter = 0;
+    order = SxAnimate.counter++;
+    static mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    static get reduceMotion() {
+        return this.mediaQuery.matches;
+    }
+    static groupQueue = new Set();
+    static isProcessingGroup = false;
+    static observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+            if (!entry.isIntersecting)
+                continue;
+            const el = entry.target;
+            this.observer.unobserve(el);
+            if (el.isGroup) {
+                this.groupQueue.add(el);
+            }
+            else {
+                el.play();
+            }
+        }
+        this.scheduleGroup();
+    }, {
+        threshold: 0,
+        rootMargin: "0px",
+    });
+    static scheduleGroup() {
+        if (this.isProcessingGroup || !this.groupQueue.size)
+            return;
+        this.isProcessingGroup = true;
+        requestAnimationFrame(() => {
+            this.handleGroup([...this.groupQueue]);
+            this.groupQueue.clear();
+            this.isProcessingGroup = false;
+        });
+    }
+    static handleGroup(items) {
+        items.sort((a, b) => a.order - b.order);
+        items.forEach((el, index) => {
+            el.play(index * 120);
+        });
+    }
+    get isGroup() {
+        return this.hasAttribute("group");
     }
     connectedCallback() {
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            this.classList.add("is-visible");
+        this.options = this.getOptions();
+        if (SxAnimate.reduceMotion) {
+            this.style.opacity = "1";
+            this.style.transform = "none";
             return;
         }
-        this.once = this.getBooleanAttr("once", true);
-        this.setupVariables();
-        if (!SxAnimate.observer) {
-            SxAnimate.observer = new IntersectionObserver((entries) => {
-                for (const entry of entries) {
-                    const el = entry.target;
-                    if (entry.isIntersecting) {
-                        requestAnimationFrame(() => {
-                            el.classList.add("is-visible");
-                        });
-                        if (el.once) {
-                            SxAnimate.observer?.unobserve(el);
-                        }
-                    }
-                    else if (!el.once) {
-                        requestAnimationFrame(() => {
-                            el.classList.remove("is-visible");
-                        });
-                    }
-                }
-            }, {
-                rootMargin: "0px 0px -15% 0px",
-                threshold: 0.01,
-            });
-        }
+        this.setInitialState();
         SxAnimate.observer.observe(this);
     }
     disconnectedCallback() {
-        SxAnimate.observer?.unobserve(this);
+        this.animation?.cancel();
+        SxAnimate.observer.unobserve(this);
+        SxAnimate.groupQueue.delete(this);
     }
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (oldValue === newValue) {
-            return;
-        }
-        if (name === "once") {
-            this.once = this.getBooleanAttr("once", true);
-            return;
-        }
-        this.setupVariables();
+    getOptions() {
+        const strength = Number(this.getAttribute("strength")) || 30;
+        const offsets = {
+            fade: [0, 0],
+            "fade-up": [0, strength],
+            "fade-down": [0, -strength],
+            "fade-left": [strength, 0],
+            "fade-right": [-strength, 0],
+        };
+        const type = this.getAttribute("type") ?? "fade-up";
+        const easing = this.getAttribute("easing");
+        const [x, y] = offsets[type] ?? offsets["fade-up"];
+        return {
+            x,
+            y,
+            easing: easing && easing in EASINGS ? EASINGS[easing] : EASINGS["ease-in-out"],
+            duration: Number(this.getAttribute("duration")) || 400,
+            delay: Number(this.getAttribute("delay")) || 0,
+        };
     }
-    getBooleanAttr(name, defaultValue = true) {
-        const value = this.getAttribute(name);
-        if (value === null) {
-            return defaultValue;
-        }
-        return !["false", "0", "off"].includes(value.toLowerCase());
+    setInitialState() {
+        const { x, y } = this.options;
+        this.style.opacity = "0";
+        this.style.transform = `translate3d(${x}px, ${y}px, 0)`;
     }
-    setupVariables() {
-        const type = (this.getAttribute("type") || "fade-up");
-        const duration = Math.max(0, Number(this.getAttribute("duration") ?? 400));
-        const delay = Math.max(0, Number(this.getAttribute("delay") ?? 0));
-        const strength = Math.max(0, Number(this.getAttribute("strength") ?? 30));
-        const easingKey = (this.getAttribute("easing") ??
-            "ease-in-out");
-        const easing = EASINGS[easingKey] ?? EASINGS["ease-in-out"];
-        this.style.setProperty("--sx-duration", `${duration}ms`);
-        this.style.setProperty("--sx-delay", `${delay + this.groupDelay()}ms`);
-        this.style.setProperty("--sx-easing", easing);
-        let x = 0;
-        let y = 0;
-        switch (type) {
-            case "fade-up":
-                y = strength;
-                break;
-            case "fade-down":
-                y = -strength;
-                break;
-            case "fade-left":
-                x = strength;
-                break;
-            case "fade-right":
-                x = -strength;
-                break;
-        }
-        this.style.setProperty("--sx-x", `${x}px`);
-        this.style.setProperty("--sx-y", `${y}px`);
-    }
-    groupDelay() {
-        if (!this.hasAttribute("group")) {
-            return 0;
-        }
-        const parent = this.parentElement;
-        if (!parent) {
-            return 0;
-        }
-        const items = Array.from(parent.querySelectorAll("sx-animate[group]"));
-        const index = items.indexOf(this);
-        return index > -1 ? index * 80 : 0;
+    play(extraDelay = 0) {
+        const { x, y, easing, duration, delay } = this.options;
+        this.animation?.cancel();
+        this.animation = this.animate([
+            {
+                opacity: 0,
+                transform: `translate3d(${x}px, ${y}px, 0)`,
+            },
+            {
+                opacity: 1,
+                transform: "translate3d(0,0,0)",
+            },
+        ], {
+            duration,
+            delay: delay + extraDelay,
+            easing,
+            fill: "forwards",
+        });
+        this.animation.onfinish = () => {
+            this.style.opacity = "1";
+            this.style.transform = "translate3d(0,0,0)";
+            this.animation?.cancel();
+            this.animation = undefined;
+        };
     }
 }
-if (!customElements.get("sx-animate")) {
-    customElements.define("sx-animate", SxAnimate);
-}
+customElements.define("sx-animate", SxAnimate);
 //# sourceMappingURL=sx-animate.js.map

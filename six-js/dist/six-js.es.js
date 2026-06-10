@@ -1,7 +1,7 @@
 var m = Object.defineProperty;
-var b = (a, n, e) => n in a ? m(a, n, { enumerable: !0, configurable: !0, writable: !0, value: e }) : a[n] = e;
-var r = (a, n, e) => b(a, typeof n != "symbol" ? n + "" : n, e);
-const p = {
+var g = (a, o, e) => o in a ? m(a, o, { enumerable: !0, configurable: !0, writable: !0, value: e }) : a[o] = e;
+var i = (a, o, e) => g(a, typeof o != "symbol" ? o + "" : o, e);
+const d = {
   "ease-in": "cubic-bezier(0.42, 0, 1, 1)",
   "ease-out": "cubic-bezier(0, 0, 0.58, 1)",
   "ease-in-out": "cubic-bezier(0.42, 0, 0.58, 1)",
@@ -12,106 +12,121 @@ const p = {
   "back-in": "cubic-bezier(0.36, 0, 0.66, -0.56)",
   "back-out": "cubic-bezier(0.34, 1.56, 0.64, 1)",
   "back-in-out": "cubic-bezier(0.68, -0.6, 0.32, 1.6)"
-}, o = class o extends HTMLElement {
+}, n = class n extends HTMLElement {
   constructor() {
     super(...arguments);
-    r(this, "once", !0);
+    i(this, "animation");
+    i(this, "options");
+    i(this, "order", n.counter++);
   }
-  static get observedAttributes() {
-    return ["type", "duration", "delay", "strength", "easing", "once"];
+  static get reduceMotion() {
+    return this.mediaQuery.matches;
+  }
+  static scheduleGroup() {
+    this.isProcessingGroup || !this.groupQueue.size || (this.isProcessingGroup = !0, requestAnimationFrame(() => {
+      this.handleGroup([...this.groupQueue]), this.groupQueue.clear(), this.isProcessingGroup = !1;
+    }));
+  }
+  static handleGroup(e) {
+    e.sort((t, s) => t.order - s.order), e.forEach((t, s) => {
+      t.play(s * 120);
+    });
+  }
+  get isGroup() {
+    return this.hasAttribute("group");
   }
   connectedCallback() {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      this.classList.add("is-visible");
+    if (this.options = this.getOptions(), n.reduceMotion) {
+      this.style.opacity = "1", this.style.transform = "none";
       return;
     }
-    this.once = this.getBooleanAttr("once", !0), this.setupVariables(), o.observer || (o.observer = new IntersectionObserver(
-      (e) => {
-        var t;
-        for (const s of e) {
-          const i = s.target;
-          s.isIntersecting ? (requestAnimationFrame(() => {
-            i.classList.add("is-visible");
-          }), i.once && ((t = o.observer) == null || t.unobserve(i))) : i.once || requestAnimationFrame(() => {
-            i.classList.remove("is-visible");
-          });
-        }
-      },
-      {
-        rootMargin: "0px 0px -15% 0px",
-        threshold: 0.01
-      }
-    )), o.observer.observe(this);
+    this.setInitialState(), n.observer.observe(this);
   }
   disconnectedCallback() {
     var e;
-    (e = o.observer) == null || e.unobserve(this);
+    (e = this.animation) == null || e.cancel(), n.observer.unobserve(this), n.groupQueue.delete(this);
   }
-  attributeChangedCallback(e, t, s) {
-    if (t !== s) {
-      if (e === "once") {
-        this.once = this.getBooleanAttr("once", !0);
-        return;
+  getOptions() {
+    const e = Number(this.getAttribute("strength")) || 30, t = {
+      fade: [0, 0],
+      "fade-up": [0, e],
+      "fade-down": [0, -e],
+      "fade-left": [e, 0],
+      "fade-right": [-e, 0]
+    }, s = this.getAttribute("type") ?? "fade-up", r = this.getAttribute("easing"), [u, h] = t[s] ?? t["fade-up"];
+    return {
+      x: u,
+      y: h,
+      easing: r && r in d ? d[r] : d["ease-in-out"],
+      duration: Number(this.getAttribute("duration")) || 400,
+      delay: Number(this.getAttribute("delay")) || 0
+    };
+  }
+  setInitialState() {
+    const { x: e, y: t } = this.options;
+    this.style.opacity = "0", this.style.transform = `translate3d(${e}px, ${t}px, 0)`;
+  }
+  play(e = 0) {
+    var c;
+    const { x: t, y: s, easing: r, duration: u, delay: h } = this.options;
+    (c = this.animation) == null || c.cancel(), this.animation = this.animate(
+      [
+        {
+          opacity: 0,
+          transform: `translate3d(${t}px, ${s}px, 0)`
+        },
+        {
+          opacity: 1,
+          transform: "translate3d(0,0,0)"
+        }
+      ],
+      {
+        duration: u,
+        delay: h + e,
+        easing: r,
+        fill: "forwards"
       }
-      this.setupVariables();
-    }
-  }
-  getBooleanAttr(e, t = !0) {
-    const s = this.getAttribute(e);
-    return s === null ? t : !["false", "0", "off"].includes(s.toLowerCase());
-  }
-  setupVariables() {
-    const e = this.getAttribute("type") || "fade-up", t = Math.max(0, Number(this.getAttribute("duration") ?? 400)), s = Math.max(0, Number(this.getAttribute("delay") ?? 0)), i = Math.max(0, Number(this.getAttribute("strength") ?? 30)), u = this.getAttribute("easing") ?? "ease-in-out", c = p[u] ?? p["ease-in-out"];
-    this.style.setProperty("--sx-duration", `${t}ms`), this.style.setProperty("--sx-delay", `${s + this.groupDelay()}ms`), this.style.setProperty("--sx-easing", c);
-    let l = 0, h = 0;
-    switch (e) {
-      case "fade-up":
-        h = i;
-        break;
-      case "fade-down":
-        h = -i;
-        break;
-      case "fade-left":
-        l = i;
-        break;
-      case "fade-right":
-        l = -i;
-        break;
-    }
-    this.style.setProperty("--sx-x", `${l}px`), this.style.setProperty("--sx-y", `${h}px`);
-  }
-  groupDelay() {
-    if (!this.hasAttribute("group"))
-      return 0;
-    const e = this.parentElement;
-    if (!e)
-      return 0;
-    const s = Array.from(
-      e.querySelectorAll("sx-animate[group]")
-    ).indexOf(this);
-    return s > -1 ? s * 80 : 0;
+    ), this.animation.onfinish = () => {
+      var l;
+      this.style.opacity = "1", this.style.transform = "translate3d(0,0,0)", (l = this.animation) == null || l.cancel(), this.animation = void 0;
+    };
   }
 };
-r(o, "observer");
-let d = o;
-customElements.get("sx-animate") || customElements.define("sx-animate", d);
-class g extends HTMLElement {
+i(n, "counter", 0), i(n, "mediaQuery", window.matchMedia(
+  "(prefers-reduced-motion: reduce)"
+)), i(n, "groupQueue", /* @__PURE__ */ new Set()), i(n, "isProcessingGroup", !1), i(n, "observer", new IntersectionObserver(
+  (e) => {
+    for (const t of e) {
+      if (!t.isIntersecting) continue;
+      const s = t.target;
+      n.observer.unobserve(s), s.isGroup ? n.groupQueue.add(s) : s.play();
+    }
+    n.scheduleGroup();
+  },
+  {
+    threshold: 0,
+    rootMargin: "0px"
+  }
+));
+let f = n;
+customElements.define("sx-animate", f);
+class b extends HTMLElement {
   constructor() {
     super();
-    r(this, "inner", null);
-    r(this, "resizeObserver", null);
-    r(this, "rafId", null);
-    r(this, "setupRafId", null);
-    r(this, "offset", 0);
-    r(this, "lastTime", 0);
-    r(this, "isHovered", !1);
-    r(this, "cachedResetBounds", 0);
-    r(this, "dirtyBounds", !0);
-    r(this, "isSettingUp", !1);
-    r(this, "onMouseEnter", () => {
+    i(this, "inner", null);
+    i(this, "resizeObserver", null);
+    i(this, "rafId", null);
+    i(this, "setupRafId", null);
+    i(this, "offset", 0);
+    i(this, "lastTime", 0);
+    i(this, "isHovered", !1);
+    i(this, "cachedResetBounds", 0);
+    i(this, "dirtyBounds", !0);
+    i(this, "isSettingUp", !1);
+    i(this, "onMouseEnter", () => {
       this.pauseOnHover && (this.isHovered = !0);
     });
-    r(this, "onMouseLeave", () => {
+    i(this, "onMouseLeave", () => {
       this.isHovered = !1, this.lastTime = performance.now();
     });
     this.attachShadow({ mode: "open" });
@@ -195,15 +210,15 @@ class g extends HTMLElement {
           )
         );
         this.inner.replaceChildren(...t);
-        const s = this.offsetWidth, i = this.inner.offsetWidth;
-        if (i > 0 && s > 0) {
-          const u = i < s ? Math.ceil(s * 2 / i) : 2, c = document.createDocumentFragment();
-          for (let l = 1; l < u; l++)
-            for (const h of t) {
-              const f = h.cloneNode(!0);
-              f.setAttribute("data-clone", "true"), c.appendChild(f);
+        const s = this.offsetWidth, r = this.inner.offsetWidth;
+        if (r > 0 && s > 0) {
+          const u = r < s ? Math.ceil(s * 2 / r) : 2, h = document.createDocumentFragment();
+          for (let c = 1; c < u; c++)
+            for (const l of t) {
+              const p = l.cloneNode(!0);
+              p.setAttribute("data-clone", "true"), h.appendChild(p);
             }
-          this.inner.appendChild(c);
+          this.inner.appendChild(h);
         }
         this.offset = 0, this.applyTransform(0), this.dirtyBounds = !0, this.lastTime = performance.now();
       } finally {
@@ -219,7 +234,7 @@ class g extends HTMLElement {
     );
     if (e.length === 0) return 0;
     let t = 0;
-    for (const i of e) t += i.offsetWidth;
+    for (const r of e) t += r.offsetWidth;
     const s = parseFloat(getComputedStyle(this.inner).gap) || 0;
     return t += s * e.length, this.cachedResetBounds = t, this.dirtyBounds = !1, t;
   }
@@ -228,10 +243,10 @@ class g extends HTMLElement {
     const e = (t) => {
       const s = (t - this.lastTime) / 1e3;
       if (this.lastTime = t, !this.isHovered) {
-        const i = this.getResetBounds();
-        if (i > 0) {
+        const r = this.getResetBounds();
+        if (r > 0) {
           const u = this.speed * s;
-          this.direction === "left" ? (this.offset -= u, this.offset <= -i && (this.offset += i)) : (this.offset += u, this.offset >= 0 && (this.offset -= i)), this.applyTransform(this.offset);
+          this.direction === "left" ? (this.offset -= u, this.offset <= -r && (this.offset += r)) : (this.offset += u, this.offset >= 0 && (this.offset -= r)), this.applyTransform(this.offset);
         }
       }
       this.rafId = requestAnimationFrame(e);
@@ -242,19 +257,19 @@ class g extends HTMLElement {
     this.inner && (this.inner.style.transform = `translate3d(${e}px,0,0)`);
   }
 }
-class v extends HTMLElement {
-}
 class y extends HTMLElement {
+}
+class v extends HTMLElement {
   connectedCallback() {
     this.style.cssText = "display:inline-block;flex-shrink:0;";
   }
 }
-customElements.define("sx-marquee", g);
-customElements.define("sx-marquee-inner", v);
-customElements.define("sx-marquee-item", y);
+customElements.define("sx-marquee", b);
+customElements.define("sx-marquee-inner", y);
+customElements.define("sx-marquee-item", v);
 export {
-  d as SxAnimate,
-  g as SxMarquee,
-  v as SxMarqueeInner,
-  y as SxMarqueeItem
+  f as SxAnimate,
+  b as SxMarquee,
+  y as SxMarqueeInner,
+  v as SxMarqueeItem
 };

@@ -7,155 +7,165 @@ type AnimateType =
   | "fade-left"
   | "fade-right";
 
+type AnimateOptions = {
+  x: number;
+  y: number;
+  easing: string;
+  duration: number;
+  delay: number;
+};
+
 export class SxAnimate extends HTMLElement {
-  private static observer?: IntersectionObserver;
+  private animation?: Animation;
+  private options!: AnimateOptions;
 
-  private once = true;
+  private static counter = 0;
+  private readonly order = SxAnimate.counter++;
 
-  static get observedAttributes() {
-    return ["type", "duration", "delay", "strength", "easing", "once"];
+  private static mediaQuery = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  );
+
+  private static get reduceMotion() {
+    return this.mediaQuery.matches;
+  }
+
+  static groupQueue = new Set<SxAnimate>();
+  static isProcessingGroup = false;
+
+  static observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+
+        const el = entry.target as SxAnimate;
+
+        this.observer.unobserve(el);
+
+        if (el.isGroup) {
+          this.groupQueue.add(el);
+        } else {
+          el.play();
+        }
+      }
+
+      this.scheduleGroup();
+    },
+    {
+      threshold: 0,
+      rootMargin: "0px",
+    },
+  );
+
+  private static scheduleGroup() {
+    if (this.isProcessingGroup || !this.groupQueue.size) return;
+
+    this.isProcessingGroup = true;
+
+    requestAnimationFrame(() => {
+      this.handleGroup([...this.groupQueue]);
+      this.groupQueue.clear();
+      this.isProcessingGroup = false;
+    });
+  }
+
+  static handleGroup(items: SxAnimate[]) {
+    items.sort((a, b) => a.order - b.order);
+
+    items.forEach((el, index) => {
+      el.play(index * 120);
+    });
+  }
+
+  get isGroup() {
+    return this.hasAttribute("group");
   }
 
   connectedCallback() {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      this.classList.add("is-visible");
+    this.options = this.getOptions();
+
+    if (SxAnimate.reduceMotion) {
+      this.style.opacity = "1";
+      this.style.transform = "none";
       return;
     }
 
-    this.once = this.getBooleanAttr("once", true);
-
-    this.setupVariables();
-
-    if (!SxAnimate.observer) {
-      SxAnimate.observer = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            const el = entry.target as SxAnimate;
-
-            if (entry.isIntersecting) {
-              requestAnimationFrame(() => {
-                el.classList.add("is-visible");
-              });
-
-              if (el.once) {
-                SxAnimate.observer?.unobserve(el);
-              }
-            } else if (!el.once) {
-              requestAnimationFrame(() => {
-                el.classList.remove("is-visible");
-              });
-            }
-          }
-        },
-        {
-          rootMargin: "0px 0px -15% 0px",
-          threshold: 0.01,
-        },
-      );
-    }
-
+    this.setInitialState();
     SxAnimate.observer.observe(this);
   }
 
   disconnectedCallback() {
-    SxAnimate.observer?.unobserve(this);
+    this.animation?.cancel();
+    SxAnimate.observer.unobserve(this);
+    SxAnimate.groupQueue.delete(this);
   }
 
-  attributeChangedCallback(
-    name: string,
-    oldValue: string | null,
-    newValue: string | null,
-  ) {
-    if (oldValue === newValue) {
-      return;
-    }
+  private getOptions(): AnimateOptions {
+    const strength = Number(this.getAttribute("strength")) || 30;
 
-    if (name === "once") {
-      this.once = this.getBooleanAttr("once", true);
+    const offsets: Record<AnimateType, [number, number]> = {
+      fade: [0, 0],
+      "fade-up": [0, strength],
+      "fade-down": [0, -strength],
+      "fade-left": [strength, 0],
+      "fade-right": [-strength, 0],
+    };
 
-      return;
-    }
+    const type = (this.getAttribute("type") as AnimateType) ?? "fade-up";
 
-    this.setupVariables();
+    const easing = this.getAttribute("easing") as EasingType | null;
+
+    const [x, y] = offsets[type] ?? offsets["fade-up"];
+
+    return {
+      x,
+      y,
+      easing:
+        easing && easing in EASINGS ? EASINGS[easing] : EASINGS["ease-in-out"],
+      duration: Number(this.getAttribute("duration")) || 400,
+      delay: Number(this.getAttribute("delay")) || 0,
+    };
   }
 
-  private getBooleanAttr(name: string, defaultValue = true): boolean {
-    const value = this.getAttribute(name);
+  private setInitialState() {
+    const { x, y } = this.options;
 
-    if (value === null) {
-      return defaultValue;
-    }
-
-    return !["false", "0", "off"].includes(value.toLowerCase());
+    this.style.opacity = "0";
+    this.style.transform = `translate3d(${x}px, ${y}px, 0)`;
   }
 
-  private setupVariables() {
-    const type = (this.getAttribute("type") || "fade-up") as AnimateType;
+  play(extraDelay = 0) {
+    const { x, y, easing, duration, delay } = this.options;
 
-    const duration = Math.max(0, Number(this.getAttribute("duration") ?? 400));
+    this.animation?.cancel();
 
-    const delay = Math.max(0, Number(this.getAttribute("delay") ?? 0));
-
-    const strength = Math.max(0, Number(this.getAttribute("strength") ?? 30));
-
-    const easingKey = (this.getAttribute("easing") ??
-      "ease-in-out") as EasingType;
-
-    const easing = EASINGS[easingKey] ?? EASINGS["ease-in-out"];
-
-    this.style.setProperty("--sx-duration", `${duration}ms`);
-
-    this.style.setProperty("--sx-delay", `${delay + this.groupDelay()}ms`);
-
-    this.style.setProperty("--sx-easing", easing);
-
-    let x = 0;
-    let y = 0;
-
-    switch (type) {
-      case "fade-up":
-        y = strength;
-        break;
-
-      case "fade-down":
-        y = -strength;
-        break;
-
-      case "fade-left":
-        x = strength;
-        break;
-
-      case "fade-right":
-        x = -strength;
-        break;
-    }
-
-    this.style.setProperty("--sx-x", `${x}px`);
-
-    this.style.setProperty("--sx-y", `${y}px`);
-  }
-
-  private groupDelay(): number {
-    if (!this.hasAttribute("group")) {
-      return 0;
-    }
-
-    const parent = this.parentElement;
-
-    if (!parent) {
-      return 0;
-    }
-
-    const items = Array.from(
-      parent.querySelectorAll<SxAnimate>("sx-animate[group]"),
+    this.animation = this.animate(
+      [
+        {
+          opacity: 0,
+          transform: `translate3d(${x}px, ${y}px, 0)`,
+        },
+        {
+          opacity: 1,
+          transform: "translate3d(0,0,0)",
+        },
+      ],
+      {
+        duration,
+        delay: delay + extraDelay,
+        easing,
+        fill: "forwards",
+      },
     );
 
-    const index = items.indexOf(this);
+    this.animation.onfinish = () => {
+      this.style.opacity = "1";
+      this.style.transform = "translate3d(0,0,0)";
 
-    return index > -1 ? index * 80 : 0;
+      this.animation?.cancel();
+      this.animation = undefined;
+    };
   }
 }
 
-if (!customElements.get("sx-animate")) {
-  customElements.define("sx-animate", SxAnimate);
-}
+customElements.define("sx-animate", SxAnimate);

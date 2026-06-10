@@ -1,6 +1,3 @@
-/* css */
-import "./components/animate/animate.css";
-
 /* register components */
 import "./components/animate/sx-animate";
 import "./components/marquee/sx-marquee";
