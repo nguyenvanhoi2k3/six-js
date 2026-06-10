@@ -1,7 +1,7 @@
 {
   "name": "@six-js/core",
   "author": "Hội Nguyễn",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "main": "./dist/six-js.umd.js",
   "module": "./dist/six-js.es.js",
