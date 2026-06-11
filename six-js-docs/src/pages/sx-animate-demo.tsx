@@ -1,19 +1,130 @@
 import "@six-js/core";
-import "@six-js/core/style.css";
-import styles from "./index.module.css";
-import React, { useEffect } from "react";
-import Layout from "@theme/Layout";
+import React from "react";
 
 export default function SxAnimateDemoPage() {
   return (
     <>
-      <div style={{ background: "white" }}>
-        <div style={{ height: "110vh" }}></div>
-        <sx-animate type="fade-left" once="false">
-          <div className={styles.box}>Hello, SxAnimate!</div>
+      <sx-animate type="fade" duration={800}>
+        <h2 className="space flex-center">Scroll down to see the animation</h2>
+      </sx-animate>
+
+      <div className="flex-center gp-20 pb-20">
+        <sx-animate type="fade" duration={800} className="box">
+          fade
         </sx-animate>
-        <div style={{ height: "110vh" }}></div>
+        <sx-animate type="fade" duration={800} className="box">
+          fade
+        </sx-animate>
+        <sx-animate type="fade" duration={800} className="box">
+          fade
+        </sx-animate>
+        <sx-animate type="fade" duration={800} className="box">
+          fade
+        </sx-animate>
       </div>
+      <div className="flex-center gp-20 pb-20">
+        <sx-animate type="fade-left" className="box">
+          fade-left
+        </sx-animate>
+        <sx-animate type="fade-left" className="box">
+          fade-left
+        </sx-animate>
+        <sx-animate type="fade-left" className="box">
+          fade-left
+        </sx-animate>
+        <sx-animate type="fade-left" className="box">
+          fade-left
+        </sx-animate>
+      </div>
+      <div className="flex-center gp-20 pb-20">
+        <sx-animate type="fade-right" className="box">
+        fade-right
+        </sx-animate>
+        <sx-animate type="fade-right" className="box">
+        fade-right
+        </sx-animate>
+        <sx-animate type="fade-right" className="box">
+        fade-right
+        </sx-animate>
+        <sx-animate type="fade-right" className="box">
+        fade-right
+        </sx-animate>
+      </div>
+      <div className="flex-center gp-20 pb-20">
+        <sx-animate type="fade-down" className="box">
+        fade-down
+        </sx-animate>
+        <sx-animate type="fade-down" className="box">
+        fade-down
+        </sx-animate>
+        <sx-animate type="fade-down" className="box">
+        fade-down
+        </sx-animate>
+        <sx-animate type="fade-down" className="box">
+        fade-down
+        </sx-animate>
+      </div>
+      <div className="flex-center gp-20 pb-20">
+        <sx-animate type="fade-up" className="box" group>
+        group
+        </sx-animate>
+        <sx-animate type="fade-up" className="box" group>
+        group
+        </sx-animate>
+        <sx-animate type="fade-up" className="box" group>
+        group
+        </sx-animate>
+        <sx-animate type="fade-up" className="box" group>
+        group
+        </sx-animate>
+      </div>
+      <div className="flex-center gp-20 pb-20">
+        <sx-animate type="fade-up" className="box" group>
+        group
+        </sx-animate>
+        <sx-animate type="fade-up" className="box" group>
+        group
+        </sx-animate>
+        <sx-animate type="fade-up" className="box" group>
+        group
+        </sx-animate>
+        <sx-animate type="fade-up" className="box" group>
+        group
+        </sx-animate>
+      </div>
+      <div className="flex-center gp-20 pb-20">
+        <sx-animate type="fade-up" className="box" group>
+        group
+        </sx-animate>
+        <sx-animate type="fade-up" className="box" group>
+        group
+        </sx-animate>
+        <sx-animate type="fade-up" className="box" group>
+        group
+        </sx-animate>
+        <sx-animate type="fade-up" className="box" group>
+        group
+        </sx-animate>
+      </div>
+      <div className="flex-center gp-20 pb-20">
+        <sx-animate type="fade-up" className="box" group>
+        group
+        </sx-animate>
+        <sx-animate type="fade-up" className="box" group>
+        group
+        </sx-animate>
+        <sx-animate type="fade-up" className="box" group>
+        group
+        </sx-animate>
+        <sx-animate type="fade-up" className="box" group>
+        group
+        </sx-animate>
+      </div>
+      <h2 className="space flex-center">
+        <sx-animate type="fade" duration={800}>
+          End
+        </sx-animate>
+      </h2>
     </>
   );
 }

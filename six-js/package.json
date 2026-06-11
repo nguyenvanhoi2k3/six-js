@@ -1,7 +1,7 @@
 {
   "name": "@six-js/core",
   "author": "Hội Nguyễn",
-  "version": "0.0.4",
+  "version": "0.0.9",
   "type": "module",
   "main": "./dist/six-js.umd.js",
   "module": "./dist/six-js.es.js",
@@ -18,10 +18,13 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc && vite build"
+    "gen-version": "node -e \"const fs = require('fs'); const pkg = require('./package.json'); fs.writeFileSync('./src/version.ts', `export const VERSION = '${pkg.version}';\\n`);\"",
+    "build": "npm run gen-version && tsc && vite build",
+    "dev": "npm run gen-version && concurrently \"tsc --watch --preserveWatchOutput\" \"vite build --watch\""
   },
   "devDependencies": {
     "@types/node": "^22.10.1",
+    "concurrently": "^10.0.3",
     "rollup-plugin-minify-html-literals": "^1.2.6",
     "typescript": "^5.6.3",
     "vite": "^5.4.11"

@@ -6,7 +6,7 @@ import type { PreRenderedAsset } from "rollup";
 export default defineConfig({
   build: {
     minify: "esbuild",
-    cssCodeSplit: false, // 🔥 QUAN TRỌNG
+    cssCodeSplit: false,
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
       name: "SixJS",
@@ -18,7 +18,7 @@ export default defineConfig({
       output: {
         assetFileNames: (assetInfo: PreRenderedAsset) => {
           if (assetInfo.name?.endsWith(".css")) {
-            return "six-js.css"; // 👈 tên cuối cùng
+            return "six-js.css";
           }
           return "[name].[ext]";
         },

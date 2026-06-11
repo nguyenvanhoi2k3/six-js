@@ -12,8 +12,10 @@ export class SxAnimate extends HTMLElement {
     static isProcessingGroup = false;
     static observer = new IntersectionObserver((entries) => {
         for (const entry of entries) {
-            if (!entry.isIntersecting)
+            const visiblePixels = entry.intersectionRect.width * entry.intersectionRect.height;
+            if (visiblePixels < 1) {
                 continue;
+            }
             const el = entry.target;
             this.observer.unobserve(el);
             if (el.isGroup) {
@@ -25,8 +27,8 @@ export class SxAnimate extends HTMLElement {
         }
         this.scheduleGroup();
     }, {
-        threshold: 0,
-        rootMargin: "0px",
+        threshold: [0],
+        rootMargin: "-1px 0px -1px 0px",
     });
     static scheduleGroup() {
         if (this.isProcessingGroup || !this.groupQueue.size)

@@ -36,7 +36,12 @@ export class SxAnimate extends HTMLElement {
   static observer = new IntersectionObserver(
     (entries) => {
       for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
+        const visiblePixels =
+          entry.intersectionRect.width * entry.intersectionRect.height;
+
+        if (visiblePixels < 1) {
+          continue;
+        }
 
         const el = entry.target as SxAnimate;
 
@@ -52,8 +57,8 @@ export class SxAnimate extends HTMLElement {
       this.scheduleGroup();
     },
     {
-      threshold: 0,
-      rootMargin: "0px",
+      threshold: [0],
+      rootMargin: "-1px 0px -1px 0px",
     },
   );
 

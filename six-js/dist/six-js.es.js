@@ -1,7 +1,7 @@
 var m = Object.defineProperty;
 var g = (a, o, e) => o in a ? m(a, o, { enumerable: !0, configurable: !0, writable: !0, value: e }) : a[o] = e;
 var i = (a, o, e) => g(a, typeof o != "symbol" ? o + "" : o, e);
-const d = {
+const b = "0.0.9", d = {
   "ease-in": "cubic-bezier(0.42, 0, 1, 1)",
   "ease-out": "cubic-bezier(0, 0, 0.58, 1)",
   "ease-in-out": "cubic-bezier(0.42, 0, 0.58, 1)",
@@ -28,8 +28,8 @@ const d = {
     }));
   }
   static handleGroup(e) {
-    e.sort((t, s) => t.order - s.order), e.forEach((t, s) => {
-      t.play(s * 120);
+    e.sort((t, r) => t.order - r.order), e.forEach((t, r) => {
+      t.play(r * 120);
     });
   }
   get isGroup() {
@@ -53,11 +53,11 @@ const d = {
       "fade-down": [0, -e],
       "fade-left": [e, 0],
       "fade-right": [-e, 0]
-    }, s = this.getAttribute("type") ?? "fade-up", r = this.getAttribute("easing"), [u, h] = t[s] ?? t["fade-up"];
+    }, r = this.getAttribute("type") ?? "fade-up", s = this.getAttribute("easing"), [u, h] = t[r] ?? t["fade-up"];
     return {
       x: u,
       y: h,
-      easing: r && r in d ? d[r] : d["ease-in-out"],
+      easing: s && s in d ? d[s] : d["ease-in-out"],
       duration: Number(this.getAttribute("duration")) || 400,
       delay: Number(this.getAttribute("delay")) || 0
     };
@@ -68,12 +68,12 @@ const d = {
   }
   play(e = 0) {
     var c;
-    const { x: t, y: s, easing: r, duration: u, delay: h } = this.options;
+    const { x: t, y: r, easing: s, duration: u, delay: h } = this.options;
     (c = this.animation) == null || c.cancel(), this.animation = this.animate(
       [
         {
           opacity: 0,
-          transform: `translate3d(${t}px, ${s}px, 0)`
+          transform: `translate3d(${t}px, ${r}px, 0)`
         },
         {
           opacity: 1,
@@ -83,7 +83,7 @@ const d = {
       {
         duration: u,
         delay: h + e,
-        easing: r,
+        easing: s,
         fill: "forwards"
       }
     ), this.animation.onfinish = () => {
@@ -97,20 +97,21 @@ i(n, "counter", 0), i(n, "mediaQuery", window.matchMedia(
 )), i(n, "groupQueue", /* @__PURE__ */ new Set()), i(n, "isProcessingGroup", !1), i(n, "observer", new IntersectionObserver(
   (e) => {
     for (const t of e) {
-      if (!t.isIntersecting) continue;
+      if (t.intersectionRect.width * t.intersectionRect.height < 1)
+        continue;
       const s = t.target;
       n.observer.unobserve(s), s.isGroup ? n.groupQueue.add(s) : s.play();
     }
     n.scheduleGroup();
   },
   {
-    threshold: 0,
-    rootMargin: "0px"
+    threshold: [0],
+    rootMargin: "-1px 0px -1px 0px"
   }
 ));
-let f = n;
-customElements.define("sx-animate", f);
-class b extends HTMLElement {
+let p = n;
+customElements.define("sx-animate", p);
+class y extends HTMLElement {
   constructor() {
     super();
     i(this, "inner", null);
@@ -161,8 +162,8 @@ class b extends HTMLElement {
     var e;
     this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (e = this.resizeObserver) == null || e.disconnect(), this.rafId !== null && cancelAnimationFrame(this.rafId), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId);
   }
-  attributeChangedCallback(e, t, s) {
-    t !== s && (e === "gap" ? (this.updateGapVar(), setTimeout(() => {
+  attributeChangedCallback(e, t, r) {
+    t !== r && (e === "gap" ? (this.updateGapVar(), setTimeout(() => {
       this.dirtyBounds = !0, this.scheduleSetup();
     }, 50)) : (e === "direction" || e === "speed") && (this.dirtyBounds = !0, this.scheduleSetup()));
   }
@@ -210,13 +211,13 @@ class b extends HTMLElement {
           )
         );
         this.inner.replaceChildren(...t);
-        const s = this.offsetWidth, r = this.inner.offsetWidth;
-        if (r > 0 && s > 0) {
-          const u = r < s ? Math.ceil(s * 2 / r) : 2, h = document.createDocumentFragment();
+        const r = this.offsetWidth, s = this.inner.offsetWidth;
+        if (s > 0 && r > 0) {
+          const u = s < r ? Math.ceil(r * 2 / s) : 2, h = document.createDocumentFragment();
           for (let c = 1; c < u; c++)
             for (const l of t) {
-              const p = l.cloneNode(!0);
-              p.setAttribute("data-clone", "true"), h.appendChild(p);
+              const f = l.cloneNode(!0);
+              f.setAttribute("data-clone", "true"), h.appendChild(f);
             }
           this.inner.appendChild(h);
         }
@@ -234,19 +235,19 @@ class b extends HTMLElement {
     );
     if (e.length === 0) return 0;
     let t = 0;
-    for (const r of e) t += r.offsetWidth;
-    const s = parseFloat(getComputedStyle(this.inner).gap) || 0;
-    return t += s * e.length, this.cachedResetBounds = t, this.dirtyBounds = !1, t;
+    for (const s of e) t += s.offsetWidth;
+    const r = parseFloat(getComputedStyle(this.inner).gap) || 0;
+    return t += r * e.length, this.cachedResetBounds = t, this.dirtyBounds = !1, t;
   }
   startAnimation() {
     this.rafId !== null && cancelAnimationFrame(this.rafId);
     const e = (t) => {
-      const s = (t - this.lastTime) / 1e3;
+      const r = (t - this.lastTime) / 1e3;
       if (this.lastTime = t, !this.isHovered) {
-        const r = this.getResetBounds();
-        if (r > 0) {
-          const u = this.speed * s;
-          this.direction === "left" ? (this.offset -= u, this.offset <= -r && (this.offset += r)) : (this.offset += u, this.offset >= 0 && (this.offset -= r)), this.applyTransform(this.offset);
+        const s = this.getResetBounds();
+        if (s > 0) {
+          const u = this.speed * r;
+          this.direction === "left" ? (this.offset -= u, this.offset <= -s && (this.offset += s)) : (this.offset += u, this.offset >= 0 && (this.offset -= s)), this.applyTransform(this.offset);
         }
       }
       this.rafId = requestAnimationFrame(e);
@@ -257,19 +258,20 @@ class b extends HTMLElement {
     this.inner && (this.inner.style.transform = `translate3d(${e}px,0,0)`);
   }
 }
-class y extends HTMLElement {
-}
 class v extends HTMLElement {
+}
+class x extends HTMLElement {
   connectedCallback() {
     this.style.cssText = "display:inline-block;flex-shrink:0;";
   }
 }
-customElements.define("sx-marquee", b);
-customElements.define("sx-marquee-inner", y);
-customElements.define("sx-marquee-item", v);
+customElements.define("sx-marquee", y);
+customElements.define("sx-marquee-inner", v);
+customElements.define("sx-marquee-item", x);
+console.log(`@six-js/core v${b}`);
 export {
-  f as SxAnimate,
-  b as SxMarquee,
-  y as SxMarqueeInner,
-  v as SxMarqueeItem
+  p as SxAnimate,
+  y as SxMarquee,
+  v as SxMarqueeInner,
+  x as SxMarqueeItem
 };

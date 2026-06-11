@@ -28,3 +28,48 @@
   --ifm-color-primary-lightest: #4fddbf;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
+
+body {
+  font-family: sans-serif;
+}
+
+.box {
+  width: 200px;
+  height: 200px;
+  background-color: #ccc;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+}
+
+.space {
+  height: 100vh;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex {
+  display: flex;
+}
+
+.jc-center {
+  justify-content: center;
+}
+
+.ai-center {
+  align-items: center;
+}
+
+.gp-20 {
+  gap: 20px;
+}
+
+.pb-20 {
+  padding-bottom: 20px;
+}
