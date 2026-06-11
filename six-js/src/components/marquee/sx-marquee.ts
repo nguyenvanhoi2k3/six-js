@@ -20,7 +20,14 @@ export class SxMarquee extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ["direction", "speed", "pause-on-hover", "gap"];
+    return ["direction", "speed", "pause-on-hover", "gap", "clone"];
+  }
+
+  get clone(): boolean {
+    return this.getAttribute("clone") !== "false";
+  }
+  set clone(val: boolean | string) {
+    this.setAttribute("clone", String(val));
   }
 
   get direction(): MarqueeDirection {
@@ -102,12 +109,11 @@ export class SxMarquee extends HTMLElement {
     newVal: string | null,
   ) {
     if (oldVal === newVal) return;
+
     if (name === "gap") {
       this.updateGapVar();
-      setTimeout(() => {
-        this.scheduleSetup();
-      }, 50);
-    } else if (name === "direction" || name === "speed") {
+      setTimeout(() => this.scheduleSetup(), 50);
+    } else if (name === "direction" || name === "speed" || name === "clone") {
       this.scheduleSetup();
     }
   }
@@ -173,12 +179,13 @@ export class SxMarquee extends HTMLElement {
           "sx-marquee-item:not([data-clone])",
         ),
       );
+
       this.inner.replaceChildren(...originals);
 
       const containerW = this.offsetWidth;
       const contentW = this.inner.offsetWidth;
 
-      if (contentW > 0 && containerW > 0) {
+      if (this.clone && contentW > 0 && containerW > 0) {
         const clonesNeeded =
           contentW < containerW ? Math.ceil((containerW * 2) / contentW) : 2;
 
@@ -234,13 +241,27 @@ export class SxMarquee extends HTMLElement {
 
     if (this.direction === "left") {
       this.offset -= dist;
-      if (this.offset <= -this.cachedResetBounds) {
-        this.offset += this.cachedResetBounds;
+
+      if (this.clone) {
+        if (this.offset <= -this.cachedResetBounds) {
+          this.offset += this.cachedResetBounds;
+        }
+      } else {
+        if (this.offset <= -this.cachedResetBounds) {
+          this.offset = this.offsetWidth;
+        }
       }
     } else {
       this.offset += dist;
-      if (this.offset >= 0) {
-        this.offset -= this.cachedResetBounds;
+
+      if (this.clone) {
+        if (this.offset >= 0) {
+          this.offset -= this.cachedResetBounds;
+        }
+      } else {
+        if (this.offset >= this.offsetWidth) {
+          this.offset = -this.cachedResetBounds;
+        }
       }
     }
 

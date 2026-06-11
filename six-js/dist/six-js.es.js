@@ -1,6 +1,6 @@
 var x = Object.defineProperty;
-var w = (a, t, e) => t in a ? x(a, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : a[t] = e;
-var i = (a, t, e) => w(a, typeof t != "symbol" ? t + "" : t, e);
+var w = (o, t, e) => t in o ? x(o, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : o[t] = e;
+var i = (o, t, e) => w(o, typeof t != "symbol" ? t + "" : t, e);
 const q = "0.0.12", d = {
   "ease-in": "cubic-bezier(0.42, 0, 1, 1)",
   "ease-out": "cubic-bezier(0, 0, 0.58, 1)",
@@ -12,12 +12,12 @@ const q = "0.0.12", d = {
   "back-in": "cubic-bezier(0.36, 0, 0.66, -0.56)",
   "back-out": "cubic-bezier(0.34, 1.56, 0.64, 1)",
   "back-in-out": "cubic-bezier(0.68, -0.6, 0.32, 1.6)"
-}, o = class o extends HTMLElement {
+}, a = class a extends HTMLElement {
   constructor() {
     super(...arguments);
     i(this, "animation");
     i(this, "options");
-    i(this, "order", o.counter++);
+    i(this, "order", a.counter++);
   }
   static get reduceMotion() {
     return this.mediaQuery.matches;
@@ -36,15 +36,15 @@ const q = "0.0.12", d = {
     return this.hasAttribute("group");
   }
   connectedCallback() {
-    if (this.options = this.getOptions(), o.reduceMotion) {
+    if (this.options = this.getOptions(), a.reduceMotion) {
       this.style.opacity = "1", this.style.transform = "none";
       return;
     }
-    this.setInitialState(), o.observer.observe(this);
+    this.setInitialState(), a.observer.observe(this);
   }
   disconnectedCallback() {
     var e;
-    (e = this.animation) == null || e.cancel(), o.observer.unobserve(this), o.groupQueue.delete(this);
+    (e = this.animation) == null || e.cancel(), a.observer.unobserve(this), a.groupQueue.delete(this);
   }
   getOptions() {
     const e = Number(this.getAttribute("strength")) || 30, s = {
@@ -92,26 +92,26 @@ const q = "0.0.12", d = {
     };
   }
 };
-i(o, "counter", 0), i(o, "mediaQuery", window.matchMedia(
+i(a, "counter", 0), i(a, "mediaQuery", window.matchMedia(
   "(prefers-reduced-motion: reduce)"
-)), i(o, "groupQueue", /* @__PURE__ */ new Set()), i(o, "isProcessingGroup", !1), i(o, "observer", new IntersectionObserver(
+)), i(a, "groupQueue", /* @__PURE__ */ new Set()), i(a, "isProcessingGroup", !1), i(a, "observer", new IntersectionObserver(
   (e) => {
     for (const s of e) {
       if (s.intersectionRect.width * s.intersectionRect.height < 1)
         continue;
       const n = s.target;
-      o.observer.unobserve(n), n.isGroup ? o.groupQueue.add(n) : n.play();
+      a.observer.unobserve(n), n.isGroup ? a.groupQueue.add(n) : n.play();
     }
-    o.scheduleGroup();
+    a.scheduleGroup();
   },
   {
     threshold: [0],
     rootMargin: "-1px 0px -1px 0px"
   }
 ));
-let f = o;
-customElements.define("sx-animate", f);
-class M {
+let p = a;
+customElements.define("sx-animate", p);
+class A {
   constructor() {
     i(this, "_listeners", /* @__PURE__ */ new Set());
     i(this, "_time", 0);
@@ -204,33 +204,33 @@ class M {
     return this._listeners.size;
   }
 }
-const p = new M(), b = /* @__PURE__ */ new WeakMap();
+const f = new A(), b = /* @__PURE__ */ new WeakMap();
 let m = [], g = null;
-function _(a, t) {
-  m.push({ instance: a, type: t }), g === null && (g = requestAnimationFrame(A));
+function _(o, t) {
+  m.push({ instance: o, type: t }), g === null && (g = requestAnimationFrame(M));
 }
-function A() {
-  const a = m.slice();
+function M() {
+  const o = m.slice();
   m.length = 0, g = null;
-  for (let t = 0; t < a.length; t++) {
-    const { instance: e, type: s } = a[t];
+  for (let t = 0; t < o.length; t++) {
+    const { instance: e, type: s } = o[t];
     s === "enter" ? e.enter() : e.leave && e.leave();
   }
 }
 const y = new IntersectionObserver(
-  (a) => {
-    for (let t = 0; t < a.length; t++) {
-      const e = a[t], s = b.get(e.target);
+  (o) => {
+    for (let t = 0; t < o.length; t++) {
+      const e = o[t], s = b.get(e.target);
       s && (e.isIntersecting ? _(s, "enter") : _(s, "leave"));
     }
   },
   { threshold: 0.05 }
 );
-function k(a, t) {
-  b.set(a, t), y.observe(a);
+function R(o, t) {
+  b.set(o, t), y.observe(o);
 }
-function R(a) {
-  b.delete(a), y.unobserve(a);
+function k(o) {
+  b.delete(o), y.unobserve(o);
 }
 class S extends HTMLElement {
   constructor() {
@@ -252,12 +252,18 @@ class S extends HTMLElement {
     i(this, "updateAnimation", (e, s) => {
       if (this.isHovered || this.cachedResetBounds <= 0) return;
       const r = s / 1e3, n = this.speed * r;
-      this.direction === "left" ? (this.offset -= n, this.offset <= -this.cachedResetBounds && (this.offset += this.cachedResetBounds)) : (this.offset += n, this.offset >= 0 && (this.offset -= this.cachedResetBounds)), this.applyTransform(this.offset);
+      this.direction === "left" ? (this.offset -= n, this.clone ? this.offset <= -this.cachedResetBounds && (this.offset += this.cachedResetBounds) : this.offset <= -this.cachedResetBounds && (this.offset = this.offsetWidth)) : (this.offset += n, this.clone ? this.offset >= 0 && (this.offset -= this.cachedResetBounds) : this.offset >= this.offsetWidth && (this.offset = -this.cachedResetBounds)), this.applyTransform(this.offset);
     });
     this.attachShadow({ mode: "open" });
   }
   static get observedAttributes() {
-    return ["direction", "speed", "pause-on-hover", "gap"];
+    return ["direction", "speed", "pause-on-hover", "gap", "clone"];
+  }
+  get clone() {
+    return this.getAttribute("clone") !== "false";
+  }
+  set clone(e) {
+    this.setAttribute("clone", String(e));
   }
   get direction() {
     return this.getAttribute("direction") === "right" ? "right" : "left";
@@ -292,23 +298,21 @@ class S extends HTMLElement {
     }
     this.addEventListener("mouseenter", this.onMouseEnter), this.addEventListener("mouseleave", this.onMouseLeave), this.resizeObserver = new ResizeObserver(() => {
       this.scheduleSetup();
-    }), this.resizeObserver.observe(this), k(this, {
+    }), this.resizeObserver.observe(this), R(this, {
       enter: () => {
-        this.isVisible || (this.isVisible = !0, p.add(this.updateAnimation));
+        this.isVisible || (this.isVisible = !0, f.add(this.updateAnimation));
       },
       leave: () => {
-        this.isVisible && (this.isVisible = !1, p.remove(this.updateAnimation));
+        this.isVisible && (this.isVisible = !1, f.remove(this.updateAnimation));
       }
     });
   }
   disconnectedCallback() {
     var e;
-    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (e = this.resizeObserver) == null || e.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), R(this), p.remove(this.updateAnimation);
+    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (e = this.resizeObserver) == null || e.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), k(this), f.remove(this.updateAnimation);
   }
   attributeChangedCallback(e, s, r) {
-    s !== r && (e === "gap" ? (this.updateGapVar(), setTimeout(() => {
-      this.scheduleSetup();
-    }, 50)) : (e === "direction" || e === "speed") && this.scheduleSetup());
+    s !== r && (e === "gap" ? (this.updateGapVar(), setTimeout(() => this.scheduleSetup(), 50)) : (e === "direction" || e === "speed" || e === "clone") && this.scheduleSetup());
   }
   scheduleSetup() {
     this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), this.setupRafId = requestAnimationFrame(() => {
@@ -355,7 +359,7 @@ class S extends HTMLElement {
         );
         this.inner.replaceChildren(...s);
         const r = this.offsetWidth, n = this.inner.offsetWidth;
-        if (n > 0 && r > 0) {
+        if (this.clone && n > 0 && r > 0) {
           const h = n < r ? Math.ceil(r * 2 / n) : 2, l = document.createDocumentFragment();
           for (let u = 1; u < h; u++)
             for (const c of s) {
@@ -404,7 +408,7 @@ customElements.define("sx-marquee-inner", T);
 customElements.define("sx-marquee-item", z);
 console.log(`@six-js/core v${q}`);
 export {
-  f as SxAnimate,
+  p as SxAnimate,
   S as SxMarquee,
   T as SxMarqueeInner,
   z as SxMarqueeItem

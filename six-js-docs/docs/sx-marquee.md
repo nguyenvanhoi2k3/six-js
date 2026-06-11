@@ -28,3 +28,4 @@ Thẻ `<sx-marquee>` hỗ trợ tạo hiệu ứng chữ hoặc nội dung chạ
 |speed|number|>= 0|50|Tốc độ chạy|
 |pause-on-hover|boolean|true \| false|true|Dừng khi hover|
 |gap|number \| string|Ví dụ: 20(=20px), 1rem|16|Khoảng cách giữa các item|
+|clone|boolean|true \| false|true|Tự động nhân bản item|
