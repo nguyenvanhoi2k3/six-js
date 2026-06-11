@@ -6,114 +6,60 @@
     <title>six-js</title>
 
     <link rel="stylesheet" href="./index.css" />
+    <!-- <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@12/swiper-element-bundle.min.js"></script> -->
   </head>
 
   <body>
-    <div style="height: 10vh"></div>
-
-    <sx-marquee
-      class="flex-center"
-      style="border: 1px solid #797878; background: #ccc; height: 50px"
-      direction="right"
-      speed="100"
-      pause-on-hover="false"
+    <sx-slider
+      name="slider-1"
+      per-view="1"
+      gap="10"
+      speed="400"
+      breakpoints="{
+        360: {
+          per-view: 2,
+          gap: 20
+        },
+        768: {
+          per-view: 3,
+          gap: 30
+        },
+        1080: {
+          per-view: 4,
+          gap: 40
+        }
+      }"
     >
-      <sx-marquee-inner>
-        <sx-marquee-item>
-          <span>🔥 Tin tức mới nhất: Hot sale tháng 11!</span>
-        </sx-marquee-item>
-      </sx-marquee-inner>
-    </sx-marquee>
-
-    <div style="height: 20vh"></div>
-
-    <sx-marquee
-      class="flex-center"
-      style="border: 1px solid #797878; background: #ccc; height: 50px"
-      speed="100"
-      pause-on-hover="false"
-    >
-      <sx-marquee-inner>
-        <sx-marquee-item>
-          <span> item maruqee 1</span>
-        </sx-marquee-item>
-        <sx-marquee-item>
-          <span> item maruqee 2</span>
-        </sx-marquee-item>
-        <sx-marquee-item>
-          <span> item maruqee 3</span>
-        </sx-marquee-item>
-        <sx-marquee-item>
-          <span> item maruqee 4</span>
-        </sx-marquee-item>
-      </sx-marquee-inner>
-    </sx-marquee>
-
-    <div style="height: 20vh"></div>
-
-    <sx-marquee speed="200" clone="false">
-      <sx-marquee-inner>
-        <sx-marquee-item><span>Khi clone="false" nội dung sẽ không được nhân bản và tự chạy lại khi đi hết</span></sx-marquee-item>
-      </sx-marquee-inner>
-    </sx-marquee>
-
-    <div style="height: 20vh"></div>
-    <div style="height: 20vh"></div>
-    <sx-marquee class="flex-center" direction="right" speed="150">
-      <sx-marquee-inner>
-        <sx-marquee-item>
-          <img
-            style="width: 300px; height: 200px; object-fit: cover"
-            src="https://images.pexels.com/photos/11774912/pexels-photo-11774912.jpeg"
-          />
-        </sx-marquee-item>
-        <sx-marquee-item>
-          <img
-            style="width: 280px; height: 250px; object-fit: cover"
-            src="https://images.pexels.com/photos/10737735/pexels-photo-10737735.jpeg"
-          />
-        </sx-marquee-item>
-        <sx-marquee-item>
-          <img
-            style="width: 300px; height: 200px; object-fit: cover"
-            src="https://images.pexels.com/photos/5739232/pexels-photo-5739232.jpeg"
-          />
-        </sx-marquee-item>
-        <sx-marquee-item>
-          <img
-            style="width: 220px; height: 220px; object-fit: cover"
-            src="https://images.pexels.com/photos/36412364/pexels-photo-36412364.jpeg"
-          />
-        </sx-marquee-item>
-      </sx-marquee-inner>
-    </sx-marquee>
-
-    <div style="height: 20vh"></div>
-
-    <sx-marquee class="flex-center" speed="100" gap="50" pause-on-hover="false">
-      <sx-marquee-inner>
-        <sx-marquee-item>
-          <img src="https://cdn-icons-png.flaticon.com/128/1384/1384060.png" />
-        </sx-marquee-item>
-        <sx-marquee-item>
-          <img src="https://cdn-icons-png.flaticon.com/128/5968/5968764.png" />
-        </sx-marquee-item>
-        <sx-marquee-item>
-          <img
-            src="https://cdn-icons-png.flaticon.com/128/15707/15707749.png"
-          />
-        </sx-marquee-item>
-        <sx-marquee-item>
-          <img src="https://cdn-icons-png.flaticon.com/128/3116/3116491.png" />
-        </sx-marquee-item>
-        <sx-marquee-item>
-          <img src="https://cdn-icons-png.flaticon.com/128/5969/5969020.png" />
-        </sx-marquee-item>
-        <sx-marquee-item>
-          <img src="https://cdn-icons-png.flaticon.com/128/5968/5968472.png" />
-        </sx-marquee-item>
-      </sx-marquee-inner>
-    </sx-marquee>
+      <sx-slider-track>
+        <sx-slider-slide>
+          <div class="slide">Slide 1</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide">Slide 2</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide">Slide 3</div>
+        </sx-slider-slide>
+      </sx-slider-track>
+      <sx-slider-prev>Prev</sx-slider-prev>
+      <sx-slider-next>Next</sx-slider-next>
+      <sx-slider-pagination>
+        <!-- các thẻ dot (tượng trưng cho từng slide) sẽ được render và dot được active sẽ có attr riêng để tự do css -->
+      </sx-slider-pagination>
+      <sx-slider-progress>
+        <!-- render thanh tiến trình cơ bản để tự do css, thanh tiến trình này phải phục vụ cho cả chức năng draggable -->
+      </sx-slider-progress>
+      <sx-slider-thumbnail>
+        <!-- render thumbnail ở đây -->
+      </sx-slider-thumbnail>
+    </sx-slider>
+    <h3>Điều khiển slider bằng name</h3>
+    <sx-slider-prev name="slider-1">Prev</sx-slider-prev>
+    <sx-slider-next name="slider-1">Next</sx-slider-next>
 
     <div style="height: 20vh"></div>
 

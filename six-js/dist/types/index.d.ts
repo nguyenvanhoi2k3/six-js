@@ -1,5 +1,5 @@
 import "./styles/base.css";
-import "./components/animate/sx-animate";
-import "./components/marquee/sx-marquee";
-export * from "./components/animate/sx-animate";
-export * from "./components/marquee/sx-marquee";
+import "./components/animate/animate";
+import "./components/marquee/marquee";
+export * from "./components/animate/animate";
+export * from "./components/marquee/marquee";

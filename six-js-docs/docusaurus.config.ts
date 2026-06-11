@@ -107,7 +107,7 @@ const config: Config = {
               // ĐÃ SỬA: Đổi từ "Tutorial" trỏ về "/docs/intro" (bị gãy) 
               // sang "Components" trỏ về một trang thực tế tồn tại
               label: "Components",
-              to: "/docs/sx-animate",
+              to: "/docs/Animate",
             },
           ],
         },
