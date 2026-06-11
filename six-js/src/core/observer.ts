@@ -1,54 +1,51 @@
 type ObserverInstance = {
   enter: () => void;
+  leave?: () => void;
 };
 
 const observed = new WeakMap<Element, ObserverInstance>();
-
-// ===== RAF BATCH QUEUE =====
-let queue: ObserverInstance[] = [];
+let queue: { instance: ObserverInstance; type: "enter" | "leave" }[] = [];
 let rafId: number | null = null;
 
-function schedule(instance: ObserverInstance) {
-  queue.push(instance);
-
+function schedule(instance: ObserverInstance, type: "enter" | "leave") {
+  queue.push({ instance, type });
   if (rafId === null) {
     rafId = requestAnimationFrame(flush);
   }
 }
 
 function flush() {
-  // snapshot giống GSAP (tránh mutation khi loop)
   const q = queue.slice();
-
   queue.length = 0;
   rafId = null;
 
   for (let i = 0; i < q.length; i++) {
-    q[i].enter();
+    const { instance, type } = q[i];
+
+    if (type === "enter") {
+      instance.enter();
+    } else if (instance.leave) {
+      instance.leave();
+    }
   }
 }
 
-// ===== INTERSECTION OBSERVER =====
 const io = new IntersectionObserver(
   (entries) => {
     for (let i = 0; i < entries.length; i++) {
       const entry = entries[i];
-
-      if (!entry.isIntersecting) continue;
-
       const instance = observed.get(entry.target);
       if (!instance) continue;
 
-      // 🔥 không gọi trực tiếp → schedule
-      schedule(instance);
+      if (entry.isIntersecting) {
+        schedule(instance, "enter");
+      } else {
+        schedule(instance, "leave");
+      }
     }
   },
-  {
-    threshold: 0.1,
-  },
+  { threshold: 0.05 },
 );
-
-// ===== PUBLIC API =====
 
 export function observe(el: Element, instance: ObserverInstance) {
   observed.set(el, instance);

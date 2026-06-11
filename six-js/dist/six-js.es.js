@@ -1,7 +1,7 @@
-var m = Object.defineProperty;
-var g = (a, o, e) => o in a ? m(a, o, { enumerable: !0, configurable: !0, writable: !0, value: e }) : a[o] = e;
-var i = (a, o, e) => g(a, typeof o != "symbol" ? o + "" : o, e);
-const b = "0.0.9", d = {
+var x = Object.defineProperty;
+var w = (a, t, e) => t in a ? x(a, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : a[t] = e;
+var i = (a, t, e) => w(a, typeof t != "symbol" ? t + "" : t, e);
+const q = "0.0.12", d = {
   "ease-in": "cubic-bezier(0.42, 0, 1, 1)",
   "ease-out": "cubic-bezier(0, 0, 0.58, 1)",
   "ease-in-out": "cubic-bezier(0.42, 0, 0.58, 1)",
@@ -12,12 +12,12 @@ const b = "0.0.9", d = {
   "back-in": "cubic-bezier(0.36, 0, 0.66, -0.56)",
   "back-out": "cubic-bezier(0.34, 1.56, 0.64, 1)",
   "back-in-out": "cubic-bezier(0.68, -0.6, 0.32, 1.6)"
-}, n = class n extends HTMLElement {
+}, o = class o extends HTMLElement {
   constructor() {
     super(...arguments);
     i(this, "animation");
     i(this, "options");
-    i(this, "order", n.counter++);
+    i(this, "order", o.counter++);
   }
   static get reduceMotion() {
     return this.mediaQuery.matches;
@@ -28,52 +28,52 @@ const b = "0.0.9", d = {
     }));
   }
   static handleGroup(e) {
-    e.sort((t, r) => t.order - r.order), e.forEach((t, r) => {
-      t.play(r * 120);
+    e.sort((s, r) => s.order - r.order), e.forEach((s, r) => {
+      s.play(r * 120);
     });
   }
   get isGroup() {
     return this.hasAttribute("group");
   }
   connectedCallback() {
-    if (this.options = this.getOptions(), n.reduceMotion) {
+    if (this.options = this.getOptions(), o.reduceMotion) {
       this.style.opacity = "1", this.style.transform = "none";
       return;
     }
-    this.setInitialState(), n.observer.observe(this);
+    this.setInitialState(), o.observer.observe(this);
   }
   disconnectedCallback() {
     var e;
-    (e = this.animation) == null || e.cancel(), n.observer.unobserve(this), n.groupQueue.delete(this);
+    (e = this.animation) == null || e.cancel(), o.observer.unobserve(this), o.groupQueue.delete(this);
   }
   getOptions() {
-    const e = Number(this.getAttribute("strength")) || 30, t = {
+    const e = Number(this.getAttribute("strength")) || 30, s = {
       fade: [0, 0],
       "fade-up": [0, e],
       "fade-down": [0, -e],
       "fade-left": [e, 0],
       "fade-right": [-e, 0]
-    }, r = this.getAttribute("type") ?? "fade-up", s = this.getAttribute("easing"), [u, h] = t[r] ?? t["fade-up"];
+    }, r = this.getAttribute("type") ?? "fade-up", n = this.getAttribute("easing"), [h, l] = s[r] ?? s["fade-up"];
     return {
-      x: u,
-      y: h,
-      easing: s && s in d ? d[s] : d["ease-in-out"],
+      x: h,
+      y: l,
+      easing: n && n in d ? d[n] : d["ease-in-out"],
       duration: Number(this.getAttribute("duration")) || 400,
       delay: Number(this.getAttribute("delay")) || 0
     };
   }
   setInitialState() {
-    const { x: e, y: t } = this.options;
-    this.style.opacity = "0", this.style.transform = `translate3d(${e}px, ${t}px, 0)`;
+    const { x: e, y: s } = this.options;
+    this.style.opacity = "0", this.style.transform = `translate3d(${e}px, ${s}px, 0)`;
   }
   play(e = 0) {
-    var c;
-    const { x: t, y: r, easing: s, duration: u, delay: h } = this.options;
-    (c = this.animation) == null || c.cancel(), this.animation = this.animate(
+    var u;
+    const { x: s, y: r, easing: n, duration: h, delay: l } = this.options;
+    (u = this.animation) == null || u.cancel(), this.animation = this.animate(
       [
         {
           opacity: 0,
-          transform: `translate3d(${t}px, ${r}px, 0)`
+          transform: `translate3d(${s}px, ${r}px, 0)`
         },
         {
           opacity: 1,
@@ -81,54 +81,178 @@ const b = "0.0.9", d = {
         }
       ],
       {
-        duration: u,
-        delay: h + e,
-        easing: s,
+        duration: h,
+        delay: l + e,
+        easing: n,
         fill: "forwards"
       }
     ), this.animation.onfinish = () => {
-      var l;
-      this.style.opacity = "1", this.style.transform = "translate3d(0,0,0)", (l = this.animation) == null || l.cancel(), this.animation = void 0;
+      var c;
+      this.style.opacity = "1", this.style.transform = "translate3d(0,0,0)", (c = this.animation) == null || c.cancel(), this.animation = void 0;
     };
   }
 };
-i(n, "counter", 0), i(n, "mediaQuery", window.matchMedia(
+i(o, "counter", 0), i(o, "mediaQuery", window.matchMedia(
   "(prefers-reduced-motion: reduce)"
-)), i(n, "groupQueue", /* @__PURE__ */ new Set()), i(n, "isProcessingGroup", !1), i(n, "observer", new IntersectionObserver(
+)), i(o, "groupQueue", /* @__PURE__ */ new Set()), i(o, "isProcessingGroup", !1), i(o, "observer", new IntersectionObserver(
   (e) => {
-    for (const t of e) {
-      if (t.intersectionRect.width * t.intersectionRect.height < 1)
+    for (const s of e) {
+      if (s.intersectionRect.width * s.intersectionRect.height < 1)
         continue;
-      const s = t.target;
-      n.observer.unobserve(s), s.isGroup ? n.groupQueue.add(s) : s.play();
+      const n = s.target;
+      o.observer.unobserve(n), n.isGroup ? o.groupQueue.add(n) : n.play();
     }
-    n.scheduleGroup();
+    o.scheduleGroup();
   },
   {
     threshold: [0],
     rootMargin: "-1px 0px -1px 0px"
   }
 ));
-let p = n;
-customElements.define("sx-animate", p);
-class y extends HTMLElement {
+let f = o;
+customElements.define("sx-animate", f);
+class M {
+  constructor() {
+    i(this, "_listeners", /* @__PURE__ */ new Set());
+    i(this, "_time", 0);
+    // seconds
+    i(this, "_delta", 0);
+    // ms
+    i(this, "_frame", 0);
+    i(this, "_start", this._now());
+    i(this, "_last", this._start);
+    i(this, "_lagThreshold", 500);
+    i(this, "_adjustedLag", 33);
+    i(this, "_gap", 1e3 / 240);
+    i(this, "_nextTime", this._gap);
+    i(this, "_id", null);
+    i(this, "_tick", () => {
+      let e = this._now() - this._last;
+      (e > this._lagThreshold || e < 0) && (this._start += e - this._adjustedLag), this._last += e;
+      const s = this._last - this._start, r = s - this._nextTime;
+      if (r > 0) {
+        this._frame++, this._delta = s - this._time * 1e3, this._time = s / 1e3, this._nextTime += r >= this._gap ? r + 4 : this._gap;
+        const n = [...this._listeners];
+        for (const h of n)
+          h(this._time, this._delta, this._frame);
+      }
+      if (this._listeners.size === 0) {
+        this.sleep();
+        return;
+      }
+      this._id = this._request(this._tick);
+    });
+  }
+  _now() {
+    return typeof performance < "u" ? performance.now() : Date.now();
+  }
+  _request(t) {
+    return typeof requestAnimationFrame < "u" ? requestAnimationFrame(t) : setTimeout(t, 16);
+  }
+  _cancel(t) {
+    if (typeof cancelAnimationFrame < "u") {
+      cancelAnimationFrame(t);
+      return;
+    }
+    clearTimeout(t);
+  }
+  _wake() {
+    if (this._id !== null) return;
+    const t = this._now();
+    this._start = t - this._time * 1e3, this._last = t, this._tick();
+  }
+  add(t) {
+    return this._listeners.add(t), this._wake(), t;
+  }
+  addOnce(t) {
+    const e = (s, r, n) => {
+      this.remove(e), t(s, r, n);
+    };
+    return this.add(e), e;
+  }
+  remove(t) {
+    this._listeners.delete(t), this._listeners.size === 0 && this.sleep();
+  }
+  clear() {
+    this._listeners.clear(), this.sleep();
+  }
+  sleep() {
+    this._id !== null && (this._cancel(this._id), this._id = null);
+  }
+  fps(t) {
+    t = Math.max(1, t), this._gap = 1e3 / t, this._nextTime = this._time * 1e3 + this._gap;
+  }
+  lagSmoothing(t = 500, e = 33) {
+    this._lagThreshold = t || 1 / 0, this._adjustedLag = Math.min(e, this._lagThreshold);
+  }
+  deltaRatio(t = 60) {
+    return this._delta / (1e3 / t);
+  }
+  get time() {
+    return this._time;
+  }
+  get delta() {
+    return this._delta;
+  }
+  get frame() {
+    return this._frame;
+  }
+  get active() {
+    return this._id !== null;
+  }
+  get listeners() {
+    return this._listeners.size;
+  }
+}
+const p = new M(), b = /* @__PURE__ */ new WeakMap();
+let m = [], g = null;
+function _(a, t) {
+  m.push({ instance: a, type: t }), g === null && (g = requestAnimationFrame(A));
+}
+function A() {
+  const a = m.slice();
+  m.length = 0, g = null;
+  for (let t = 0; t < a.length; t++) {
+    const { instance: e, type: s } = a[t];
+    s === "enter" ? e.enter() : e.leave && e.leave();
+  }
+}
+const y = new IntersectionObserver(
+  (a) => {
+    for (let t = 0; t < a.length; t++) {
+      const e = a[t], s = b.get(e.target);
+      s && (e.isIntersecting ? _(s, "enter") : _(s, "leave"));
+    }
+  },
+  { threshold: 0.05 }
+);
+function k(a, t) {
+  b.set(a, t), y.observe(a);
+}
+function R(a) {
+  b.delete(a), y.unobserve(a);
+}
+class S extends HTMLElement {
   constructor() {
     super();
     i(this, "inner", null);
     i(this, "resizeObserver", null);
-    i(this, "rafId", null);
     i(this, "setupRafId", null);
     i(this, "offset", 0);
-    i(this, "lastTime", 0);
     i(this, "isHovered", !1);
     i(this, "cachedResetBounds", 0);
-    i(this, "dirtyBounds", !0);
     i(this, "isSettingUp", !1);
+    i(this, "isVisible", !1);
     i(this, "onMouseEnter", () => {
       this.pauseOnHover && (this.isHovered = !0);
     });
     i(this, "onMouseLeave", () => {
-      this.isHovered = !1, this.lastTime = performance.now();
+      this.isHovered = !1;
+    });
+    i(this, "updateAnimation", (e, s) => {
+      if (this.isHovered || this.cachedResetBounds <= 0) return;
+      const r = s / 1e3, n = this.speed * r;
+      this.direction === "left" ? (this.offset -= n, this.offset <= -this.cachedResetBounds && (this.offset += this.cachedResetBounds)) : (this.offset += n, this.offset >= 0 && (this.offset -= this.cachedResetBounds)), this.applyTransform(this.offset);
     });
     this.attachShadow({ mode: "open" });
   }
@@ -138,16 +262,28 @@ class y extends HTMLElement {
   get direction() {
     return this.getAttribute("direction") === "right" ? "right" : "left";
   }
+  set direction(e) {
+    this.setAttribute("direction", e);
+  }
   get speed() {
     const e = parseFloat(this.getAttribute("speed") ?? "50");
     return isFinite(e) && e >= 0 ? e : 50;
   }
+  set speed(e) {
+    this.setAttribute("speed", String(e));
+  }
   get pauseOnHover() {
     return this.getAttribute("pause-on-hover") !== "false";
+  }
+  set pauseOnHover(e) {
+    this.setAttribute("pause-on-hover", String(e));
   }
   get gap() {
     const e = (this.getAttribute("gap") ?? "16").trim();
     return /^\d+(\.\d+)?$/.test(e) ? `${e}px` : e;
+  }
+  set gap(e) {
+    this.setAttribute("gap", e);
   }
   connectedCallback() {
     if (this.render(), this.inner = this.querySelector("sx-marquee-inner"), !this.inner) {
@@ -156,16 +292,23 @@ class y extends HTMLElement {
     }
     this.addEventListener("mouseenter", this.onMouseEnter), this.addEventListener("mouseleave", this.onMouseLeave), this.resizeObserver = new ResizeObserver(() => {
       this.scheduleSetup();
-    }), this.resizeObserver.observe(this), this.lastTime = performance.now(), this.startAnimation();
+    }), this.resizeObserver.observe(this), k(this, {
+      enter: () => {
+        this.isVisible || (this.isVisible = !0, p.add(this.updateAnimation));
+      },
+      leave: () => {
+        this.isVisible && (this.isVisible = !1, p.remove(this.updateAnimation));
+      }
+    });
   }
   disconnectedCallback() {
     var e;
-    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (e = this.resizeObserver) == null || e.disconnect(), this.rafId !== null && cancelAnimationFrame(this.rafId), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId);
+    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (e = this.resizeObserver) == null || e.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), R(this), p.remove(this.updateAnimation);
   }
-  attributeChangedCallback(e, t, r) {
-    t !== r && (e === "gap" ? (this.updateGapVar(), setTimeout(() => {
-      this.dirtyBounds = !0, this.scheduleSetup();
-    }, 50)) : (e === "direction" || e === "speed") && (this.dirtyBounds = !0, this.scheduleSetup()));
+  attributeChangedCallback(e, s, r) {
+    s !== r && (e === "gap" ? (this.updateGapVar(), setTimeout(() => {
+      this.scheduleSetup();
+    }, 50)) : (e === "direction" || e === "speed") && this.scheduleSetup());
   }
   scheduleSetup() {
     this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), this.setupRafId = requestAnimationFrame(() => {
@@ -205,73 +348,64 @@ class y extends HTMLElement {
       this.isSettingUp = !0;
       try {
         (e = this.resizeObserver) == null || e.unobserve(this.inner);
-        const t = Array.from(
+        const s = Array.from(
           this.inner.querySelectorAll(
             "sx-marquee-item:not([data-clone])"
           )
         );
-        this.inner.replaceChildren(...t);
-        const r = this.offsetWidth, s = this.inner.offsetWidth;
-        if (s > 0 && r > 0) {
-          const u = s < r ? Math.ceil(r * 2 / s) : 2, h = document.createDocumentFragment();
-          for (let c = 1; c < u; c++)
-            for (const l of t) {
-              const f = l.cloneNode(!0);
-              f.setAttribute("data-clone", "true"), h.appendChild(f);
+        this.inner.replaceChildren(...s);
+        const r = this.offsetWidth, n = this.inner.offsetWidth;
+        if (n > 0 && r > 0) {
+          const h = n < r ? Math.ceil(r * 2 / n) : 2, l = document.createDocumentFragment();
+          for (let u = 1; u < h; u++)
+            for (const c of s) {
+              const v = c.cloneNode(!0);
+              v.setAttribute("data-clone", "true"), l.appendChild(v);
             }
-          this.inner.appendChild(h);
+          this.inner.appendChild(l);
         }
-        this.offset = 0, this.applyTransform(0), this.dirtyBounds = !0, this.lastTime = performance.now();
+        this.offset = 0, this.applyTransform(0), this.calculateBounds();
       } finally {
         this.isSettingUp = !1;
       }
     }
   }
-  getResetBounds() {
-    if (!this.dirtyBounds) return this.cachedResetBounds;
-    if (!this.inner) return 0;
+  calculateBounds() {
+    if (!this.inner) {
+      this.cachedResetBounds = 0;
+      return;
+    }
     const e = this.inner.querySelectorAll(
       "sx-marquee-item:not([data-clone])"
     );
-    if (e.length === 0) return 0;
-    let t = 0;
-    for (const s of e) t += s.offsetWidth;
+    if (e.length === 0) {
+      this.cachedResetBounds = 0;
+      return;
+    }
+    let s = 0;
+    for (let n = 0; n < e.length; n++)
+      s += e[n].offsetWidth;
     const r = parseFloat(getComputedStyle(this.inner).gap) || 0;
-    return t += r * e.length, this.cachedResetBounds = t, this.dirtyBounds = !1, t;
-  }
-  startAnimation() {
-    this.rafId !== null && cancelAnimationFrame(this.rafId);
-    const e = (t) => {
-      const r = (t - this.lastTime) / 1e3;
-      if (this.lastTime = t, !this.isHovered) {
-        const s = this.getResetBounds();
-        if (s > 0) {
-          const u = this.speed * r;
-          this.direction === "left" ? (this.offset -= u, this.offset <= -s && (this.offset += s)) : (this.offset += u, this.offset >= 0 && (this.offset -= s)), this.applyTransform(this.offset);
-        }
-      }
-      this.rafId = requestAnimationFrame(e);
-    };
-    this.rafId = requestAnimationFrame(e);
+    s += r * e.length, this.cachedResetBounds = s;
   }
   applyTransform(e) {
     this.inner && (this.inner.style.transform = `translate3d(${e}px,0,0)`);
   }
 }
-class v extends HTMLElement {
+class T extends HTMLElement {
 }
-class x extends HTMLElement {
+class z extends HTMLElement {
   connectedCallback() {
     this.style.cssText = "display:inline-block;flex-shrink:0;";
   }
 }
-customElements.define("sx-marquee", y);
-customElements.define("sx-marquee-inner", v);
-customElements.define("sx-marquee-item", x);
-console.log(`@six-js/core v${b}`);
+customElements.define("sx-marquee", S);
+customElements.define("sx-marquee-inner", T);
+customElements.define("sx-marquee-item", z);
+console.log(`@six-js/core v${q}`);
 export {
-  p as SxAnimate,
-  y as SxMarquee,
-  v as SxMarqueeInner,
-  x as SxMarqueeItem
+  f as SxAnimate,
+  S as SxMarquee,
+  T as SxMarqueeInner,
+  z as SxMarqueeItem
 };

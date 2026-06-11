@@ -1,9 +1,15 @@
 {
   "name": "@six-js/core",
   "author": "Hội Nguyễn",
-  "version": "0.0.9",
+  "version": "0.0.13",
   "type": "module",
   "main": "./dist/six-js.umd.js",
+  "keywords": [
+    "javascript",
+    "library",
+    "animation",
+    "web-components"
+  ],
   "module": "./dist/six-js.es.js",
   "types": "./dist/types/index.d.ts",
   "exports": {

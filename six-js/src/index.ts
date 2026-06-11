@@ -1,5 +1,8 @@
 import { VERSION } from "./version";
 
+/* css */
+import "./styles/base.css";
+
 /* register components */
 import "./components/animate/sx-animate";
 import "./components/marquee/sx-marquee";

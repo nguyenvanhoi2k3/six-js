@@ -1,17 +1,18 @@
+import { ticker } from "../../core/ticker";
+import { observe, unobserve } from "../../core/observer";
+
 export type MarqueeDirection = "left" | "right";
 
 export class SxMarquee extends HTMLElement {
   private inner: HTMLElement | null = null;
   private resizeObserver: ResizeObserver | null = null;
-  private rafId: number | null = null;
   private setupRafId: number | null = null;
 
   private offset = 0;
-  private lastTime = 0;
   private isHovered = false;
   private cachedResetBounds = 0;
-  private dirtyBounds = true;
   private isSettingUp = false;
+  private isVisible = false;
 
   constructor() {
     super();
@@ -25,19 +26,31 @@ export class SxMarquee extends HTMLElement {
   get direction(): MarqueeDirection {
     return this.getAttribute("direction") === "right" ? "right" : "left";
   }
+  set direction(val: MarqueeDirection) {
+    this.setAttribute("direction", val);
+  }
 
   get speed(): number {
     const v = parseFloat(this.getAttribute("speed") ?? "50");
     return isFinite(v) && v >= 0 ? v : 50;
   }
+  set speed(val: number) {
+    this.setAttribute("speed", String(val));
+  }
 
   get pauseOnHover(): boolean {
     return this.getAttribute("pause-on-hover") !== "false";
+  }
+  set pauseOnHover(val: boolean | string) {
+    this.setAttribute("pause-on-hover", String(val));
   }
 
   get gap(): string {
     const v = (this.getAttribute("gap") ?? "16").trim();
     return /^\d+(\.\d+)?$/.test(v) ? `${v}px` : v;
+  }
+  set gap(val: string) {
+    this.setAttribute("gap", val);
   }
 
   connectedCallback() {
@@ -55,19 +68,32 @@ export class SxMarquee extends HTMLElement {
     this.resizeObserver = new ResizeObserver(() => {
       this.scheduleSetup();
     });
-
     this.resizeObserver.observe(this);
 
-    this.lastTime = performance.now();
-    this.startAnimation();
+    observe(this, {
+      enter: () => {
+        if (!this.isVisible) {
+          this.isVisible = true;
+          ticker.add(this.updateAnimation);
+        }
+      },
+      leave: () => {
+        if (this.isVisible) {
+          this.isVisible = false;
+          ticker.remove(this.updateAnimation);
+        }
+      },
+    });
   }
 
   disconnectedCallback() {
     this.removeEventListener("mouseenter", this.onMouseEnter);
     this.removeEventListener("mouseleave", this.onMouseLeave);
     this.resizeObserver?.disconnect();
-    if (this.rafId !== null) cancelAnimationFrame(this.rafId);
     if (this.setupRafId !== null) cancelAnimationFrame(this.setupRafId);
+
+    unobserve(this);
+    ticker.remove(this.updateAnimation);
   }
 
   attributeChangedCallback(
@@ -79,11 +105,9 @@ export class SxMarquee extends HTMLElement {
     if (name === "gap") {
       this.updateGapVar();
       setTimeout(() => {
-        this.dirtyBounds = true;
         this.scheduleSetup();
       }, 50);
     } else if (name === "direction" || name === "speed") {
-      this.dirtyBounds = true;
       this.scheduleSetup();
     }
   }
@@ -97,12 +121,13 @@ export class SxMarquee extends HTMLElement {
   }
 
   private onMouseEnter = () => {
-    if (this.pauseOnHover) this.isHovered = true;
+    if (this.pauseOnHover) {
+      this.isHovered = true;
+    }
   };
 
   private onMouseLeave = () => {
     this.isHovered = false;
-    this.lastTime = performance.now();
   };
 
   private render() {
@@ -170,60 +195,57 @@ export class SxMarquee extends HTMLElement {
 
       this.offset = 0;
       this.applyTransform(0);
-      this.dirtyBounds = true;
-      this.lastTime = performance.now();
+
+      this.calculateBounds();
     } finally {
       this.isSettingUp = false;
     }
   }
 
-  private getResetBounds(): number {
-    if (!this.dirtyBounds) return this.cachedResetBounds;
-    if (!this.inner) return 0;
-
+  private calculateBounds() {
+    if (!this.inner) {
+      this.cachedResetBounds = 0;
+      return;
+    }
     const originals = this.inner.querySelectorAll<HTMLElement>(
       "sx-marquee-item:not([data-clone])",
     );
-    if (originals.length === 0) return 0;
+    if (originals.length === 0) {
+      this.cachedResetBounds = 0;
+      return;
+    }
 
     let total = 0;
-    for (const item of originals) total += item.offsetWidth;
+    for (let i = 0; i < originals.length; i++) {
+      total += originals[i].offsetWidth;
+    }
 
     const gap = parseFloat(getComputedStyle(this.inner).gap) || 0;
     total += gap * originals.length;
 
     this.cachedResetBounds = total;
-    this.dirtyBounds = false;
-    return total;
   }
 
-  private startAnimation() {
-    if (this.rafId !== null) cancelAnimationFrame(this.rafId);
+  private updateAnimation = (_time: number, deltaMs: number) => {
+    if (this.isHovered || this.cachedResetBounds <= 0) return;
 
-    const step = (now: number) => {
-      const delta = (now - this.lastTime) / 1000;
-      this.lastTime = now;
+    const deltaSec = deltaMs / 1000;
+    const dist = this.speed * deltaSec;
 
-      if (!this.isHovered) {
-        const bounds = this.getResetBounds();
-        if (bounds > 0) {
-          const dist = this.speed * delta;
-          if (this.direction === "left") {
-            this.offset -= dist;
-            if (this.offset <= -bounds) this.offset += bounds;
-          } else {
-            this.offset += dist;
-            if (this.offset >= 0) this.offset -= bounds;
-          }
-          this.applyTransform(this.offset);
-        }
+    if (this.direction === "left") {
+      this.offset -= dist;
+      if (this.offset <= -this.cachedResetBounds) {
+        this.offset += this.cachedResetBounds;
       }
+    } else {
+      this.offset += dist;
+      if (this.offset >= 0) {
+        this.offset -= this.cachedResetBounds;
+      }
+    }
 
-      this.rafId = requestAnimationFrame(step);
-    };
-
-    this.rafId = requestAnimationFrame(step);
-  }
+    this.applyTransform(this.offset);
+  };
 
   private applyTransform(x: number) {
     if (this.inner) {
