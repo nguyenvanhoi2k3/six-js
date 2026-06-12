@@ -26,3 +26,24 @@ sx-slider-slide {
   flex-shrink: 0;
   width: 100%;
 }
+
+sx-slider-prev,
+sx-slider-next {
+  cursor: pointer;
+  user-select: none; 
+}
+/* 
+sx-slider-prev {
+  left: 0;
+}
+
+sx-slider-next {
+  right: 0;
+} */
+
+/* (Tùy chọn) Ẩn nút khi slider đang bị vô hiệu hóa hoặc không có tác dụng */
+sx-slider-prev[disabled],
+sx-slider-next[disabled] {
+  opacity: 0.1;
+  pointer-events: none;
+}

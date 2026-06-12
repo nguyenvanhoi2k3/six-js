@@ -629,38 +629,6 @@ class D {
 const x = new D();
 class O extends HTMLElement {
   constructor() {
-    super(), this.addEventListener("click", () => this.handleAction());
-  }
-  handleAction() {
-    const o = this.getAttribute("name");
-    if (o) {
-      const t = x.get(o);
-      t && t.prev();
-    } else {
-      const t = this.closest("sx-slider");
-      t && t.prev();
-    }
-  }
-}
-customElements.get("sx-slider-prev") || customElements.define("sx-slider-prev", O);
-class N extends HTMLElement {
-  constructor() {
-    super(), this.addEventListener("click", () => this.handleAction());
-  }
-  handleAction() {
-    const o = this.getAttribute("name");
-    if (o) {
-      const t = x.get(o);
-      t && t.next();
-    } else {
-      const t = this.closest("sx-slider");
-      t && t.next();
-    }
-  }
-}
-customElements.get("sx-slider-next") || customElements.define("sx-slider-next", N);
-class V extends HTMLElement {
-  constructor() {
     super();
     r(this, "options");
     r(this, "currentIndex", 0);
@@ -809,7 +777,6 @@ class V extends HTMLElement {
   getSlideWidthWithGap() {
     return !this.track || this.track.children.length === 0 ? 0 : this.track.children[0].getBoundingClientRect().width + this.convertToPx(this.options.gap);
   }
-  // Đếm xem thực tế có bao nhiêu slide nhét vừa container
   getVisibleSlidesCount() {
     if (!this.track || this.track.children.length === 0) return 1;
     const t = this.getBoundingClientRect().width;
@@ -819,7 +786,6 @@ class V extends HTMLElement {
       s++;
     return Math.max(1, s);
   }
-  // Lấy chính xác tọa độ offset của một index bất kỳ (cộng dồn chiều rộng từng thẻ)
   getOffsetForIndex(t) {
     if (!this.track) return 0;
     const e = Array.from(this.track.children), s = this.convertToPx(this.options.gap);
@@ -874,7 +840,6 @@ class V extends HTMLElement {
   setCurrentIndex(t) {
     this.currentIndex = t, this.updateSlideAttributes();
   }
-  // Quét chính xác index tối đa có thể cuộn tới mà không bị overscroll
   getRealMaxIndex() {
     if (!this.track || this.track.children.length === 0) return 0;
     const t = -this.getMaxTranslate(), e = this.track.children.length;
@@ -883,7 +848,6 @@ class V extends HTMLElement {
         return s;
     return Math.max(0, e - 1);
   }
-  // Trả về số lượng slide sẽ trượt cho mỗi lần next/prev
   getResolvedPerMove() {
     if (this.options.perMove === "auto")
       return 1;
@@ -936,5 +900,37 @@ class V extends HTMLElement {
     this.updateSlideAttributes(), this.options.loop && this.track && this.track.checkLoopBoundsInstant();
   }
 }
-customElements.get("sx-slider") || customElements.define("sx-slider", V);
+customElements.get("sx-slider") || customElements.define("sx-slider", O);
+class N extends HTMLElement {
+  constructor() {
+    super(), this.addEventListener("click", () => this.handleAction());
+  }
+  handleAction() {
+    const o = this.getAttribute("name");
+    if (o) {
+      const t = x.get(o);
+      t && t.prev();
+    } else {
+      const t = this.closest("sx-slider");
+      t && t.prev();
+    }
+  }
+}
+customElements.get("sx-slider-prev") || customElements.define("sx-slider-prev", N);
+class V extends HTMLElement {
+  constructor() {
+    super(), this.addEventListener("click", () => this.handleAction());
+  }
+  handleAction() {
+    const o = this.getAttribute("name");
+    if (o) {
+      const t = x.get(o);
+      t && t.next();
+    } else {
+      const t = this.closest("sx-slider");
+      t && t.next();
+    }
+  }
+}
+customElements.get("sx-slider-next") || customElements.define("sx-slider-next", V);
 console.log(`@six-js/core v${M}`);

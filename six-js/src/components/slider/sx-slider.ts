@@ -57,7 +57,6 @@ export class SxSlider extends HTMLElement {
       sliderRegistry.register(this.options.name, this);
     }
 
-    // --- BẮT ĐẦU FIX: Chỉ chạy updateLayout khi CÓ THAY ĐỔI CHIỀU RỘNG ---
     this.resizeObserver = new ResizeObserver(() => {
       const currentWidth = this.getBoundingClientRect().width;
       if (currentWidth !== this.lastContainerWidth) {
@@ -65,9 +64,7 @@ export class SxSlider extends HTMLElement {
         this.updateLayout();
       }
     });
-    // --- KẾT THÚC FIX ---
 
-    // Chỉ giữ lại dòng observe, ĐÃ XÓA dòng khai báo new ResizeObserver thừa
     this.resizeObserver.observe(this);
 
     if (this.track) {
@@ -115,7 +112,6 @@ export class SxSlider extends HTMLElement {
     const startAttr = this.getAttribute("start-index");
     const parsedStartIndex = startAttr !== null ? Number(startAttr) : 0;
 
-    // Xử lý per-move
     const perMoveAttr = this.getAttribute("per-move");
     let parsedPerMove: "auto" | number = "auto";
     if (perMoveAttr !== null && perMoveAttr !== "auto") {
@@ -254,33 +250,25 @@ export class SxSlider extends HTMLElement {
     const leftPadPx = this.convertToPx(this.options.leftPadding);
     const rightPadPx = this.convertToPx(this.options.rightPadding);
 
-    // DỌN DẸP SẠCH SẼ: Chỉ giữ lại MỘT khối điều kiện IF/ELSE duy nhất để xử lý width
     if (this.options.autoWidth) {
-      // 1. Tạm thời ép thẻ cha ôm sát thẻ con bằng max-content
-      // (để phá vỡ thuộc tính width: 100% mặc định trong file css)
       slides.forEach((slide) => {
         slide.style.width = "max-content";
       });
 
-      // 2. Ép trình duyệt render lại DOM để nhả kích thước thật
       this.track.offsetHeight;
 
-      // 3. Đọc chính xác width từ thẻ con trực tiếp (VD: <div class="slide">) và chốt hạ cho thẻ cha
       slides.forEach((slide) => {
         const child = slide.firstElementChild as HTMLElement;
         if (child) {
           slide.style.width = `${child.getBoundingClientRect().width}px`;
         } else {
-          // Fallback an toàn nếu lỡ không có thẻ con
           slide.style.width = "max-content";
         }
         slide.style.marginRight = this.options.gap;
       });
 
-      // 4. Vô hiệu hóa hoàn toàn per-view cũ, đếm số lượng slide vật lý thực tế trên màn hình
       this.options.perView = this.getVisibleSlidesCount();
     } else {
-      // Logic chia cột đều nhau dựa trên perView ban đầu
       const availableWidth =
         containerWidth -
         leftPadPx -
@@ -317,7 +305,6 @@ export class SxSlider extends HTMLElement {
     );
   }
 
-  // Đếm xem thực tế có bao nhiêu slide nhét vừa container
   private getVisibleSlidesCount(): number {
     if (!this.track || this.track.children.length === 0) return 1;
     const containerW = this.getBoundingClientRect().width;
@@ -328,14 +315,12 @@ export class SxSlider extends HTMLElement {
 
     for (let i = 0; i < slides.length; i++) {
       accumulatedWidth += slides[i].getBoundingClientRect().width + gapPx;
-      // Nếu cộng thêm slide này mà vượt quá container thì dừng
       if (accumulatedWidth - gapPx > containerW) break;
       count++;
     }
     return Math.max(1, count);
   }
 
-  // Lấy chính xác tọa độ offset của một index bất kỳ (cộng dồn chiều rộng từng thẻ)
   public getOffsetForIndex(index: number): number {
     if (!this.track) return 0;
     const slides = Array.from(this.track.children) as HTMLElement[];
@@ -356,9 +341,8 @@ export class SxSlider extends HTMLElement {
 
     let totalTrackWidth = 0;
     if (this.options.autoWidth) {
-      // Nếu auto-width, phải đo tổng chiều rộng thực của tất cả thẻ
       totalTrackWidth = this.getOffsetForIndex(this.track.children.length);
-      totalTrackWidth -= this.convertToPx(this.options.gap); // Bỏ gap dư ở cuối
+      totalTrackWidth -= this.convertToPx(this.options.gap);
     } else {
       const totalSlides = this.track.children.length;
       const slideWidth = this.getSlideWidthWithGap();
@@ -416,14 +400,11 @@ export class SxSlider extends HTMLElement {
     if (!this.options.autoHeight || this.options.perView !== 1) {
       this.style.height = "";
       this.style.transition = "";
-      this.track.style.alignItems = ""; // Trả track về mặc định
+      this.track.style.alignItems = ""; 
       return;
     }
 
-    // --- BẮT ĐẦU FIX: Thả lỏng Flexbox ---
-    // Ngăn các slide bị kéo giãn (stretch) biến dạng theo container
     this.track.style.alignItems = "flex-start";
-    // --- KẾT THÚC FIX ---
 
     const slides = Array.from(this.track.children) as HTMLElement[];
     const activeSlide = slides[this.currentIndex];
@@ -449,7 +430,6 @@ export class SxSlider extends HTMLElement {
     this.updateSlideAttributes();
   }
 
-  // Quét chính xác index tối đa có thể cuộn tới mà không bị overscroll
   public getRealMaxIndex(): number {
     if (!this.track || this.track.children.length === 0) return 0;
     const minBound = -this.getMaxTranslate();
@@ -457,7 +437,6 @@ export class SxSlider extends HTMLElement {
 
     for (let i = 0; i < totalSlides; i++) {
       const offset = -this.getOffsetForIndex(i);
-      // Ngay khi tìm thấy slide đầu tiên đẩy track chạm/vượt giới hạn cuối
       if (offset <= minBound) {
         return i;
       }
@@ -465,23 +444,19 @@ export class SxSlider extends HTMLElement {
     return Math.max(0, totalSlides - 1);
   }
 
-  // Trả về số lượng slide sẽ trượt cho mỗi lần next/prev
   private getResolvedPerMove(): number {
-    // Nếu là auto, bước nhảy tiêu chuẩn cho nút bấm / thao tác drag cơ bản là 1
     if (this.options.perMove === "auto") {
       return 1;
     }
 
     const visibleSlides = this.getVisibleSlidesCount();
-    // Đảm bảo >= 1
     let val = Math.max(1, this.options.perMove);
-    // Đảm bảo không vượt quá số lượng slide đang có trong viewport
     return Math.min(val, visibleSlides);
   }
 
   public next() {
     if (!this.track) return;
-    const moveBy = this.getResolvedPerMove(); // Lấy số lượng cần trượt
+    const moveBy = this.getResolvedPerMove();
 
     if (this.options.loop) {
       this.currentIndex += moveBy;
@@ -491,7 +466,6 @@ export class SxSlider extends HTMLElement {
       const maxIndex = this.getRealMaxIndex();
 
       if (this.currentIndex < maxIndex) {
-        // Trượt tới, nhưng không cho phép văng quá maxIndex
         this.currentIndex = Math.min(maxIndex, this.currentIndex + moveBy);
       } else if (this.options.rewind) {
         this.currentIndex = 0;
@@ -503,7 +477,7 @@ export class SxSlider extends HTMLElement {
 
   public prev() {
     if (!this.track) return;
-    const moveBy = this.getResolvedPerMove(); // Lấy số lượng cần trượt
+    const moveBy = this.getResolvedPerMove();
 
     if (this.options.loop) {
       this.currentIndex -= moveBy;
@@ -511,7 +485,6 @@ export class SxSlider extends HTMLElement {
       this.track.updatePosition();
     } else {
       if (this.currentIndex > 0) {
-        // Trượt lùi, nhưng không cho phép nhỏ hơn 0
         this.currentIndex = Math.max(0, this.currentIndex - moveBy);
       } else if (this.options.rewind) {
         this.currentIndex = this.getRealMaxIndex();
@@ -524,11 +497,9 @@ export class SxSlider extends HTMLElement {
   public alignIndexToFreeTranslation(translate: number) {
     const leftPadPx = parseFloat(this.options.leftPadding) || 0;
 
-    // Dùng giá trị âm chuẩn để bắt chính xác chiều vuốt
     const shiftedTranslate = translate - leftPadPx;
 
     if (shiftedTranslate > 0) {
-      // Nếu kéo lố về mép trái qua cả gốc tọa độ, chặn cứng ở slide đầu tiên (index 0)
       this.currentIndex = 0;
     } else {
       const targetTranslate = Math.abs(shiftedTranslate);
@@ -539,7 +510,6 @@ export class SxSlider extends HTMLElement {
         let accumulated = 0;
         let foundIndex = 0;
 
-        // Quét từng thẻ để xem điểm rơi nằm gần thẻ nào nhất
         for (let i = 0; i < slides.length; i++) {
           const w = slides[i].getBoundingClientRect().width + gapPx;
           if (accumulated + w / 2 > targetTranslate) {
@@ -547,7 +517,7 @@ export class SxSlider extends HTMLElement {
             break;
           }
           accumulated += w;
-          foundIndex = i; // Fallback
+          foundIndex = i;
         }
         this.currentIndex = foundIndex;
       } else {
@@ -556,12 +526,10 @@ export class SxSlider extends HTMLElement {
       }
     }
 
-    // --- BẮT ĐẦU FIX: Chặn Index không vượt quá Max Index nếu không bật Loop ---
     if (!this.options.loop) {
       const maxIdx = this.getRealMaxIndex();
       this.currentIndex = Math.min(this.currentIndex, maxIdx);
     }
-    // --- KẾT THÚC FIX ---
 
     this.updateSlideAttributes();
     if (this.options.loop && this.track) {

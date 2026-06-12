@@ -10,50 +10,54 @@
   </head>
 
   <body>
-    
-    <sx-slider name="slider-1" per-view="1" gap="10" auto-height grab-cursor drag="true">
+    <sx-slider
+      name="slider-1"
+      per-view="1"
+      gap="10"
+      auto-height
+      grab-cursor
+      drag="true"
+    >
       <sx-slider-track>
         <sx-slider-slide>
-          <div class="slide" style="width: 100%; height: 400px;">Slide 1</div>
+          <div class="slide" style="width: 100%">Slide 1</div>
         </sx-slider-slide>
         <sx-slider-slide>
           <div class="slide">Slide 2</div>
         </sx-slider-slide>
         <sx-slider-slide>
-          <div class="slide" style="width: 100%;">Slide 3</div>
+          <div class="slide" style="width: 100%">Slide 3</div>
         </sx-slider-slide>
         <sx-slider-slide>
-          <div class="slide" style="width: 100%; height: 500px;">Slide 4</div>
+          <div class="slide" style="width: 100%">Slide 4</div>
         </sx-slider-slide>
         <sx-slider-slide>
-          <div class="slide" style="width: 100%; height: 400px;">Slide 5</div>
+          <div class="slide" style="width: 100%">Slide 5</div>
         </sx-slider-slide>
         <sx-slider-slide>
-          <div class="slide" style="width: 100%; height: 600px;">Slide 6</div>
+          <div class="slide" style="width: 100%">Slide 6</div>
         </sx-slider-slide>
         <sx-slider-slide>
-          <div class="slide" style="width: 100%; height: 300px;">Slide 7</div>
+          <div class="slide" style="width: 100%">Slide 7</div>
         </sx-slider-slide>
       </sx-slider-track>
-      <sx-slider-prev>Prev</sx-slider-prev>
-      <sx-slider-next>Next</sx-slider-next>
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          width: 100%;
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+        "
+      >
+        <sx-slider-prev>Prev</sx-slider-prev>
+        <sx-slider-next>Next</sx-slider-next>
+      </div>
     </sx-slider>
-    <h3>Điều khiển slider bằng name</h3>
+    <h3>Link bằng name</h3>
     <sx-slider-prev name="slider-1">Prev</sx-slider-prev>
     <sx-slider-next name="slider-1">Next</sx-slider-next>
-
-    |Attribute|Type|Description|Default|
-|---|---|---|---|
-|name|string|Tên slider, có thể dùng link đến nút prev,next|null|
-|per-view|number|Số lượng slide trong viewport|1|
-|right-padding|number|Lộ một phần slide tiếp theo|0|
-|left-padding|number|Lộ một phần slide trước đó nếu có|0|
-|speed|number|Tốc độ trượt slide|300|
-|edge-resistance|number|Khoảng cách cản khi kéo ở mép đầu/cuối.|100|
-|loop|boolean||false|
-|rewind|boolean|Tua lại khi đến slide cuối|false|
-|gap|number \| string|Ví dụ: `"20"`, `"1rem"`|0|
-|drag|string|`true`: cho phép drag \| `false`: chặn drag \| `free`: cho phép drag và slide trượt theo quán tính |true|
     <script src="./dist/six-js.umd.js"></script>
   </body>
 </html>

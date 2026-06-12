@@ -171,7 +171,7 @@ export class SxSliderTrack extends HTMLElement {
 
       if (options.snap) {
         const leftPadPx = parseFloat(options.leftPadding) || 0;
-        let rawDestination = destination; // Lưu lại điểm rơi quán tính gốc
+        let rawDestination = destination; 
 
         if (options.autoWidth) {
           this.sliderCha.alignIndexToFreeTranslation(destination);
@@ -186,16 +186,12 @@ export class SxSliderTrack extends HTMLElement {
           destination = -(targetIndex * slideWidth) + leftPadPx;
         }
 
-        // --- BẮT ĐẦU FIX LỖI HỤT SLIDE CUỐI ---
         if (!options.loop) {
           const minBound = -this.sliderCha.getMaxTranslate();
-          // Nếu lực vuốt (hoặc kéo) đã nhắm vượt qua giới hạn cuối cùng,
-          // thì ép buộc điểm Snap dính sát vào mép phải luôn, không cho giật lùi về thẻ trước đó!
           if (rawDestination <= minBound) {
             destination = minBound;
           }
         }
-        // --- KẾT THÚC FIX ---
       }
 
       if (options.loop) {
@@ -214,20 +210,14 @@ export class SxSliderTrack extends HTMLElement {
     } else {
       this.style.transition = `transform ${options.speed}ms ease-out`;
 
-      // Lấy quãng đường đã kéo
       const movedBy = this.currentTranslate - this.prevTranslate;
 
-      // --- BẮT ĐẦU FIX LOGIC PER-MOVE AUTO ---
       if (options.perMove === "auto") {
-        // Lưu lại index trước khi thả tay
         const startIndex = this.sliderCha.getCurrentIndex();
 
-        // Tính toán xem tọa độ thả tay tự nhiên rơi vào thẻ nào
         this.sliderCha.alignIndexToFreeTranslation(this.currentTranslate);
         const dropIndex = this.sliderCha.getCurrentIndex();
 
-        // Nếu điểm rơi tự nhiên vẫn nằm ở thẻ cũ (vì chưa kéo qua 50% thẻ),
-        // NHƯNG quãng đường kéo đã đủ lớn (vuốt nhẹ > 50px) -> Ép nhảy 1 thẻ.
         if (dropIndex === startIndex) {
           if (movedBy < -50) {
             this.sliderCha.next();
@@ -237,11 +227,9 @@ export class SxSliderTrack extends HTMLElement {
             this.updatePosition();
           }
         } else {
-          // Nếu đã kéo xa qua hẳn thẻ khác, thì giữ nguyên điểm rơi đó
           this.updatePosition();
         }
       } else {
-        // Khi perMove là số cụ thể (VD: 2, 3), luôn nhảy số lượng đó nếu kéo đủ lực
         if (movedBy < -50) {
           this.sliderCha.next();
         } else if (movedBy > 50) {
@@ -250,7 +238,6 @@ export class SxSliderTrack extends HTMLElement {
           this.updatePosition();
         }
       }
-      // --- KẾT THÚC FIX LOGIC PER-MOVE AUTO ---
 
       this.sliderCha.startAutoplay();
     }
@@ -348,18 +335,15 @@ export class SxSliderTrack extends HTMLElement {
       : this.sliderCha.options.perView;
     const leftPaddingPx = parseFloat(this.sliderCha.options.leftPadding) || 0;
 
-    // --- BẮT ĐẦU SỬA: Tính tổng chiều rộng chính xác tuyệt đối ---
     let originalTrackWidth = 0;
     let clonesWidth = 0;
 
     if (this.sliderCha.options.autoWidth) {
-      // Dùng hàm đo thực tế cộng dồn từng thẻ
       clonesWidth = this.sliderCha.getOffsetForIndex(cloneCount);
       originalTrackWidth =
         this.sliderCha.getOffsetForIndex(cloneCount + originalCount) -
         clonesWidth;
     } else {
-      // Dùng phép nhân cũ nếu chia cột đều nhau
       const slideWidth = this.sliderCha.getSlideWidthWithGap();
       clonesWidth = cloneCount * slideWidth;
       originalTrackWidth = originalCount * slideWidth;
@@ -367,22 +351,21 @@ export class SxSliderTrack extends HTMLElement {
 
     const startRealBound = -clonesWidth + leftPaddingPx;
     const endRealBound = startRealBound - originalTrackWidth;
-    // --- KẾT THÚC SỬA ---
 
     let needReset = false;
     let targetTranslate = this.currentTranslate;
     let shiftOffset = 0;
-    let indexShift = 0; // Thêm biến lưu độ dời của index
+    let indexShift = 0; 
 
     if (this.currentTranslate > startRealBound) {
       targetTranslate = this.currentTranslate - originalTrackWidth;
       shiftOffset = -originalTrackWidth;
-      indexShift = originalCount; // Nhảy dịch lên bản gốc
+      indexShift = originalCount;
       needReset = true;
     } else if (this.currentTranslate <= endRealBound) {
       targetTranslate = this.currentTranslate + originalTrackWidth;
       shiftOffset = originalTrackWidth;
-      indexShift = -originalCount; // Nhảy lùi về bản gốc
+      indexShift = -originalCount;
       needReset = true;
     }
 
@@ -400,9 +383,7 @@ export class SxSliderTrack extends HTMLElement {
 
       this.setTransform(this.currentTranslate);
 
-      // --- BẮT ĐẦU SỬA: Tính index mới an toàn ---
       if (this.sliderCha.options.autoWidth) {
-        // Chỉ cần cộng/trừ số lượng slide gốc, bỏ qua phép chia lấy dư dễ gây sai số
         this.sliderCha.setCurrentIndex(
           this.sliderCha.getCurrentIndex() + indexShift,
         );
@@ -413,7 +394,6 @@ export class SxSliderTrack extends HTMLElement {
         );
         this.sliderCha.setCurrentIndex(logicalIndex);
       }
-      // --- KẾT THÚC SỬA ---
 
       this.isResetting = false;
     }
@@ -438,18 +418,14 @@ export class SxSliderTrack extends HTMLElement {
     const leftPaddingPx = parseFloat(options.leftPadding) || 0;
     const currentIndex = this.sliderCha.getCurrentIndex();
 
-    // --- BẮT ĐẦU CẬP NHẬT LẠI TỌA ĐỘ ĐÍCH ---
     let targetTranslate = leftPaddingPx;
 
     if (options.autoWidth) {
-      // Lấy tọa độ thật bằng cách cộng dồn các thẻ đứng trước nó
       targetTranslate -= this.sliderCha.getOffsetForIndex(currentIndex);
     } else {
-      // Dùng phép nhân cũ nếu chia cột đều nhau
       const slideWidth = this.sliderCha.getSlideWidthWithGap();
       targetTranslate -= currentIndex * slideWidth;
     }
-    // --- KẾT THÚC CẬP NHẬT ---
 
     if (!options.loop) {
       if (currentIndex === 0) targetTranslate = 0;
@@ -467,7 +443,7 @@ export class SxSliderTrack extends HTMLElement {
     }
 
     if (options.loop) {
-      const cloneCount = options.perView; // Đã được tự động ghi đè ở updateLayout
+      const cloneCount = options.perView; 
       const originalCount = this.sliderCha.originalSlidesCount;
 
       if (
