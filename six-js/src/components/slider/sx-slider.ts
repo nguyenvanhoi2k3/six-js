@@ -1,0 +1,530 @@
+import { SliderOptions } from "./slider-types";
+import { SxSliderTrack } from "./sx-slider-track";
+import { sliderRegistry } from "./slider-registry";
+
+export class SxSlider extends HTMLElement {
+  public options!: SliderOptions;
+  private currentIndex: number = 0;
+  private track: SxSliderTrack | null = null;
+  private resizeObserver!: ResizeObserver;
+  public originalSlidesCount: number = 0;
+  private autoplayTimer: number | null = null;
+  private isFirstInit = true;
+
+  private handleVisibilityChange = () => {
+    if (document.hidden) {
+      this.stopAutoplay();
+    } else {
+      if (this.options.autoplay) {
+        this.startAutoplay();
+      }
+    }
+  };
+
+  static get observedAttributes() {
+    return [
+      "name",
+      "per-view",
+      "gap",
+      "drag",
+      "speed",
+      "right-padding",
+      "left-padding",
+      "rewind",
+      "edge-resistance",
+      "loop",
+      "grab-cursor",
+      "snap",
+      "autoplay",
+      "interval",
+      "start-index",
+      "auto-width",
+      "per-move",
+    ];
+  }
+
+  constructor() {
+    super();
+    this.parseOptions();
+  }
+
+  connectedCallback() {
+    this.track = this.querySelector("sx-slider-track");
+
+    if (this.options.name) {
+      sliderRegistry.register(this.options.name, this);
+    }
+
+    this.resizeObserver = new ResizeObserver(() => this.updateLayout());
+    this.resizeObserver.observe(this);
+
+    if (this.track) {
+      this.initLoopClones();
+    }
+
+    document.addEventListener("visibilitychange", this.handleVisibilityChange);
+
+    this.startAutoplay();
+  }
+
+  disconnectedCallback() {
+    if (this.options.name) {
+      sliderRegistry.unregister(this.options.name);
+    }
+    this.resizeObserver.disconnect();
+
+    this.stopAutoplay();
+
+    document.removeEventListener(
+      "visibilitychange",
+      this.handleVisibilityChange,
+    );
+  }
+
+  attributeChangedCallback() {
+    this.parseOptions();
+    this.updateLayout();
+
+    this.startAutoplay();
+  }
+
+  private parseOptions() {
+    const formatUnit = (val: string | null): string => {
+      if (!val) return "0px";
+      return isNaN(Number(val)) ? val : `${val}px`;
+    };
+
+    const edgeAttr = this.getAttribute("edge-resistance");
+    const defaultResistance = edgeAttr !== null ? Number(edgeAttr) : 100;
+
+    const intervalAttr = this.getAttribute("interval");
+    const parsedInterval = intervalAttr !== null ? Number(intervalAttr) : 3000;
+
+    const startAttr = this.getAttribute("start-index");
+    const parsedStartIndex = startAttr !== null ? Number(startAttr) : 0;
+
+    // Xử lý per-move
+    const perMoveAttr = this.getAttribute("per-move");
+    let parsedPerMove: "auto" | number = "auto";
+    if (perMoveAttr !== null && perMoveAttr !== "auto") {
+      const num = Number(perMoveAttr);
+      parsedPerMove = isNaN(num) ? "auto" : num;
+    }
+
+    this.options = {
+      name: this.getAttribute("name"),
+      perView: Number(this.getAttribute("per-view")) || 1,
+      gap: formatUnit(this.getAttribute("gap")),
+      drag: (this.getAttribute("drag") as any) || "true",
+      speed: Number(this.getAttribute("speed")) || 300,
+      rightPadding: formatUnit(this.getAttribute("right-padding")),
+      leftPadding: formatUnit(this.getAttribute("left-padding")),
+      rewind: this.hasAttribute("rewind"),
+      edgeResistance: isNaN(defaultResistance) ? 0 : defaultResistance,
+      loop: this.hasAttribute("loop"),
+      grabCursor: this.hasAttribute("grab-cursor"),
+      snap: this.hasAttribute("snap"),
+      autoplay: this.hasAttribute("autoplay"),
+      interval: isNaN(parsedInterval) ? 3000 : parsedInterval,
+      startIndex: isNaN(parsedStartIndex) ? 0 : parsedStartIndex,
+      autoWidth: this.hasAttribute("auto-width"),
+      perMove: parsedPerMove,
+    };
+  }
+
+  public startAutoplay() {
+    this.stopAutoplay();
+    if (this.options.autoplay && this.options.interval > 0) {
+      this.autoplayTimer = window.setInterval(() => {
+        this.next();
+      }, this.options.interval);
+    }
+  }
+
+  public stopAutoplay() {
+    if (this.autoplayTimer !== null) {
+      clearInterval(this.autoplayTimer);
+      this.autoplayTimer = null;
+    }
+  }
+
+  private initLoopClones() {
+    if (!this.track || !this.options.loop) return;
+
+    const existingClones = this.track.querySelectorAll("[data-clone]");
+    existingClones.forEach((clone) => clone.remove());
+
+    const originalSlides = Array.from(this.track.children) as HTMLElement[];
+    this.originalSlidesCount = originalSlides.length;
+
+    if (this.originalSlidesCount === 0) return;
+
+    const cloneCount = this.options.autoWidth
+      ? this.originalSlidesCount
+      : this.options.perView;
+
+    for (let i = 0; i < cloneCount; i++) {
+      const targetSlide = originalSlides[originalSlides.length - 1 - i];
+      const clone = targetSlide.cloneNode(true) as HTMLElement;
+      clone.setAttribute("data-clone", "prev");
+      this.track.insertBefore(clone, this.track.firstChild);
+    }
+
+    for (let i = 0; i < cloneCount; i++) {
+      const targetSlide = originalSlides[i];
+      const clone = targetSlide.cloneNode(true) as HTMLElement;
+      clone.setAttribute("data-clone", "next");
+      this.track.appendChild(clone);
+    }
+  }
+
+  public updateLayout() {
+    if (!this.track) return;
+
+    if (this.options.grabCursor && this.options.drag !== "false") {
+      this.track.setAttribute("grab-cursor", "");
+    } else {
+      this.track.removeAttribute("grab-cursor");
+    }
+
+    const slides = Array.from(this.track.children) as HTMLElement[];
+    if (slides.length === 0) return;
+
+    if (this.options.loop && this.originalSlidesCount === 0) {
+      this.initLoopClones();
+    }
+
+    const cloneCount = this.track.querySelectorAll("[data-clone]").length;
+    const realSlideCount = slides.length - cloneCount;
+
+    if (this.isFirstInit && realSlideCount > 0) {
+      const validStartIndex = Math.max(
+        0,
+        Math.min(this.options.startIndex, realSlideCount - 1),
+      );
+      if (this.options.loop) {
+        const currentCloneCount = this.options.autoWidth
+          ? realSlideCount
+          : this.options.perView;
+        this.currentIndex = currentCloneCount + validStartIndex;
+      } else {
+        this.currentIndex = validStartIndex;
+      }
+      this.isFirstInit = false;
+    }
+
+    const rawLeft = this.getAttribute("left-padding");
+    const rawRight = this.getAttribute("right-padding");
+
+    const formatUnit = (val: string | null): string => {
+      if (!val) return "0px";
+      return isNaN(Number(val)) ? val : `${val}px`;
+    };
+
+    if (
+      !this.options.autoWidth &&
+      this.options.perView === realSlideCount &&
+      rawLeft &&
+      parseFloat(rawLeft) > 0 &&
+      rawRight &&
+      parseFloat(rawRight) > 0
+    ) {
+      this.options.leftPadding = "0px";
+      this.options.rightPadding = "0px";
+    } else {
+      this.options.leftPadding = formatUnit(rawLeft);
+      this.options.rightPadding = formatUnit(rawRight);
+    }
+
+    const containerWidth = this.getBoundingClientRect().width;
+    const gapPx = this.convertToPx(this.options.gap);
+    const leftPadPx = this.convertToPx(this.options.leftPadding);
+    const rightPadPx = this.convertToPx(this.options.rightPadding);
+
+    // DỌN DẸP SẠCH SẼ: Chỉ giữ lại MỘT khối điều kiện IF/ELSE duy nhất để xử lý width
+    if (this.options.autoWidth) {
+      // 1. Tạm thời ép thẻ cha ôm sát thẻ con bằng max-content
+      // (để phá vỡ thuộc tính width: 100% mặc định trong file css)
+      slides.forEach((slide) => {
+        slide.style.width = "max-content";
+      });
+
+      // 2. Ép trình duyệt render lại DOM để nhả kích thước thật
+      this.track.offsetHeight;
+
+      // 3. Đọc chính xác width từ thẻ con trực tiếp (VD: <div class="slide">) và chốt hạ cho thẻ cha
+      slides.forEach((slide) => {
+        const child = slide.firstElementChild as HTMLElement;
+        if (child) {
+          slide.style.width = `${child.getBoundingClientRect().width}px`;
+        } else {
+          // Fallback an toàn nếu lỡ không có thẻ con
+          slide.style.width = "max-content";
+        }
+        slide.style.marginRight = this.options.gap;
+      });
+
+      // 4. Vô hiệu hóa hoàn toàn per-view cũ, đếm số lượng slide vật lý thực tế trên màn hình
+      this.options.perView = this.getVisibleSlidesCount();
+    } else {
+      // Logic chia cột đều nhau dựa trên perView ban đầu
+      const availableWidth =
+        containerWidth -
+        leftPadPx -
+        rightPadPx -
+        gapPx * (this.options.perView - 1);
+      const slideWidth = availableWidth / this.options.perView;
+
+      slides.forEach((slide) => {
+        slide.style.width = `${slideWidth}px`;
+        slide.style.marginRight = this.options.gap;
+      });
+    }
+
+    this.track.updatePosition(true);
+    this.updateSlideAttributes();
+  }
+
+  public convertToPx(value: string): number {
+    const ctx = document.createElement("div");
+    ctx.style.display = "none";
+    ctx.style.width = value;
+    document.body.appendChild(ctx);
+    const px = parseFloat(getComputedStyle(ctx).width);
+    document.body.removeChild(ctx);
+    return px || 0;
+  }
+
+  public getSlideWidthWithGap(): number {
+    if (!this.track || this.track.children.length === 0) return 0;
+    const firstSlide = this.track.children[0] as HTMLElement;
+    return (
+      firstSlide.getBoundingClientRect().width +
+      this.convertToPx(this.options.gap)
+    );
+  }
+
+  // Đếm xem thực tế có bao nhiêu slide nhét vừa container
+  private getVisibleSlidesCount(): number {
+    if (!this.track || this.track.children.length === 0) return 1;
+    const containerW = this.getBoundingClientRect().width;
+    let accumulatedWidth = 0;
+    let count = 0;
+    const gapPx = this.convertToPx(this.options.gap);
+    const slides = Array.from(this.track.children) as HTMLElement[];
+
+    for (let i = 0; i < slides.length; i++) {
+      accumulatedWidth += slides[i].getBoundingClientRect().width + gapPx;
+      // Nếu cộng thêm slide này mà vượt quá container thì dừng
+      if (accumulatedWidth - gapPx > containerW) break;
+      count++;
+    }
+    return Math.max(1, count);
+  }
+
+  // Lấy chính xác tọa độ offset của một index bất kỳ (cộng dồn chiều rộng từng thẻ)
+  public getOffsetForIndex(index: number): number {
+    if (!this.track) return 0;
+    const slides = Array.from(this.track.children) as HTMLElement[];
+    const gapPx = this.convertToPx(this.options.gap);
+    let offset = 0;
+
+    for (let i = 0; i < index; i++) {
+      if (slides[i]) {
+        offset += slides[i].getBoundingClientRect().width + gapPx;
+      }
+    }
+    return offset;
+  }
+
+  public getMaxTranslate(): number {
+    if (!this.track || this.track.children.length === 0) return 0;
+    const containerWidth = this.getBoundingClientRect().width;
+
+    let totalTrackWidth = 0;
+    if (this.options.autoWidth) {
+      // Nếu auto-width, phải đo tổng chiều rộng thực của tất cả thẻ
+      totalTrackWidth = this.getOffsetForIndex(this.track.children.length);
+      totalTrackWidth -= this.convertToPx(this.options.gap); // Bỏ gap dư ở cuối
+    } else {
+      const totalSlides = this.track.children.length;
+      const slideWidth = this.getSlideWidthWithGap();
+      totalTrackWidth =
+        slideWidth * totalSlides - this.convertToPx(this.options.gap);
+    }
+
+    return Math.max(0, totalTrackWidth - containerWidth);
+  }
+
+  public updateSlideAttributes() {
+    if (!this.track) return;
+
+    const slides = Array.from(this.track.children) as HTMLElement[];
+    if (slides.length === 0) return;
+
+    const isLoop = this.options.loop;
+    const realSlideCount = isLoop ? this.originalSlidesCount : slides.length;
+    if (realSlideCount === 0) return;
+
+    const cloneCount = isLoop
+      ? this.options.autoWidth
+        ? this.originalSlidesCount
+        : this.options.perView
+      : 0;
+
+    slides.forEach((slide, index) => {
+      slide.removeAttribute("sx-slide-active");
+      slide.removeAttribute("sx-slide-prev");
+      slide.removeAttribute("sx-slide-next");
+
+      let realIndex = index;
+      if (isLoop) {
+        realIndex = (index - cloneCount) % realSlideCount;
+        if (realIndex < 0) realIndex += realSlideCount;
+      }
+      slide.setAttribute("aria-label", `${realIndex + 1}/${realSlideCount}`);
+    });
+
+    const activeIdx = this.currentIndex;
+    const prevIdx = activeIdx - 1;
+    const nextIdx = activeIdx + 1;
+
+    if (slides[activeIdx])
+      slides[activeIdx].setAttribute("sx-slide-active", "");
+    if (slides[prevIdx]) slides[prevIdx].setAttribute("sx-slide-prev", "");
+    if (slides[nextIdx]) slides[nextIdx].setAttribute("sx-slide-next", "");
+  }
+
+  public getCurrentIndex() {
+    return this.currentIndex;
+  }
+
+  public setCurrentIndex(val: number) {
+    this.currentIndex = val;
+    this.updateSlideAttributes();
+  }
+
+  // Quét chính xác index tối đa có thể cuộn tới mà không bị overscroll
+  public getRealMaxIndex(): number {
+    if (!this.track || this.track.children.length === 0) return 0;
+    const minBound = -this.getMaxTranslate();
+    const totalSlides = this.track.children.length;
+
+    for (let i = 0; i < totalSlides; i++) {
+      const offset = -this.getOffsetForIndex(i);
+      // Ngay khi tìm thấy slide đầu tiên đẩy track chạm/vượt giới hạn cuối
+      if (offset <= minBound) {
+        return i;
+      }
+    }
+    return Math.max(0, totalSlides - 1);
+  }
+
+  // Trả về số lượng slide sẽ trượt cho mỗi lần next/prev
+  private getResolvedPerMove(): number {
+    // Nếu là auto, bước nhảy tiêu chuẩn cho nút bấm / thao tác drag cơ bản là 1
+    if (this.options.perMove === "auto") {
+      return 1;
+    }
+
+    const visibleSlides = this.getVisibleSlidesCount();
+    // Đảm bảo >= 1
+    let val = Math.max(1, this.options.perMove);
+    // Đảm bảo không vượt quá số lượng slide đang có trong viewport
+    return Math.min(val, visibleSlides);
+  }
+
+  public next() {
+    if (!this.track) return;
+    const moveBy = this.getResolvedPerMove(); // Lấy số lượng cần trượt
+
+    if (this.options.loop) {
+      this.currentIndex += moveBy;
+      this.updateSlideAttributes();
+      this.track.updatePosition();
+    } else {
+      const maxIndex = this.getRealMaxIndex();
+
+      if (this.currentIndex < maxIndex) {
+        // Trượt tới, nhưng không cho phép văng quá maxIndex
+        this.currentIndex = Math.min(maxIndex, this.currentIndex + moveBy);
+      } else if (this.options.rewind) {
+        this.currentIndex = 0;
+      }
+      this.updateSlideAttributes();
+      this.track.updatePosition();
+    }
+  }
+
+  public prev() {
+    if (!this.track) return;
+    const moveBy = this.getResolvedPerMove(); // Lấy số lượng cần trượt
+
+    if (this.options.loop) {
+      this.currentIndex -= moveBy;
+      this.updateSlideAttributes();
+      this.track.updatePosition();
+    } else {
+      if (this.currentIndex > 0) {
+        // Trượt lùi, nhưng không cho phép nhỏ hơn 0
+        this.currentIndex = Math.max(0, this.currentIndex - moveBy);
+      } else if (this.options.rewind) {
+        this.currentIndex = this.getRealMaxIndex();
+      }
+      this.updateSlideAttributes();
+      this.track.updatePosition();
+    }
+  }
+
+  public alignIndexToFreeTranslation(translate: number) {
+    const leftPadPx = parseFloat(this.options.leftPadding) || 0;
+
+    // Dùng giá trị âm chuẩn để bắt chính xác chiều vuốt
+    const shiftedTranslate = translate - leftPadPx;
+
+    if (shiftedTranslate > 0) {
+      // Nếu kéo lố về mép trái qua cả gốc tọa độ, chặn cứng ở slide đầu tiên (index 0)
+      this.currentIndex = 0;
+    } else {
+      const targetTranslate = Math.abs(shiftedTranslate);
+
+      if (this.options.autoWidth && this.track) {
+        const slides = Array.from(this.track.children) as HTMLElement[];
+        const gapPx = this.convertToPx(this.options.gap);
+        let accumulated = 0;
+        let foundIndex = 0;
+
+        // Quét từng thẻ để xem điểm rơi nằm gần thẻ nào nhất
+        for (let i = 0; i < slides.length; i++) {
+          const w = slides[i].getBoundingClientRect().width + gapPx;
+          if (accumulated + w / 2 > targetTranslate) {
+            foundIndex = i;
+            break;
+          }
+          accumulated += w;
+          foundIndex = i; // Fallback
+        }
+        this.currentIndex = foundIndex;
+      } else {
+        const slideWidth = this.getSlideWidthWithGap();
+        this.currentIndex = Math.round(targetTranslate / slideWidth);
+      }
+    }
+
+    // --- BẮT ĐẦU FIX: Chặn Index không vượt quá Max Index nếu không bật Loop ---
+    if (!this.options.loop) {
+      const maxIdx = this.getRealMaxIndex();
+      this.currentIndex = Math.min(this.currentIndex, maxIdx);
+    }
+    // --- KẾT THÚC FIX ---
+
+    this.updateSlideAttributes();
+    if (this.options.loop && this.track) {
+      this.track.checkLoopBoundsInstant();
+    }
+  }
+}
+
+if (!customElements.get("sx-slider")) {
+  customElements.define("sx-slider", SxSlider);
+}

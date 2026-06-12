@@ -6,63 +6,54 @@
     <title>six-js</title>
 
     <link rel="stylesheet" href="./index.css" />
-    <!-- <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.css"
-    />
-    <script src="https://cdn.jsdelivr.net/npm/swiper@12/swiper-element-bundle.min.js"></script> -->
+    <link rel="stylesheet" href="./dist/six-js.css" />
   </head>
 
   <body>
-    <sx-slider
-      name="slider-1"
-      per-view="1"
-      gap="10"
-      speed="400"
-      breakpoints="{
-        360: {
-          per-view: 2,
-          gap: 20
-        },
-        768: {
-          per-view: 3,
-          gap: 30
-        },
-        1080: {
-          per-view: 4,
-          gap: 40
-        }
-      }"
-    >
+    
+    <sx-slider name="slider-1" per-view="2" gap="10" grab-cursor drag="true">
       <sx-slider-track>
         <sx-slider-slide>
-          <div class="slide">Slide 1</div>
+          <div class="slide" style="width: 100%;">Slide 1</div>
         </sx-slider-slide>
         <sx-slider-slide>
           <div class="slide">Slide 2</div>
         </sx-slider-slide>
         <sx-slider-slide>
-          <div class="slide">Slide 3</div>
+          <div class="slide" style="width: 100%;">Slide 3</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide" style="width: 100%;">Slide 4</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide" style="width: 100%;">Slide 5</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide" style="width: 100%;">Slide 6</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide" style="width: 100%;">Slide 7</div>
         </sx-slider-slide>
       </sx-slider-track>
       <sx-slider-prev>Prev</sx-slider-prev>
       <sx-slider-next>Next</sx-slider-next>
-      <sx-slider-pagination>
-        <!-- các thẻ dot (tượng trưng cho từng slide) sẽ được render và dot được active sẽ có attr riêng để tự do css -->
-      </sx-slider-pagination>
-      <sx-slider-progress>
-        <!-- render thanh tiến trình cơ bản để tự do css, thanh tiến trình này phải phục vụ cho cả chức năng draggable -->
-      </sx-slider-progress>
-      <sx-slider-thumbnail>
-        <!-- render thumbnail ở đây -->
-      </sx-slider-thumbnail>
     </sx-slider>
     <h3>Điều khiển slider bằng name</h3>
     <sx-slider-prev name="slider-1">Prev</sx-slider-prev>
     <sx-slider-next name="slider-1">Next</sx-slider-next>
 
-    <div style="height: 20vh"></div>
-
+    |Attribute|Type|Description|Default|
+|---|---|---|---|
+|name|string|Tên slider, có thể dùng link đến nút prev,next|null|
+|per-view|number|Số lượng slide trong viewport|1|
+|right-padding|number|Lộ một phần slide tiếp theo|0|
+|left-padding|number|Lộ một phần slide trước đó nếu có|0|
+|speed|number|Tốc độ trượt slide|300|
+|edge-resistance|number|Khoảng cách cản khi kéo ở mép đầu/cuối.|100|
+|loop|boolean||false|
+|rewind|boolean|Tua lại khi đến slide cuối|false|
+|gap|number \| string|Ví dụ: `"20"`, `"1rem"`|0|
+|drag|string|`true`: cho phép drag \| `false`: chặn drag \| `free`: cho phép drag và slide trượt theo quán tính |true|
     <script src="./dist/six-js.umd.js"></script>
   </body>
 </html>

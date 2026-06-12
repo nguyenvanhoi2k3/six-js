@@ -66,14 +66,20 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
 <br />
 |Attribute|Type|Description|Default|
 |---|---|---|---|
-|per-view|number|Số lượng slide trong viewport. Có thể viết `1.5` cho side padding|1|
-|speed|number|Tốc độ trượt slide|500|
+|name|string|Tên slider, có thể dùng link đến nút prev,next|null|
+|per-view|number|Số lượng slide trong viewport|1|
+|per-move|number\|auto|Số lượng slide di chuyển mỗi lần. Nếu số âm thì = 1, nếu số lớn như 999 thì = số lượng slide trong viewport, `auto`: 1 hoặc dừng lại ở slide gần nhất khi thả|auto|
+|right-padding|number|Lộ một phần slide tiếp theo|0|
+|left-padding|number|Lộ một phần slide trước đó nếu có|0|
+|speed|number|Tốc độ trượt slide|300|
+|edge-resistance|number|Khoảng cách cản khi kéo ở mép đầu/cuối.|100|
 |loop|boolean||false|
 |autoplay|boolean||false|
-|autoplay-delay|number||4000|
+|interval|number|thời gian chờ trước khi chuyển slide tiếp theo|3000|
 |rewind|boolean|Tua lại khi đến slide cuối|false|
 |direction|string|horizontal \| vertical|horizontal|
-|start|number|start index|0|
+|start-index|number|start index|0|
+|auto-width|boolean|tự động chia per-view theo width của slide content, per-vew khi này sẽ disable|false|
 |auto-height|boolean||false|
 |effect|string|slide \| fade|false|
 |gap|number \| string|Ví dụ: `"20"`, `"1rem"`|0|
@@ -81,8 +87,7 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
 |centered-bounds|boolean|Căn giữa nhưng không để xuất hiện khoảng trắng ở 2 bên|false|
 |center-if-short|boolean|Khi tổng số slide không đủ để lấp đầy viewport. `false`: slide căn trái, `true`: slide căn giữa|false|
 |grab-cursor|boolean|Bật tắt grab cursor|false|
-|drag-disable|boolean|Chỉ cho phép trượt bằng navigation|false|
-|draggable|boolean|Slider trượt tự do khi vuốt|false|
+|drag|boolean \| free|`true`: cho phép drag \| `false`: chặn drag \| `free`: cho phép drag và slide trượt theo quán tính |true|
 |vertical-scroll|boolean|Khi direction="vertical", có thể cuộn slide bằng con lăn|false|
-|snap|boolean|Tự động về vị trí slide gần nhất|false|
+|snap|boolean|Tự động về vị trí slide gần nhất ở chế độ drag-free|false|
 |breakpoints|json||undefined|

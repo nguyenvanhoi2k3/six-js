@@ -283,6 +283,12 @@ export class SxMarqueeItem extends HTMLElement {
   }
 }
 
-customElements.define("sx-marquee", SxMarquee);
-customElements.define("sx-marquee-inner", SxMarqueeInner);
-customElements.define("sx-marquee-item", SxMarqueeItem);
+if (!customElements.get("sx-marquee")) {
+  customElements.define("sx-marquee", SxMarquee);
+}
+if (!customElements.get("sx-marquee-inner")) {
+  customElements.define("sx-marquee-inner", SxMarqueeInner);
+}
+if (!customElements.get("sx-marquee-item")) {
+  customElements.define("sx-marquee-item", SxMarqueeItem);
+}

@@ -1,7 +1,7 @@
-var x = Object.defineProperty;
-var w = (o, t, e) => t in o ? x(o, t, { enumerable: !0, configurable: !0, writable: !0, value: e }) : o[t] = e;
-var i = (o, t, e) => w(o, typeof t != "symbol" ? t + "" : t, e);
-const q = "0.0.12", d = {
+var I = Object.defineProperty;
+var M = (d, o, t) => o in d ? I(d, o, { enumerable: !0, configurable: !0, writable: !0, value: t }) : d[o] = t;
+var r = (d, o, t) => M(d, typeof o != "symbol" ? o + "" : o, t);
+const k = "0.0.13", b = {
   "ease-in": "cubic-bezier(0.42, 0, 1, 1)",
   "ease-out": "cubic-bezier(0, 0, 0.58, 1)",
   "ease-in-out": "cubic-bezier(0.42, 0, 0.58, 1)",
@@ -12,12 +12,12 @@ const q = "0.0.12", d = {
   "back-in": "cubic-bezier(0.36, 0, 0.66, -0.56)",
   "back-out": "cubic-bezier(0.34, 1.56, 0.64, 1)",
   "back-in-out": "cubic-bezier(0.68, -0.6, 0.32, 1.6)"
-}, a = class a extends HTMLElement {
+}, f = class f extends HTMLElement {
   constructor() {
     super(...arguments);
-    i(this, "animation");
-    i(this, "options");
-    i(this, "order", a.counter++);
+    r(this, "animation");
+    r(this, "options");
+    r(this, "order", f.counter++);
   }
   static get reduceMotion() {
     return this.mediaQuery.matches;
@@ -27,53 +27,53 @@ const q = "0.0.12", d = {
       this.handleGroup([...this.groupQueue]), this.groupQueue.clear(), this.isProcessingGroup = !1;
     }));
   }
-  static handleGroup(e) {
-    e.sort((s, r) => s.order - r.order), e.forEach((s, r) => {
-      s.play(r * 120);
+  static handleGroup(t) {
+    t.sort((e, i) => e.order - i.order), t.forEach((e, i) => {
+      e.play(i * 120);
     });
   }
   get isGroup() {
     return this.hasAttribute("group");
   }
   connectedCallback() {
-    if (this.options = this.getOptions(), a.reduceMotion) {
+    if (this.options = this.getOptions(), f.reduceMotion) {
       this.style.opacity = "1", this.style.transform = "none";
       return;
     }
-    this.setInitialState(), a.observer.observe(this);
+    this.setInitialState(), f.observer.observe(this);
   }
   disconnectedCallback() {
-    var e;
-    (e = this.animation) == null || e.cancel(), a.observer.unobserve(this), a.groupQueue.delete(this);
+    var t;
+    (t = this.animation) == null || t.cancel(), f.observer.unobserve(this), f.groupQueue.delete(this);
   }
   getOptions() {
-    const e = Number(this.getAttribute("strength")) || 30, s = {
+    const t = Number(this.getAttribute("strength")) || 30, e = {
       fade: [0, 0],
-      "fade-up": [0, e],
-      "fade-down": [0, -e],
-      "fade-left": [e, 0],
-      "fade-right": [-e, 0]
-    }, r = this.getAttribute("type") ?? "fade-up", n = this.getAttribute("easing"), [h, l] = s[r] ?? s["fade-up"];
+      "fade-up": [0, t],
+      "fade-down": [0, -t],
+      "fade-left": [t, 0],
+      "fade-right": [-t, 0]
+    }, i = this.getAttribute("type") ?? "fade-up", s = this.getAttribute("easing"), [n, a] = e[i] ?? e["fade-up"];
     return {
-      x: h,
-      y: l,
-      easing: n && n in d ? d[n] : d["ease-in-out"],
+      x: n,
+      y: a,
+      easing: s && s in b ? b[s] : b["ease-in-out"],
       duration: Number(this.getAttribute("duration")) || 400,
       delay: Number(this.getAttribute("delay")) || 0
     };
   }
   setInitialState() {
-    const { x: e, y: s } = this.options;
-    this.style.opacity = "0", this.style.transform = `translate3d(${e}px, ${s}px, 0)`;
+    const { x: t, y: e } = this.options;
+    this.style.opacity = "0", this.style.transform = `translate3d(${t}px, ${e}px, 0)`;
   }
-  play(e = 0) {
-    var u;
-    const { x: s, y: r, easing: n, duration: h, delay: l } = this.options;
-    (u = this.animation) == null || u.cancel(), this.animation = this.animate(
+  play(t = 0) {
+    var h;
+    const { x: e, y: i, easing: s, duration: n, delay: a } = this.options;
+    (h = this.animation) == null || h.cancel(), this.animation = this.animate(
       [
         {
           opacity: 0,
-          transform: `translate3d(${s}px, ${r}px, 0)`
+          transform: `translate3d(${e}px, ${i}px, 0)`
         },
         {
           opacity: 1,
@@ -81,60 +81,60 @@ const q = "0.0.12", d = {
         }
       ],
       {
-        duration: h,
-        delay: l + e,
-        easing: n,
+        duration: n,
+        delay: a + t,
+        easing: s,
         fill: "forwards"
       }
     ), this.animation.onfinish = () => {
-      var c;
-      this.style.opacity = "1", this.style.transform = "translate3d(0,0,0)", (c = this.animation) == null || c.cancel(), this.animation = void 0;
+      var l;
+      this.style.opacity = "1", this.style.transform = "translate3d(0,0,0)", (l = this.animation) == null || l.cancel(), this.animation = void 0;
     };
   }
 };
-i(a, "counter", 0), i(a, "mediaQuery", window.matchMedia(
+r(f, "counter", 0), r(f, "mediaQuery", window.matchMedia(
   "(prefers-reduced-motion: reduce)"
-)), i(a, "groupQueue", /* @__PURE__ */ new Set()), i(a, "isProcessingGroup", !1), i(a, "observer", new IntersectionObserver(
-  (e) => {
-    for (const s of e) {
-      if (s.intersectionRect.width * s.intersectionRect.height < 1)
+)), r(f, "groupQueue", /* @__PURE__ */ new Set()), r(f, "isProcessingGroup", !1), r(f, "observer", new IntersectionObserver(
+  (t) => {
+    for (const e of t) {
+      if (e.intersectionRect.width * e.intersectionRect.height < 1)
         continue;
-      const n = s.target;
-      a.observer.unobserve(n), n.isGroup ? a.groupQueue.add(n) : n.play();
+      const s = e.target;
+      f.observer.unobserve(s), s.isGroup ? f.groupQueue.add(s) : s.play();
     }
-    a.scheduleGroup();
+    f.scheduleGroup();
   },
   {
     threshold: [0],
     rootMargin: "-1px 0px -1px 0px"
   }
 ));
-let p = a;
-customElements.define("sx-animate", p);
-class A {
+let T = f;
+customElements.get("sx-animate") || customElements.define("sx-animate", T);
+class E {
   constructor() {
-    i(this, "_listeners", /* @__PURE__ */ new Set());
-    i(this, "_time", 0);
+    r(this, "_listeners", /* @__PURE__ */ new Set());
+    r(this, "_time", 0);
     // seconds
-    i(this, "_delta", 0);
+    r(this, "_delta", 0);
     // ms
-    i(this, "_frame", 0);
-    i(this, "_start", this._now());
-    i(this, "_last", this._start);
-    i(this, "_lagThreshold", 500);
-    i(this, "_adjustedLag", 33);
-    i(this, "_gap", 1e3 / 240);
-    i(this, "_nextTime", this._gap);
-    i(this, "_id", null);
-    i(this, "_tick", () => {
-      let e = this._now() - this._last;
-      (e > this._lagThreshold || e < 0) && (this._start += e - this._adjustedLag), this._last += e;
-      const s = this._last - this._start, r = s - this._nextTime;
-      if (r > 0) {
-        this._frame++, this._delta = s - this._time * 1e3, this._time = s / 1e3, this._nextTime += r >= this._gap ? r + 4 : this._gap;
-        const n = [...this._listeners];
-        for (const h of n)
-          h(this._time, this._delta, this._frame);
+    r(this, "_frame", 0);
+    r(this, "_start", this._now());
+    r(this, "_last", this._start);
+    r(this, "_lagThreshold", 500);
+    r(this, "_adjustedLag", 33);
+    r(this, "_gap", 1e3 / 240);
+    r(this, "_nextTime", this._gap);
+    r(this, "_id", null);
+    r(this, "_tick", () => {
+      let t = this._now() - this._last;
+      (t > this._lagThreshold || t < 0) && (this._start += t - this._adjustedLag), this._last += t;
+      const e = this._last - this._start, i = e - this._nextTime;
+      if (i > 0) {
+        this._frame++, this._delta = e - this._time * 1e3, this._time = e / 1e3, this._nextTime += i >= this._gap ? i + 4 : this._gap;
+        const s = [...this._listeners];
+        for (const n of s)
+          n(this._time, this._delta, this._frame);
       }
       if (this._listeners.size === 0) {
         this.sleep();
@@ -146,32 +146,32 @@ class A {
   _now() {
     return typeof performance < "u" ? performance.now() : Date.now();
   }
-  _request(t) {
-    return typeof requestAnimationFrame < "u" ? requestAnimationFrame(t) : setTimeout(t, 16);
+  _request(o) {
+    return typeof requestAnimationFrame < "u" ? requestAnimationFrame(o) : setTimeout(o, 16);
   }
-  _cancel(t) {
+  _cancel(o) {
     if (typeof cancelAnimationFrame < "u") {
-      cancelAnimationFrame(t);
+      cancelAnimationFrame(o);
       return;
     }
-    clearTimeout(t);
+    clearTimeout(o);
   }
   _wake() {
     if (this._id !== null) return;
-    const t = this._now();
-    this._start = t - this._time * 1e3, this._last = t, this._tick();
+    const o = this._now();
+    this._start = o - this._time * 1e3, this._last = o, this._tick();
   }
-  add(t) {
-    return this._listeners.add(t), this._wake(), t;
+  add(o) {
+    return this._listeners.add(o), this._wake(), o;
   }
-  addOnce(t) {
-    const e = (s, r, n) => {
-      this.remove(e), t(s, r, n);
+  addOnce(o) {
+    const t = (e, i, s) => {
+      this.remove(t), o(e, i, s);
     };
-    return this.add(e), e;
+    return this.add(t), t;
   }
-  remove(t) {
-    this._listeners.delete(t), this._listeners.size === 0 && this.sleep();
+  remove(o) {
+    this._listeners.delete(o), this._listeners.size === 0 && this.sleep();
   }
   clear() {
     this._listeners.clear(), this.sleep();
@@ -179,14 +179,14 @@ class A {
   sleep() {
     this._id !== null && (this._cancel(this._id), this._id = null);
   }
-  fps(t) {
-    t = Math.max(1, t), this._gap = 1e3 / t, this._nextTime = this._time * 1e3 + this._gap;
+  fps(o) {
+    o = Math.max(1, o), this._gap = 1e3 / o, this._nextTime = this._time * 1e3 + this._gap;
   }
-  lagSmoothing(t = 500, e = 33) {
-    this._lagThreshold = t || 1 / 0, this._adjustedLag = Math.min(e, this._lagThreshold);
+  lagSmoothing(o = 500, t = 33) {
+    this._lagThreshold = o || 1 / 0, this._adjustedLag = Math.min(t, this._lagThreshold);
   }
-  deltaRatio(t = 60) {
-    return this._delta / (1e3 / t);
+  deltaRatio(o = 60) {
+    return this._delta / (1e3 / o);
   }
   get time() {
     return this._time;
@@ -204,55 +204,55 @@ class A {
     return this._listeners.size;
   }
 }
-const f = new A(), b = /* @__PURE__ */ new WeakMap();
-let m = [], g = null;
-function _(o, t) {
-  m.push({ instance: o, type: t }), g === null && (g = requestAnimationFrame(M));
+const v = new E(), S = /* @__PURE__ */ new WeakMap();
+let C = [], y = null;
+function A(d, o) {
+  C.push({ instance: d, type: o }), y === null && (y = requestAnimationFrame(P));
 }
-function M() {
-  const o = m.slice();
-  m.length = 0, g = null;
-  for (let t = 0; t < o.length; t++) {
-    const { instance: e, type: s } = o[t];
-    s === "enter" ? e.enter() : e.leave && e.leave();
+function P() {
+  const d = C.slice();
+  C.length = 0, y = null;
+  for (let o = 0; o < d.length; o++) {
+    const { instance: t, type: e } = d[o];
+    e === "enter" ? t.enter() : t.leave && t.leave();
   }
 }
-const y = new IntersectionObserver(
-  (o) => {
-    for (let t = 0; t < o.length; t++) {
-      const e = o[t], s = b.get(e.target);
-      s && (e.isIntersecting ? _(s, "enter") : _(s, "leave"));
+const w = new IntersectionObserver(
+  (d) => {
+    for (let o = 0; o < d.length; o++) {
+      const t = d[o], e = S.get(t.target);
+      e && (t.isIntersecting ? A(e, "enter") : A(e, "leave"));
     }
   },
   { threshold: 0.05 }
 );
-function R(o, t) {
-  b.set(o, t), y.observe(o);
+function _(d, o) {
+  S.set(d, o), w.observe(d);
 }
-function k(o) {
-  b.delete(o), y.unobserve(o);
+function R(d) {
+  S.delete(d), w.unobserve(d);
 }
-class S extends HTMLElement {
+class L extends HTMLElement {
   constructor() {
     super();
-    i(this, "inner", null);
-    i(this, "resizeObserver", null);
-    i(this, "setupRafId", null);
-    i(this, "offset", 0);
-    i(this, "isHovered", !1);
-    i(this, "cachedResetBounds", 0);
-    i(this, "isSettingUp", !1);
-    i(this, "isVisible", !1);
-    i(this, "onMouseEnter", () => {
+    r(this, "inner", null);
+    r(this, "resizeObserver", null);
+    r(this, "setupRafId", null);
+    r(this, "offset", 0);
+    r(this, "isHovered", !1);
+    r(this, "cachedResetBounds", 0);
+    r(this, "isSettingUp", !1);
+    r(this, "isVisible", !1);
+    r(this, "onMouseEnter", () => {
       this.pauseOnHover && (this.isHovered = !0);
     });
-    i(this, "onMouseLeave", () => {
+    r(this, "onMouseLeave", () => {
       this.isHovered = !1;
     });
-    i(this, "updateAnimation", (e, s) => {
+    r(this, "updateAnimation", (t, e) => {
       if (this.isHovered || this.cachedResetBounds <= 0) return;
-      const r = s / 1e3, n = this.speed * r;
-      this.direction === "left" ? (this.offset -= n, this.clone ? this.offset <= -this.cachedResetBounds && (this.offset += this.cachedResetBounds) : this.offset <= -this.cachedResetBounds && (this.offset = this.offsetWidth)) : (this.offset += n, this.clone ? this.offset >= 0 && (this.offset -= this.cachedResetBounds) : this.offset >= this.offsetWidth && (this.offset = -this.cachedResetBounds)), this.applyTransform(this.offset);
+      const i = e / 1e3, s = this.speed * i;
+      this.direction === "left" ? (this.offset -= s, this.clone ? this.offset <= -this.cachedResetBounds && (this.offset += this.cachedResetBounds) : this.offset <= -this.cachedResetBounds && (this.offset = this.offsetWidth)) : (this.offset += s, this.clone ? this.offset >= 0 && (this.offset -= this.cachedResetBounds) : this.offset >= this.offsetWidth && (this.offset = -this.cachedResetBounds)), this.applyTransform(this.offset);
     });
     this.attachShadow({ mode: "open" });
   }
@@ -262,34 +262,34 @@ class S extends HTMLElement {
   get clone() {
     return this.getAttribute("clone") !== "false";
   }
-  set clone(e) {
-    this.setAttribute("clone", String(e));
+  set clone(t) {
+    this.setAttribute("clone", String(t));
   }
   get direction() {
     return this.getAttribute("direction") === "right" ? "right" : "left";
   }
-  set direction(e) {
-    this.setAttribute("direction", e);
+  set direction(t) {
+    this.setAttribute("direction", t);
   }
   get speed() {
-    const e = parseFloat(this.getAttribute("speed") ?? "50");
-    return isFinite(e) && e >= 0 ? e : 50;
+    const t = parseFloat(this.getAttribute("speed") ?? "50");
+    return isFinite(t) && t >= 0 ? t : 50;
   }
-  set speed(e) {
-    this.setAttribute("speed", String(e));
+  set speed(t) {
+    this.setAttribute("speed", String(t));
   }
   get pauseOnHover() {
     return this.getAttribute("pause-on-hover") !== "false";
   }
-  set pauseOnHover(e) {
-    this.setAttribute("pause-on-hover", String(e));
+  set pauseOnHover(t) {
+    this.setAttribute("pause-on-hover", String(t));
   }
   get gap() {
-    const e = (this.getAttribute("gap") ?? "16").trim();
-    return /^\d+(\.\d+)?$/.test(e) ? `${e}px` : e;
+    const t = (this.getAttribute("gap") ?? "16").trim();
+    return /^\d+(\.\d+)?$/.test(t) ? `${t}px` : t;
   }
-  set gap(e) {
-    this.setAttribute("gap", e);
+  set gap(t) {
+    this.setAttribute("gap", t);
   }
   connectedCallback() {
     if (this.render(), this.inner = this.querySelector("sx-marquee-inner"), !this.inner) {
@@ -298,21 +298,21 @@ class S extends HTMLElement {
     }
     this.addEventListener("mouseenter", this.onMouseEnter), this.addEventListener("mouseleave", this.onMouseLeave), this.resizeObserver = new ResizeObserver(() => {
       this.scheduleSetup();
-    }), this.resizeObserver.observe(this), R(this, {
+    }), this.resizeObserver.observe(this), _(this, {
       enter: () => {
-        this.isVisible || (this.isVisible = !0, f.add(this.updateAnimation));
+        this.isVisible || (this.isVisible = !0, v.add(this.updateAnimation));
       },
       leave: () => {
-        this.isVisible && (this.isVisible = !1, f.remove(this.updateAnimation));
+        this.isVisible && (this.isVisible = !1, v.remove(this.updateAnimation));
       }
     });
   }
   disconnectedCallback() {
-    var e;
-    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (e = this.resizeObserver) == null || e.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), k(this), f.remove(this.updateAnimation);
+    var t;
+    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (t = this.resizeObserver) == null || t.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), R(this), v.remove(this.updateAnimation);
   }
-  attributeChangedCallback(e, s, r) {
-    s !== r && (e === "gap" ? (this.updateGapVar(), setTimeout(() => this.scheduleSetup(), 50)) : (e === "direction" || e === "speed" || e === "clone") && this.scheduleSetup());
+  attributeChangedCallback(t, e, i) {
+    e !== i && (t === "gap" ? (this.updateGapVar(), setTimeout(() => this.scheduleSetup(), 50)) : (t === "direction" || t === "speed" || t === "clone") && this.scheduleSetup());
   }
   scheduleSetup() {
     this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), this.setupRafId = requestAnimationFrame(() => {
@@ -347,26 +347,26 @@ class S extends HTMLElement {
     this.style.setProperty("--sx-marquee-gap", this.gap);
   }
   setupMarquee() {
-    var e;
+    var t;
     if (!(!this.inner || this.isSettingUp)) {
       this.isSettingUp = !0;
       try {
-        (e = this.resizeObserver) == null || e.unobserve(this.inner);
-        const s = Array.from(
+        (t = this.resizeObserver) == null || t.unobserve(this.inner);
+        const e = Array.from(
           this.inner.querySelectorAll(
             "sx-marquee-item:not([data-clone])"
           )
         );
-        this.inner.replaceChildren(...s);
-        const r = this.offsetWidth, n = this.inner.offsetWidth;
-        if (this.clone && n > 0 && r > 0) {
-          const h = n < r ? Math.ceil(r * 2 / n) : 2, l = document.createDocumentFragment();
-          for (let u = 1; u < h; u++)
-            for (const c of s) {
-              const v = c.cloneNode(!0);
-              v.setAttribute("data-clone", "true"), l.appendChild(v);
+        this.inner.replaceChildren(...e);
+        const i = this.offsetWidth, s = this.inner.offsetWidth;
+        if (this.clone && s > 0 && i > 0) {
+          const n = s < i ? Math.ceil(i * 2 / s) : 2, a = document.createDocumentFragment();
+          for (let h = 1; h < n; h++)
+            for (const l of e) {
+              const u = l.cloneNode(!0);
+              u.setAttribute("data-clone", "true"), a.appendChild(u);
             }
-          this.inner.appendChild(l);
+          this.inner.appendChild(a);
         }
         this.offset = 0, this.applyTransform(0), this.calculateBounds();
       } finally {
@@ -379,37 +379,543 @@ class S extends HTMLElement {
       this.cachedResetBounds = 0;
       return;
     }
-    const e = this.inner.querySelectorAll(
+    const t = this.inner.querySelectorAll(
       "sx-marquee-item:not([data-clone])"
     );
-    if (e.length === 0) {
+    if (t.length === 0) {
       this.cachedResetBounds = 0;
       return;
     }
-    let s = 0;
-    for (let n = 0; n < e.length; n++)
-      s += e[n].offsetWidth;
-    const r = parseFloat(getComputedStyle(this.inner).gap) || 0;
-    s += r * e.length, this.cachedResetBounds = s;
+    let e = 0;
+    for (let s = 0; s < t.length; s++)
+      e += t[s].offsetWidth;
+    const i = parseFloat(getComputedStyle(this.inner).gap) || 0;
+    e += i * t.length, this.cachedResetBounds = e;
   }
-  applyTransform(e) {
-    this.inner && (this.inner.style.transform = `translate3d(${e}px,0,0)`);
+  applyTransform(t) {
+    this.inner && (this.inner.style.transform = `translate3d(${t}px,0,0)`);
   }
 }
-class T extends HTMLElement {
+class W extends HTMLElement {
 }
-class z extends HTMLElement {
+class F extends HTMLElement {
   connectedCallback() {
     this.style.cssText = "display:inline-block;flex-shrink:0;";
   }
 }
-customElements.define("sx-marquee", S);
-customElements.define("sx-marquee-inner", T);
-customElements.define("sx-marquee-item", z);
-console.log(`@six-js/core v${q}`);
-export {
-  p as SxAnimate,
-  S as SxMarquee,
-  T as SxMarqueeInner,
-  z as SxMarqueeItem
-};
+customElements.get("sx-marquee") || customElements.define("sx-marquee", L);
+customElements.get("sx-marquee-inner") || customElements.define("sx-marquee-inner", W);
+customElements.get("sx-marquee-item") || customElements.define("sx-marquee-item", F);
+class B extends HTMLElement {
+  constructor() {
+    super();
+    r(this, "sliderCha", null);
+    r(this, "isDragging", !1);
+    r(this, "startX", 0);
+    r(this, "currentTranslate", 0);
+    r(this, "prevTranslate", 0);
+    r(this, "isResetting", !1);
+    r(this, "dragXs", []);
+    r(this, "dragTimes", []);
+    r(this, "velocity", 0);
+    r(this, "scrollAnimationFrameId", 0);
+    r(this, "scrollDuration", 0);
+    r(this, "scrollStartTime", 0);
+    r(this, "scrollFrom", 0);
+    r(this, "scrollToTarget", 0);
+    r(this, "scrollFriction", 1);
+    r(this, "isScrollAnimating", !1);
+    r(this, "noConstrain", !1);
+    r(this, "boundDragStart", this.dragStart.bind(this));
+    r(this, "boundDragMove", this.dragMove.bind(this));
+    r(this, "boundDragEnd", this.dragEnd.bind(this));
+  }
+  connectedCallback() {
+    this.sliderCha = this.closest("sx-slider"), this.initDragEvents(), this.addEventListener("transitionend", () => {
+      this.isResetting || this.checkLoopBoundsInstant();
+    });
+  }
+  disconnectedCallback() {
+    this.removeEventListener("mousedown", this.boundDragStart), window.removeEventListener("mousemove", this.boundDragMove), window.removeEventListener("mouseup", this.boundDragEnd), this.removeEventListener("touchstart", this.boundDragStart), window.removeEventListener("touchmove", this.boundDragMove), window.removeEventListener("touchend", this.boundDragEnd), this.cancelMomentumScroll();
+  }
+  initDragEvents() {
+    this.addEventListener("mousedown", this.boundDragStart), window.addEventListener("mousemove", this.boundDragMove), window.addEventListener("mouseup", this.boundDragEnd), this.addEventListener("touchstart", this.boundDragStart, { passive: !0 }), window.addEventListener("touchmove", this.boundDragMove, {
+      passive: !1
+    }), window.addEventListener("touchend", this.boundDragEnd);
+  }
+  getPositionX(t) {
+    return t instanceof MouseEvent ? t.clientX : t.touches[0].clientX;
+  }
+  dragStart(t) {
+    !this.sliderCha || this.sliderCha.options.drag === "false" || this.isResetting || (this.sliderCha.stopAutoplay(), this.cancelMomentumScroll(), this.prevTranslate = this.currentTranslate, this.isDragging = !0, this.startX = this.getPositionX(t), this.velocity = 0, this.dragXs = [this.startX], this.dragTimes = [performance.now()], this.style.transition = "none", this.checkLoopBoundsInstant());
+  }
+  dragMove(t) {
+    if (!this.isDragging || !this.sliderCha) return;
+    t.cancelable && t.preventDefault();
+    const e = this.getPositionX(t), i = performance.now();
+    for (this.dragXs.push(e), this.dragTimes.push(i); this.dragTimes.length > 0 && i - this.dragTimes[0] > 200; )
+      this.dragXs.shift(), this.dragTimes.shift();
+    const s = e - this.startX;
+    let n = this.prevTranslate + s;
+    if (this.sliderCha.options.loop)
+      this.currentTranslate = n, this.checkLoopBoundsInstant();
+    else {
+      const h = -this.sliderCha.getMaxTranslate(), l = this.sliderCha.options.edgeResistance;
+      n > 0 ? n = l <= 0 ? 0 : 0 + Math.min(l, (n - 0) * 0.3) : n < h && (n = l <= 0 ? h : h - Math.min(l, (h - n) * 0.3)), this.currentTranslate = n;
+    }
+    this.setTransform(this.currentTranslate);
+  }
+  dragEnd() {
+    if (!this.isDragging || !this.sliderCha) return;
+    this.isDragging = !1;
+    const t = this.sliderCha.options, e = performance.now();
+    if (this.dragTimes.length > 0) {
+      const i = this.dragTimes[this.dragTimes.length - 1];
+      if (e - i > 10)
+        this.velocity = 0;
+      else {
+        const s = i - this.dragTimes[0];
+        s > 0 ? this.velocity = (this.dragXs[this.dragXs.length - 1] - this.dragXs[0]) / s : this.velocity = 0;
+      }
+    } else
+      this.velocity = 0;
+    if (t.drag === "free") {
+      this.prevTranslate = this.currentTranslate;
+      let s = this.currentTranslate + this.velocity * 600;
+      if (t.snap) {
+        const n = parseFloat(t.leftPadding) || 0;
+        let a = s;
+        if (t.autoWidth) {
+          this.sliderCha.alignIndexToFreeTranslation(s);
+          const h = this.sliderCha.getCurrentIndex();
+          s = -this.sliderCha.getOffsetForIndex(h) + n;
+        } else {
+          const h = this.sliderCha.getSlideWidthWithGap();
+          s = -(Math.round(
+            (n - s) / h
+          ) * h) + n;
+        }
+        if (!t.loop) {
+          const h = -this.sliderCha.getMaxTranslate();
+          a <= h && (s = h);
+        }
+      }
+      if (t.loop)
+        this.startMomentumScroll(s);
+      else {
+        const a = -this.sliderCha.getMaxTranslate(), h = Math.max(
+          a,
+          Math.min(0, s)
+        );
+        this.startMomentumScroll(h);
+      }
+    } else {
+      this.style.transition = `transform ${t.speed}ms ease-out`;
+      const i = this.currentTranslate - this.prevTranslate;
+      if (t.perMove === "auto") {
+        const s = this.sliderCha.getCurrentIndex();
+        this.sliderCha.alignIndexToFreeTranslation(this.currentTranslate), this.sliderCha.getCurrentIndex() === s ? i < -50 ? this.sliderCha.next() : i > 50 ? this.sliderCha.prev() : this.updatePosition() : this.updatePosition();
+      } else
+        i < -50 ? this.sliderCha.next() : i > 50 ? this.sliderCha.prev() : this.updatePosition();
+      this.sliderCha.startAutoplay();
+    }
+  }
+  startMomentumScroll(t, e, i, s = !1) {
+    var a;
+    this.cancelMomentumScroll(), this.scrollFrom = this.currentTranslate, this.scrollToTarget = t, this.scrollFriction = 1, this.noConstrain = s;
+    const n = Math.abs(t - this.scrollFrom);
+    if (this.scrollDuration = e ?? Math.max(n / 1.5, 800), n < 1) {
+      this.currentTranslate = t, this.setTransform(this.currentTranslate), this.prevTranslate = this.currentTranslate, (a = this.sliderCha) != null && a.options.loop && this.checkLoopBoundsInstant();
+      return;
+    }
+    this.scrollStartTime = performance.now(), this.isScrollAnimating = !0, this.runScrollLoop();
+  }
+  runScrollLoop() {
+    if (!this.isScrollAnimating || !this.sliderCha) return;
+    const e = performance.now() - this.scrollStartTime, i = Math.min(e / this.scrollDuration, 1), s = 1 - Math.pow(1 - i, 4), a = (this.scrollFrom + (this.scrollToTarget - this.scrollFrom) * s - this.currentTranslate) * this.scrollFriction;
+    if (this.currentTranslate += a, this.setTransform(this.currentTranslate), this.sliderCha.options.loop)
+      this.checkLoopBoundsInstant();
+    else if (!this.noConstrain) {
+      const l = -this.sliderCha.getMaxTranslate();
+      if ((this.currentTranslate > 0 || this.currentTranslate < l) && (this.scrollFriction *= 0.6, Math.abs(a) < 10)) {
+        const c = this.currentTranslate > 0 ? 0 : l;
+        this.startMomentumScroll(c, 600, void 0, !0);
+        return;
+      }
+    }
+    i < 1 ? this.scrollAnimationFrameId = requestAnimationFrame(
+      this.runScrollLoop.bind(this)
+    ) : (this.isScrollAnimating = !1, this.prevTranslate = this.currentTranslate, this.sliderCha.alignIndexToFreeTranslation(this.currentTranslate), this.sliderCha.startAutoplay());
+  }
+  cancelMomentumScroll() {
+    this.isScrollAnimating = !1, this.scrollAnimationFrameId && (cancelAnimationFrame(this.scrollAnimationFrameId), this.scrollAnimationFrameId = 0);
+  }
+  checkLoopBoundsInstant() {
+    if (!this.sliderCha || !this.sliderCha.options.loop) return;
+    const t = this.sliderCha.originalSlidesCount, e = this.sliderCha.options.autoWidth ? t : this.sliderCha.options.perView, i = parseFloat(this.sliderCha.options.leftPadding) || 0;
+    let s = 0, n = 0;
+    if (this.sliderCha.options.autoWidth)
+      n = this.sliderCha.getOffsetForIndex(e), s = this.sliderCha.getOffsetForIndex(e + t) - n;
+    else {
+      const g = this.sliderCha.getSlideWidthWithGap();
+      n = e * g, s = t * g;
+    }
+    const a = -n + i, h = a - s;
+    let l = !1, u = this.currentTranslate, c = 0, p = 0;
+    if (this.currentTranslate > a ? (u = this.currentTranslate - s, c = -s, p = t, l = !0) : this.currentTranslate <= h && (u = this.currentTranslate + s, c = s, p = -t, l = !0), l) {
+      if (this.isResetting = !0, this.style.transition = "none", this.currentTranslate = u, this.prevTranslate = this.currentTranslate, this.isScrollAnimating && (this.scrollFrom += c, this.scrollToTarget += c), this.setTransform(this.currentTranslate), this.sliderCha.options.autoWidth)
+        this.sliderCha.setCurrentIndex(
+          this.sliderCha.getCurrentIndex() + p
+        );
+      else {
+        const g = this.sliderCha.getSlideWidthWithGap(), m = Math.round(
+          Math.abs(this.currentTranslate - i) / g
+        );
+        this.sliderCha.setCurrentIndex(m);
+      }
+      this.isResetting = !1;
+    }
+  }
+  setTransform(t) {
+    this.style.transform = `translateX(${t}px)`;
+  }
+  updatePosition(t = !1) {
+    if (!this.sliderCha || this.isResetting) return;
+    this.cancelMomentumScroll();
+    const e = this.sliderCha.options;
+    t ? this.style.transition = "none" : this.style.transition = `transform ${e.speed}ms ease-out`;
+    const i = parseFloat(e.leftPadding) || 0, s = this.sliderCha.getCurrentIndex();
+    let n = i;
+    if (e.autoWidth)
+      n -= this.sliderCha.getOffsetForIndex(s);
+    else {
+      const a = this.sliderCha.getSlideWidthWithGap();
+      n -= s * a;
+    }
+    if (!e.loop) {
+      s === 0 && (n = 0);
+      const a = -this.sliderCha.getMaxTranslate();
+      n < a && (n = a), n > 0 && (n = 0);
+    }
+    if (this.currentTranslate = n, this.prevTranslate = this.currentTranslate, this.setTransform(this.currentTranslate), t && this.offsetHeight, e.loop) {
+      const a = e.perView, h = this.sliderCha.originalSlidesCount;
+      (s >= a + h || s < a) && setTimeout(() => {
+        this.checkLoopBoundsInstant();
+      }, e.speed);
+    }
+  }
+}
+customElements.get("sx-slider-track") || customElements.define("sx-slider-track", B);
+class q extends HTMLElement {
+  constructor() {
+    super();
+  }
+}
+customElements.get("sx-slider-slide") || customElements.define("sx-slider-slide", q);
+class D {
+  constructor() {
+    r(this, "sliders", /* @__PURE__ */ new Map());
+  }
+  register(o, t) {
+    this.sliders.set(o, t);
+  }
+  unregister(o) {
+    this.sliders.delete(o);
+  }
+  get(o) {
+    return this.sliders.get(o);
+  }
+}
+const x = new D();
+class O extends HTMLElement {
+  constructor() {
+    super(), this.addEventListener("click", () => this.handleAction());
+  }
+  handleAction() {
+    const o = this.getAttribute("name");
+    if (o) {
+      const t = x.get(o);
+      t && t.prev();
+    } else {
+      const t = this.closest("sx-slider");
+      t && t.prev();
+    }
+  }
+}
+customElements.get("sx-slider-prev") || customElements.define("sx-slider-prev", O);
+class N extends HTMLElement {
+  constructor() {
+    super(), this.addEventListener("click", () => this.handleAction());
+  }
+  handleAction() {
+    const o = this.getAttribute("name");
+    if (o) {
+      const t = x.get(o);
+      t && t.next();
+    } else {
+      const t = this.closest("sx-slider");
+      t && t.next();
+    }
+  }
+}
+customElements.get("sx-slider-next") || customElements.define("sx-slider-next", N);
+class V extends HTMLElement {
+  constructor() {
+    super();
+    r(this, "options");
+    r(this, "currentIndex", 0);
+    r(this, "track", null);
+    r(this, "resizeObserver");
+    r(this, "originalSlidesCount", 0);
+    r(this, "autoplayTimer", null);
+    r(this, "isFirstInit", !0);
+    r(this, "handleVisibilityChange", () => {
+      document.hidden ? this.stopAutoplay() : this.options.autoplay && this.startAutoplay();
+    });
+    this.parseOptions();
+  }
+  static get observedAttributes() {
+    return [
+      "name",
+      "per-view",
+      "gap",
+      "drag",
+      "speed",
+      "right-padding",
+      "left-padding",
+      "rewind",
+      "edge-resistance",
+      "loop",
+      "grab-cursor",
+      "snap",
+      "autoplay",
+      "interval",
+      "start-index",
+      "auto-width",
+      "per-move"
+    ];
+  }
+  connectedCallback() {
+    this.track = this.querySelector("sx-slider-track"), this.options.name && x.register(this.options.name, this), this.resizeObserver = new ResizeObserver(() => this.updateLayout()), this.resizeObserver.observe(this), this.track && this.initLoopClones(), document.addEventListener("visibilitychange", this.handleVisibilityChange), this.startAutoplay();
+  }
+  disconnectedCallback() {
+    this.options.name && x.unregister(this.options.name), this.resizeObserver.disconnect(), this.stopAutoplay(), document.removeEventListener(
+      "visibilitychange",
+      this.handleVisibilityChange
+    );
+  }
+  attributeChangedCallback() {
+    this.parseOptions(), this.updateLayout(), this.startAutoplay();
+  }
+  parseOptions() {
+    const t = (c) => c ? isNaN(Number(c)) ? c : `${c}px` : "0px", e = this.getAttribute("edge-resistance"), i = e !== null ? Number(e) : 100, s = this.getAttribute("interval"), n = s !== null ? Number(s) : 3e3, a = this.getAttribute("start-index"), h = a !== null ? Number(a) : 0, l = this.getAttribute("per-move");
+    let u = "auto";
+    if (l !== null && l !== "auto") {
+      const c = Number(l);
+      u = isNaN(c) ? "auto" : c;
+    }
+    this.options = {
+      name: this.getAttribute("name"),
+      perView: Number(this.getAttribute("per-view")) || 1,
+      gap: t(this.getAttribute("gap")),
+      drag: this.getAttribute("drag") || "true",
+      speed: Number(this.getAttribute("speed")) || 300,
+      rightPadding: t(this.getAttribute("right-padding")),
+      leftPadding: t(this.getAttribute("left-padding")),
+      rewind: this.hasAttribute("rewind"),
+      edgeResistance: isNaN(i) ? 0 : i,
+      loop: this.hasAttribute("loop"),
+      grabCursor: this.hasAttribute("grab-cursor"),
+      snap: this.hasAttribute("snap"),
+      autoplay: this.hasAttribute("autoplay"),
+      interval: isNaN(n) ? 3e3 : n,
+      startIndex: isNaN(h) ? 0 : h,
+      autoWidth: this.hasAttribute("auto-width"),
+      perMove: u
+    };
+  }
+  startAutoplay() {
+    this.stopAutoplay(), this.options.autoplay && this.options.interval > 0 && (this.autoplayTimer = window.setInterval(() => {
+      this.next();
+    }, this.options.interval));
+  }
+  stopAutoplay() {
+    this.autoplayTimer !== null && (clearInterval(this.autoplayTimer), this.autoplayTimer = null);
+  }
+  initLoopClones() {
+    if (!this.track || !this.options.loop) return;
+    this.track.querySelectorAll("[data-clone]").forEach((s) => s.remove());
+    const e = Array.from(this.track.children);
+    if (this.originalSlidesCount = e.length, this.originalSlidesCount === 0) return;
+    const i = this.options.autoWidth ? this.originalSlidesCount : this.options.perView;
+    for (let s = 0; s < i; s++) {
+      const a = e[e.length - 1 - s].cloneNode(!0);
+      a.setAttribute("data-clone", "prev"), this.track.insertBefore(a, this.track.firstChild);
+    }
+    for (let s = 0; s < i; s++) {
+      const a = e[s].cloneNode(!0);
+      a.setAttribute("data-clone", "next"), this.track.appendChild(a);
+    }
+  }
+  updateLayout() {
+    if (!this.track) return;
+    this.options.grabCursor && this.options.drag !== "false" ? this.track.setAttribute("grab-cursor", "") : this.track.removeAttribute("grab-cursor");
+    const t = Array.from(this.track.children);
+    if (t.length === 0) return;
+    this.options.loop && this.originalSlidesCount === 0 && this.initLoopClones();
+    const e = this.track.querySelectorAll("[data-clone]").length, i = t.length - e;
+    if (this.isFirstInit && i > 0) {
+      const p = Math.max(
+        0,
+        Math.min(this.options.startIndex, i - 1)
+      );
+      if (this.options.loop) {
+        const g = this.options.autoWidth ? i : this.options.perView;
+        this.currentIndex = g + p;
+      } else
+        this.currentIndex = p;
+      this.isFirstInit = !1;
+    }
+    const s = this.getAttribute("left-padding"), n = this.getAttribute("right-padding"), a = (p) => p ? isNaN(Number(p)) ? p : `${p}px` : "0px";
+    !this.options.autoWidth && this.options.perView === i && s && parseFloat(s) > 0 && n && parseFloat(n) > 0 ? (this.options.leftPadding = "0px", this.options.rightPadding = "0px") : (this.options.leftPadding = a(s), this.options.rightPadding = a(n));
+    const h = this.getBoundingClientRect().width, l = this.convertToPx(this.options.gap), u = this.convertToPx(this.options.leftPadding), c = this.convertToPx(this.options.rightPadding);
+    if (this.options.autoWidth)
+      t.forEach((p) => {
+        p.style.width = "max-content";
+      }), this.track.offsetHeight, t.forEach((p) => {
+        const g = p.firstElementChild;
+        g ? p.style.width = `${g.getBoundingClientRect().width}px` : p.style.width = "max-content", p.style.marginRight = this.options.gap;
+      }), this.options.perView = this.getVisibleSlidesCount();
+    else {
+      const g = (h - u - c - l * (this.options.perView - 1)) / this.options.perView;
+      t.forEach((m) => {
+        m.style.width = `${g}px`, m.style.marginRight = this.options.gap;
+      });
+    }
+    this.track.updatePosition(!0), this.updateSlideAttributes();
+  }
+  convertToPx(t) {
+    const e = document.createElement("div");
+    e.style.display = "none", e.style.width = t, document.body.appendChild(e);
+    const i = parseFloat(getComputedStyle(e).width);
+    return document.body.removeChild(e), i || 0;
+  }
+  getSlideWidthWithGap() {
+    return !this.track || this.track.children.length === 0 ? 0 : this.track.children[0].getBoundingClientRect().width + this.convertToPx(this.options.gap);
+  }
+  // Đếm xem thực tế có bao nhiêu slide nhét vừa container
+  getVisibleSlidesCount() {
+    if (!this.track || this.track.children.length === 0) return 1;
+    const t = this.getBoundingClientRect().width;
+    let e = 0, i = 0;
+    const s = this.convertToPx(this.options.gap), n = Array.from(this.track.children);
+    for (let a = 0; a < n.length && (e += n[a].getBoundingClientRect().width + s, !(e - s > t)); a++)
+      i++;
+    return Math.max(1, i);
+  }
+  // Lấy chính xác tọa độ offset của một index bất kỳ (cộng dồn chiều rộng từng thẻ)
+  getOffsetForIndex(t) {
+    if (!this.track) return 0;
+    const e = Array.from(this.track.children), i = this.convertToPx(this.options.gap);
+    let s = 0;
+    for (let n = 0; n < t; n++)
+      e[n] && (s += e[n].getBoundingClientRect().width + i);
+    return s;
+  }
+  getMaxTranslate() {
+    if (!this.track || this.track.children.length === 0) return 0;
+    const t = this.getBoundingClientRect().width;
+    let e = 0;
+    if (this.options.autoWidth)
+      e = this.getOffsetForIndex(this.track.children.length), e -= this.convertToPx(this.options.gap);
+    else {
+      const i = this.track.children.length;
+      e = this.getSlideWidthWithGap() * i - this.convertToPx(this.options.gap);
+    }
+    return Math.max(0, e - t);
+  }
+  updateSlideAttributes() {
+    if (!this.track) return;
+    const t = Array.from(this.track.children);
+    if (t.length === 0) return;
+    const e = this.options.loop, i = e ? this.originalSlidesCount : t.length;
+    if (i === 0) return;
+    const s = e ? this.options.autoWidth ? this.originalSlidesCount : this.options.perView : 0;
+    t.forEach((l, u) => {
+      l.removeAttribute("sx-slide-active"), l.removeAttribute("sx-slide-prev"), l.removeAttribute("sx-slide-next");
+      let c = u;
+      e && (c = (u - s) % i, c < 0 && (c += i)), l.setAttribute("aria-label", `${c + 1}/${i}`);
+    });
+    const n = this.currentIndex, a = n - 1, h = n + 1;
+    t[n] && t[n].setAttribute("sx-slide-active", ""), t[a] && t[a].setAttribute("sx-slide-prev", ""), t[h] && t[h].setAttribute("sx-slide-next", "");
+  }
+  getCurrentIndex() {
+    return this.currentIndex;
+  }
+  setCurrentIndex(t) {
+    this.currentIndex = t, this.updateSlideAttributes();
+  }
+  // Quét chính xác index tối đa có thể cuộn tới mà không bị overscroll
+  getRealMaxIndex() {
+    if (!this.track || this.track.children.length === 0) return 0;
+    const t = -this.getMaxTranslate(), e = this.track.children.length;
+    for (let i = 0; i < e; i++)
+      if (-this.getOffsetForIndex(i) <= t)
+        return i;
+    return Math.max(0, e - 1);
+  }
+  // Trả về số lượng slide sẽ trượt cho mỗi lần next/prev
+  getResolvedPerMove() {
+    if (this.options.perMove === "auto")
+      return 1;
+    const t = this.getVisibleSlidesCount();
+    let e = Math.max(1, this.options.perMove);
+    return Math.min(e, t);
+  }
+  next() {
+    if (!this.track) return;
+    const t = this.getResolvedPerMove();
+    if (this.options.loop)
+      this.currentIndex += t, this.updateSlideAttributes(), this.track.updatePosition();
+    else {
+      const e = this.getRealMaxIndex();
+      this.currentIndex < e ? this.currentIndex = Math.min(e, this.currentIndex + t) : this.options.rewind && (this.currentIndex = 0), this.updateSlideAttributes(), this.track.updatePosition();
+    }
+  }
+  prev() {
+    if (!this.track) return;
+    const t = this.getResolvedPerMove();
+    this.options.loop ? (this.currentIndex -= t, this.updateSlideAttributes(), this.track.updatePosition()) : (this.currentIndex > 0 ? this.currentIndex = Math.max(0, this.currentIndex - t) : this.options.rewind && (this.currentIndex = this.getRealMaxIndex()), this.updateSlideAttributes(), this.track.updatePosition());
+  }
+  alignIndexToFreeTranslation(t) {
+    const e = parseFloat(this.options.leftPadding) || 0, i = t - e;
+    if (i > 0)
+      this.currentIndex = 0;
+    else {
+      const s = Math.abs(i);
+      if (this.options.autoWidth && this.track) {
+        const n = Array.from(this.track.children), a = this.convertToPx(this.options.gap);
+        let h = 0, l = 0;
+        for (let u = 0; u < n.length; u++) {
+          const c = n[u].getBoundingClientRect().width + a;
+          if (h + c / 2 > s) {
+            l = u;
+            break;
+          }
+          h += c, l = u;
+        }
+        this.currentIndex = l;
+      } else {
+        const n = this.getSlideWidthWithGap();
+        this.currentIndex = Math.round(s / n);
+      }
+    }
+    if (!this.options.loop) {
+      const s = this.getRealMaxIndex();
+      this.currentIndex = Math.min(this.currentIndex, s);
+    }
+    this.updateSlideAttributes(), this.options.loop && this.track && this.track.checkLoopBoundsInstant();
+  }
+}
+customElements.get("sx-slider") || customElements.define("sx-slider", V);
+console.log(`@six-js/core v${k}`);
