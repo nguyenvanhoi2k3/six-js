@@ -394,30 +394,50 @@ export class SxSlider extends HTMLElement {
     this.updateAutoHeight();
   }
 
-  public updateAutoHeight() {
+public updateAutoHeight() {
     if (!this.track) return;
 
-    if (!this.options.autoHeight || this.options.perView !== 1) {
+    // BẮT ĐẦU FIX: Xóa bỏ điều kiện chặn perView !== 1 
+    if (!this.options.autoHeight) {
       this.style.height = "";
       this.style.transition = "";
-      this.track.style.alignItems = ""; 
+      this.track.style.alignItems = ""; // Trả track về mặc định
       return;
     }
 
+    // Ngăn các slide bị kéo giãn (stretch) biến dạng theo container [cite: 1109, 1110]
     this.track.style.alignItems = "flex-start";
 
     const slides = Array.from(this.track.children) as HTMLElement[];
-    const activeSlide = slides[this.currentIndex];
+    if (slides.length === 0) return;
 
-    if (activeSlide) {
-      const child = activeSlide.firstElementChild as HTMLElement;
+    let maxHeight = 0;
+    // Số lượng slide đang hiển thị (đã được tự động xử lý sẵn cho cả chế độ autoWidth ở hàm updateLayout)
+    const visibleCount = this.options.perView; 
 
-      const targetHeight = child
-        ? child.getBoundingClientRect().height
-        : activeSlide.getBoundingClientRect().height;
+    // Quét qua tất cả các slide CÓ MẶT trên màn hình hiện tại
+    for (let i = 0; i < visibleCount; i++) {
+      const slideIndex = this.currentIndex + i;
+      const slide = slides[slideIndex];
 
+      if (slide) {
+        // Lấy chiều cao nội dung thật của thẻ con trực tiếp (VD: <div class="slide">) [cite: 1090]
+        const child = slide.firstElementChild as HTMLElement;
+        const height = child
+          ? child.getBoundingClientRect().height
+          : slide.getBoundingClientRect().height;
+
+        // Lưu lại chiều cao lớn nhất
+        if (height > maxHeight) {
+          maxHeight = height;
+        }
+      }
+    }
+
+    // Áp dụng chiều cao lớn nhất vừa tìm được cho Slider
+    if (maxHeight > 0) {
       this.style.transition = `height ${this.options.speed}ms ease-out`;
-      this.style.height = `${targetHeight}px`;
+      this.style.height = `${maxHeight}px`;
     }
   }
 

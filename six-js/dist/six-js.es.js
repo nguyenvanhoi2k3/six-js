@@ -823,16 +823,23 @@ class O extends HTMLElement {
   }
   updateAutoHeight() {
     if (!this.track) return;
-    if (!this.options.autoHeight || this.options.perView !== 1) {
+    if (!this.options.autoHeight) {
       this.style.height = "", this.style.transition = "", this.track.style.alignItems = "";
       return;
     }
     this.track.style.alignItems = "flex-start";
-    const e = Array.from(this.track.children)[this.currentIndex];
-    if (e) {
-      const s = e.firstElementChild, i = s ? s.getBoundingClientRect().height : e.getBoundingClientRect().height;
-      this.style.transition = `height ${this.options.speed}ms ease-out`, this.style.height = `${i}px`;
+    const t = Array.from(this.track.children);
+    if (t.length === 0) return;
+    let e = 0;
+    const s = this.options.perView;
+    for (let i = 0; i < s; i++) {
+      const n = this.currentIndex + i, a = t[n];
+      if (a) {
+        const h = a.firstElementChild, l = h ? h.getBoundingClientRect().height : a.getBoundingClientRect().height;
+        l > e && (e = l);
+      }
     }
+    e > 0 && (this.style.transition = `height ${this.options.speed}ms ease-out`, this.style.height = `${e}px`);
   }
   getCurrentIndex() {
     return this.currentIndex;
