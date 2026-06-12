@@ -10,6 +10,7 @@ export class SxSlider extends HTMLElement {
   public originalSlidesCount: number = 0;
   private autoplayTimer: number | null = null;
   private isFirstInit = true;
+  private lastContainerWidth = 0;
 
   private handleVisibilityChange = () => {
     if (document.hidden) {
@@ -40,6 +41,7 @@ export class SxSlider extends HTMLElement {
       "start-index",
       "auto-width",
       "per-move",
+      "auto-height",
     ];
   }
 
@@ -55,7 +57,17 @@ export class SxSlider extends HTMLElement {
       sliderRegistry.register(this.options.name, this);
     }
 
-    this.resizeObserver = new ResizeObserver(() => this.updateLayout());
+    // --- BẮT ĐẦU FIX: Chỉ chạy updateLayout khi CÓ THAY ĐỔI CHIỀU RỘNG ---
+    this.resizeObserver = new ResizeObserver(() => {
+      const currentWidth = this.getBoundingClientRect().width;
+      if (currentWidth !== this.lastContainerWidth) {
+        this.lastContainerWidth = currentWidth;
+        this.updateLayout();
+      }
+    });
+    // --- KẾT THÚC FIX ---
+
+    // Chỉ giữ lại dòng observe, ĐÃ XÓA dòng khai báo new ResizeObserver thừa
     this.resizeObserver.observe(this);
 
     if (this.track) {
@@ -129,6 +141,7 @@ export class SxSlider extends HTMLElement {
       startIndex: isNaN(parsedStartIndex) ? 0 : parsedStartIndex,
       autoWidth: this.hasAttribute("auto-width"),
       perMove: parsedPerMove,
+      autoHeight: this.hasAttribute("auto-height"),
     };
   }
 
@@ -393,6 +406,38 @@ export class SxSlider extends HTMLElement {
       slides[activeIdx].setAttribute("sx-slide-active", "");
     if (slides[prevIdx]) slides[prevIdx].setAttribute("sx-slide-prev", "");
     if (slides[nextIdx]) slides[nextIdx].setAttribute("sx-slide-next", "");
+
+    this.updateAutoHeight();
+  }
+
+  public updateAutoHeight() {
+    if (!this.track) return;
+
+    if (!this.options.autoHeight || this.options.perView !== 1) {
+      this.style.height = "";
+      this.style.transition = "";
+      this.track.style.alignItems = ""; // Trả track về mặc định
+      return;
+    }
+
+    // --- BẮT ĐẦU FIX: Thả lỏng Flexbox ---
+    // Ngăn các slide bị kéo giãn (stretch) biến dạng theo container
+    this.track.style.alignItems = "flex-start";
+    // --- KẾT THÚC FIX ---
+
+    const slides = Array.from(this.track.children) as HTMLElement[];
+    const activeSlide = slides[this.currentIndex];
+
+    if (activeSlide) {
+      const child = activeSlide.firstElementChild as HTMLElement;
+
+      const targetHeight = child
+        ? child.getBoundingClientRect().height
+        : activeSlide.getBoundingClientRect().height;
+
+      this.style.transition = `height ${this.options.speed}ms ease-out`;
+      this.style.height = `${targetHeight}px`;
+    }
   }
 
   public getCurrentIndex() {
