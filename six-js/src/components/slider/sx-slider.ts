@@ -11,6 +11,7 @@ export class SxSlider extends HTMLElement {
   private autoplayTimer: number | null = null;
   private isFirstInit = true;
   private lastContainerWidth = 0;
+  private isFirstHeightMeasure = true;
 
   private handleVisibilityChange = () => {
     if (document.hidden) {
@@ -353,7 +354,7 @@ export class SxSlider extends HTMLElement {
     return Math.max(0, totalTrackWidth - containerWidth);
   }
 
-  public updateSlideAttributes() {
+public updateSlideAttributes() {
     if (!this.track) return;
 
     const slides = Array.from(this.track.children) as HTMLElement[];
@@ -369,72 +370,122 @@ export class SxSlider extends HTMLElement {
         : this.options.perView
       : 0;
 
+    const getRealIdx = (idx: number) => {
+      if (!isLoop) return idx;
+      let rIdx = (idx - cloneCount) % realSlideCount;
+      if (rIdx < 0) rIdx += realSlideCount;
+      return rIdx;
+    };
+
+    // --- BẮT ĐẦU CẬP NHẬT: Thêm logic tính toán chỉ số trung tâm ---
+    // Tìm ra "độ lệch" (offset) tới slide ở giữa dựa vào perView
+    // VD: perView = 3 -> lệch 1. perView = 5 -> lệch 2. perView = 1 -> lệch 0.
+    const centerOffset = Math.floor(this.options.perView / 2);
+    
+    const targetActiveReal = getRealIdx(this.currentIndex);
+    const targetPrevReal = getRealIdx(this.currentIndex - 1);
+    const targetNextReal = getRealIdx(this.currentIndex + 1);
+    // Tính toán realIndex của slide nằm chính giữa màn hình
+    const targetCenterReal = getRealIdx(this.currentIndex + centerOffset);
+    // --- KẾT THÚC CẬP NHẬT ---
+
+    const isInitial = this.isFirstHeightMeasure;
+    if (isInitial) {
+      this.isFirstHeightMeasure = false;
+    }
+
+    let tempStyle: HTMLStyleElement | null = null;
+    if (isInitial) {
+      tempStyle = document.createElement("style");
+      tempStyle.innerHTML = `sx-slider-slide, sx-slider-slide * { transition: none !important; }`;
+      this.appendChild(tempStyle);
+      this.offsetHeight;
+    }
+
     slides.forEach((slide, index) => {
       slide.removeAttribute("sx-slide-active");
       slide.removeAttribute("sx-slide-prev");
       slide.removeAttribute("sx-slide-next");
+      slide.removeAttribute("sx-slide-center"); // Nhớ xóa attribute cũ đi nhé
 
-      let realIndex = index;
-      if (isLoop) {
-        realIndex = (index - cloneCount) % realSlideCount;
-        if (realIndex < 0) realIndex += realSlideCount;
-      }
+      let realIndex = getRealIdx(index);
       slide.setAttribute("aria-label", `${realIndex + 1}/${realSlideCount}`);
+
+      if (realIndex === targetActiveReal) slide.setAttribute("sx-slide-active", "");
+      if (realIndex === targetPrevReal) slide.setAttribute("sx-slide-prev", "");
+      if (realIndex === targetNextReal) slide.setAttribute("sx-slide-next", "");
+      
+      // Gắn attribute cho slide trung tâm (bao gồm cả bản gốc và clone)
+      if (realIndex === targetCenterReal) slide.setAttribute("sx-slide-center", "");
     });
 
-    const activeIdx = this.currentIndex;
-    const prevIdx = activeIdx - 1;
-    const nextIdx = activeIdx + 1;
-
-    if (slides[activeIdx])
-      slides[activeIdx].setAttribute("sx-slide-active", "");
-    if (slides[prevIdx]) slides[prevIdx].setAttribute("sx-slide-prev", "");
-    if (slides[nextIdx]) slides[nextIdx].setAttribute("sx-slide-next", "");
-
     this.updateAutoHeight();
+
+    if (isInitial && tempStyle) {
+      requestAnimationFrame(() => {
+        tempStyle?.remove();
+      });
+    }
   }
 
-public updateAutoHeight() {
+  public updateAutoHeight() {
     if (!this.track) return;
 
-    // BẮT ĐẦU FIX: Xóa bỏ điều kiện chặn perView !== 1 
     if (!this.options.autoHeight) {
       this.style.height = "";
       this.style.transition = "";
-      this.track.style.alignItems = ""; // Trả track về mặc định
+      this.track.style.alignItems = "";
       return;
     }
 
-    // Ngăn các slide bị kéo giãn (stretch) biến dạng theo container [cite: 1109, 1110]
     this.track.style.alignItems = "flex-start";
 
     const slides = Array.from(this.track.children) as HTMLElement[];
     if (slides.length === 0) return;
 
     let maxHeight = 0;
-    // Số lượng slide đang hiển thị (đã được tự động xử lý sẵn cho cả chế độ autoWidth ở hàm updateLayout)
-    const visibleCount = this.options.perView; 
+    const visibleCount = this.options.perView;
 
-    // Quét qua tất cả các slide CÓ MẶT trên màn hình hiện tại
     for (let i = 0; i < visibleCount; i++) {
       const slideIndex = this.currentIndex + i;
       const slide = slides[slideIndex];
 
       if (slide) {
-        // Lấy chiều cao nội dung thật của thẻ con trực tiếp (VD: <div class="slide">) [cite: 1090]
-        const child = slide.firstElementChild as HTMLElement;
-        const height = child
-          ? child.getBoundingClientRect().height
-          : slide.getBoundingClientRect().height;
+        // --- BẮT ĐẦU FIX: Kỹ Thuật "Clone & Measure" ---
+        // Tạo một bản sao vô hình để ép trình duyệt tính toán đích đến (Target Height)
+        // mà không làm gián đoạn hay ảnh hưởng tới CSS transition đang chạy trên thẻ thật.
+        const clone = slide.cloneNode(true) as HTMLElement;
+        clone.style.position = "absolute";
+        clone.style.visibility = "hidden";
+        clone.style.pointerEvents = "none";
+        clone.style.transition = "none";
 
-        // Lưu lại chiều cao lớn nhất
+        // Khóa cứng chiều rộng để nội dung text bên trong không bị rớt dòng sai lệch
+        clone.style.width = `${slide.getBoundingClientRect().width}px`;
+
+        const cloneChild = clone.firstElementChild as HTMLElement;
+        if (cloneChild) {
+          cloneChild.style.transition = "none"; // Bóp chết transition của thẻ con
+        }
+
+        // Tạm thời gắn vào track để mượn context CSS hiện tại
+        this.track.appendChild(clone);
+
+        // Đo đạc kích thước từ bản clone (Lúc này chắc chắn trả về 800px tuyệt đối)
+        const height = cloneChild
+          ? cloneChild.getBoundingClientRect().height
+          : clone.getBoundingClientRect().height;
+
         if (height > maxHeight) {
           maxHeight = height;
         }
+
+        // Đo xong thì hủy phi tang ngay lập tức (Trình duyệt chưa kịp vẽ ra màn hình)
+        this.track.removeChild(clone);
+        // --- KẾT THÚC FIX ---
       }
     }
 
-    // Áp dụng chiều cao lớn nhất vừa tìm được cho Slider
     if (maxHeight > 0) {
       this.style.transition = `height ${this.options.speed}ms ease-out`;
       this.style.height = `${maxHeight}px`;
