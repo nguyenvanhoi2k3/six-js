@@ -11,13 +11,15 @@ export interface SliderOptions {
   loop: boolean;
   grabCursor: boolean;
   snap: boolean;
-  autoplay: boolean; 
-  interval: number; 
-  startIndex: number; 
-  autoWidth: boolean;
+  autoplay: boolean;
+  interval: number;
+  startIndex: number;
+  autoSize: boolean;
   perMove: "auto" | number;
   autoHeight: boolean;
-  centered: boolean;    
+  centered: boolean;
   autoCentered: boolean;
   centerIfShort: boolean;
+  direction: "horizontal" | "vertical";
+  verticalScroll: boolean;
 }

@@ -5,6 +5,15 @@ sx-slider {
   width: 100%;
 }
 
+sx-slider[direction="vertical"] sx-slider-track {
+  flex-direction: column;
+}
+
+sx-slider[direction="vertical"] {
+  height: var(--sx-slider-height, 500px);
+  display: block;
+}
+
 sx-slider-track {
   display: flex;
   width: 100%;
@@ -30,7 +39,7 @@ sx-slider-slide {
 sx-slider-prev,
 sx-slider-next {
   cursor: pointer;
-  user-select: none; 
+  user-select: none;
 }
 
 /* (Tùy chọn) Ẩn nút khi slider đang bị vô hiệu hóa hoặc không có tác dụng */

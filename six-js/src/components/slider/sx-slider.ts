@@ -2,6 +2,11 @@ import { SliderOptions } from "./slider-types";
 import { SxSliderTrack } from "./sx-slider-track";
 import { sliderRegistry } from "./slider-registry";
 
+import "./sx-slider-track";
+import "./sx-slider-slide";
+import "./sx-slider-prev";
+import "./sx-slider-next";
+
 export class SxSlider extends HTMLElement {
   public options!: SliderOptions;
   private currentIndex: number = 0;
@@ -10,8 +15,32 @@ export class SxSlider extends HTMLElement {
   public originalSlidesCount: number = 0;
   private autoplayTimer: number | null = null;
   private isFirstInit = true;
-  private lastContainerWidth = 0;
+  private lastContainerSize = 0;
   private isFirstHeightMeasure = true;
+
+  public get sizeDim(): "width" | "height" {
+    return this.options.direction === "vertical" ? "height" : "width";
+  }
+
+  public get marginProp(): "marginBottom" | "marginRight" {
+    return this.options.direction === "vertical" ? "marginBottom" : "marginRight";
+  }
+
+  public get clientAxis(): "clientY" | "clientX" {
+    return this.options.direction === "vertical" ? "clientY" : "clientX";
+  }
+
+  public get transformFn(): "translateY" | "translateX" {
+    return this.options.direction === "vertical" ? "translateY" : "translateX";
+  }
+
+  public get startPadding(): string {
+    return this.options.leftPadding;
+  }
+
+  public getRectSize(el: HTMLElement): number {
+    return el.getBoundingClientRect()[this.sizeDim];
+  }
 
   private handleVisibilityChange = () => {
     if (document.hidden) {
@@ -40,12 +69,14 @@ export class SxSlider extends HTMLElement {
       "autoplay",
       "interval",
       "start-index",
-      "auto-width",
+      "auto-size",
       "per-move",
       "auto-height",
       "centered",
       "auto-centered",
       "center-if-short",
+      "direction",
+      "vertical-scroll",
     ];
   }
 
@@ -62,9 +93,9 @@ export class SxSlider extends HTMLElement {
     }
 
     this.resizeObserver = new ResizeObserver(() => {
-      const currentWidth = this.getBoundingClientRect().width;
-      if (currentWidth !== this.lastContainerWidth) {
-        this.lastContainerWidth = currentWidth;
+      const currentSize = this.getBoundingClientRect()[this.sizeDim];
+      if (currentSize !== this.lastContainerSize) {
+        this.lastContainerSize = currentSize;
         this.updateLayout();
       }
     });
@@ -76,7 +107,6 @@ export class SxSlider extends HTMLElement {
     }
 
     document.addEventListener("visibilitychange", this.handleVisibilityChange);
-
     this.startAutoplay();
   }
 
@@ -85,7 +115,6 @@ export class SxSlider extends HTMLElement {
       sliderRegistry.unregister(this.options.name);
     }
     this.resizeObserver.disconnect();
-
     this.stopAutoplay();
 
     document.removeEventListener(
@@ -97,7 +126,6 @@ export class SxSlider extends HTMLElement {
   attributeChangedCallback() {
     this.parseOptions();
     this.updateLayout();
-
     this.startAutoplay();
   }
 
@@ -111,7 +139,7 @@ export class SxSlider extends HTMLElement {
     const defaultResistance = edgeAttr !== null ? Number(edgeAttr) : 100;
 
     const intervalAttr = this.getAttribute("interval");
-    const parsedInterval = intervalAttr !== null ? Number(intervalAttr) : 3000;
+    const parsedInterval = intervalAttr !== null ? Number(intervalAttr) : 4000;
 
     const startAttr = this.getAttribute("start-index");
     const parsedStartIndex = startAttr !== null ? Number(startAttr) : 0;
@@ -121,6 +149,11 @@ export class SxSlider extends HTMLElement {
     if (perMoveAttr !== null && perMoveAttr !== "auto") {
       const num = Number(perMoveAttr);
       parsedPerMove = isNaN(num) ? "auto" : num;
+    }
+
+    let parsedDirection = this.getAttribute("direction") as "horizontal" | "vertical";
+    if (parsedDirection !== "horizontal" && parsedDirection !== "vertical") {
+      parsedDirection = "horizontal";
     }
 
     this.options = {
@@ -137,14 +170,16 @@ export class SxSlider extends HTMLElement {
       grabCursor: this.hasAttribute("grab-cursor"),
       snap: this.hasAttribute("snap"),
       autoplay: this.hasAttribute("autoplay"),
-      interval: isNaN(parsedInterval) ? 3000 : parsedInterval,
+      interval: isNaN(parsedInterval) ? 4000 : parsedInterval,
       startIndex: isNaN(parsedStartIndex) ? 0 : parsedStartIndex,
-      autoWidth: this.hasAttribute("auto-width"),
+      autoSize: this.hasAttribute("auto-size"),
       perMove: parsedPerMove,
       autoHeight: this.hasAttribute("auto-height"),
       centered: this.hasAttribute("centered"),
       autoCentered: this.hasAttribute("auto-centered"),
       centerIfShort: this.hasAttribute("center-if-short"),
+      direction: parsedDirection,
+      verticalScroll: this.hasAttribute("vertical-scroll"),
     };
   }
 
@@ -175,7 +210,7 @@ export class SxSlider extends HTMLElement {
 
     if (this.originalSlidesCount === 0) return;
 
-    const cloneCount = this.options.autoWidth
+    const cloneCount = this.options.autoSize
       ? this.originalSlidesCount
       : this.options.perView;
 
@@ -219,7 +254,7 @@ export class SxSlider extends HTMLElement {
         Math.min(this.options.startIndex, realSlideCount - 1),
       );
       if (this.options.loop) {
-        const currentCloneCount = this.options.autoWidth
+        const currentCloneCount = this.options.autoSize
           ? realSlideCount
           : this.options.perView;
         this.currentIndex = currentCloneCount + validStartIndex;
@@ -238,7 +273,7 @@ export class SxSlider extends HTMLElement {
     };
 
     if (
-      !this.options.autoWidth &&
+      !this.options.autoSize &&
       this.options.perView === realSlideCount &&
       rawLeft &&
       parseFloat(rawLeft) > 0 &&
@@ -252,14 +287,14 @@ export class SxSlider extends HTMLElement {
       this.options.rightPadding = formatUnit(rawRight);
     }
 
-    const containerWidth = this.getBoundingClientRect().width;
+    const containerSize = this.getBoundingClientRect()[this.sizeDim];
     const gapPx = this.convertToPx(this.options.gap);
     const leftPadPx = this.convertToPx(this.options.leftPadding);
     const rightPadPx = this.convertToPx(this.options.rightPadding);
 
-    if (this.options.autoWidth) {
+    if (this.options.autoSize) {
       slides.forEach((slide) => {
-        slide.style.width = "max-content";
+        slide.style[this.sizeDim] = "max-content";
       });
 
       this.track.offsetHeight;
@@ -267,61 +302,51 @@ export class SxSlider extends HTMLElement {
       slides.forEach((slide) => {
         const child = slide.firstElementChild as HTMLElement;
         if (child) {
-          slide.style.width = `${child.getBoundingClientRect().width}px`;
+          slide.style[this.sizeDim] = `${child.getBoundingClientRect()[this.sizeDim]}px`;
         } else {
-          slide.style.width = "max-content";
+          slide.style[this.sizeDim] = "max-content";
         }
-        slide.style.marginRight = this.options.gap;
+        slide.style[this.marginProp] = this.options.gap;
       });
 
       this.options.perView = this.getVisibleSlidesCount();
     } else {
-      const availableWidth =
-        containerWidth -
+      const availableSize =
+        containerSize -
         leftPadPx -
         rightPadPx -
         gapPx * (this.options.perView - 1);
-      const slideWidth = availableWidth / this.options.perView;
+      const slideSize = availableSize / this.options.perView;
 
       slides.forEach((slide) => {
-        slide.style.width = `${slideWidth}px`;
-        slide.style.marginRight = this.options.gap;
+        slide.style[this.sizeDim] = `${slideSize}px`;
+        slide.style[this.marginProp] = this.options.gap;
       });
     }
 
-// --- BẮT ĐẦU THÊM: CENTER-IF-SHORT ---
     let isShort = false;
-    // Lọc ra các slide gốc (không tính bản clone)
     const realSlides = slides.filter((s) => !s.hasAttribute("data-clone"));
 
-    if (this.options.autoWidth) {
-      // Đo tổng chiều rộng thực tế của các slide gốc
-      let totalW = 0;
+    if (this.options.autoSize) {
+      let totalSize = 0;
       realSlides.forEach((s) => {
-        totalW += s.getBoundingClientRect().width + gapPx;
+        totalSize += this.getRectSize(s) + gapPx;
       });
-      totalW -= gapPx;
-      isShort = totalW < containerWidth;
+      totalSize -= gapPx;
+      isShort = totalSize < containerSize;
     } else {
-      // Ở chế độ chia cột bình thường, đếm số lượng so với perView
       isShort = realSlideCount < this.options.perView;
     }
 
     if (this.options.centerIfShort && isShort) {
-      // Ép các thẻ con vào giữa track
       this.track.style.justifyContent = "center";
-      
-      // (Tùy chọn an toàn) Nếu bật loop nhưng số slide quá ít, ta dọn dẹp các bản clone 
-      // để tránh việc giao diện bị lặp rác và mất đi trạng thái căn giữa.
       if (this.options.loop) {
         const clones = this.track.querySelectorAll("[data-clone]");
         clones.forEach((c) => c.remove());
       }
     } else {
-      // Trả track về mặc định (căn trái)
       this.track.style.justifyContent = "";
     }
-    // --- KẾT THÚC: CENTER-IF-SHORT ---
 
     this.track.updatePosition(true);
     this.updateSlideAttributes();
@@ -337,26 +362,26 @@ export class SxSlider extends HTMLElement {
     return px || 0;
   }
 
-  public getSlideWidthWithGap(): number {
+  public getSlideSizeWithGap(): number {
     if (!this.track || this.track.children.length === 0) return 0;
     const firstSlide = this.track.children[0] as HTMLElement;
     return (
-      firstSlide.getBoundingClientRect().width +
+      this.getRectSize(firstSlide) +
       this.convertToPx(this.options.gap)
     );
   }
 
   private getVisibleSlidesCount(): number {
     if (!this.track || this.track.children.length === 0) return 1;
-    const containerW = this.getBoundingClientRect().width;
-    let accumulatedWidth = 0;
+    const containerSize = this.getBoundingClientRect()[this.sizeDim];
+    let accumulatedSize = 0;
     let count = 0;
     const gapPx = this.convertToPx(this.options.gap);
     const slides = Array.from(this.track.children) as HTMLElement[];
 
     for (let i = 0; i < slides.length; i++) {
-      accumulatedWidth += slides[i].getBoundingClientRect().width + gapPx;
-      if (accumulatedWidth - gapPx > containerW) break;
+      accumulatedSize += this.getRectSize(slides[i]) + gapPx;
+      if (accumulatedSize - gapPx > containerSize) break;
       count++;
     }
     return Math.max(1, count);
@@ -370,39 +395,34 @@ export class SxSlider extends HTMLElement {
 
     for (let i = 0; i < index; i++) {
       if (slides[i]) {
-        offset += slides[i].getBoundingClientRect().width + gapPx;
+        offset += this.getRectSize(slides[i]) + gapPx;
       }
     }
     return offset;
   }
 
-  
-
   public getMaxTranslate(): number {
     if (!this.track || this.track.children.length === 0) return 0;
-    const containerWidth = this.getBoundingClientRect().width;
+    const containerSize = this.getBoundingClientRect()[this.sizeDim];
 
-    let totalTrackWidth = 0;
-    if (this.options.autoWidth) {
-      totalTrackWidth = this.getOffsetForIndex(this.track.children.length);
-      totalTrackWidth -= this.convertToPx(this.options.gap);
+    let totalTrackSize = 0;
+    if (this.options.autoSize) {
+      totalTrackSize = this.getOffsetForIndex(this.track.children.length);
+      totalTrackSize -= this.convertToPx(this.options.gap);
     } else {
       const totalSlides = this.track.children.length;
-      const slideWidth = this.getSlideWidthWithGap();
-      totalTrackWidth =
-        slideWidth * totalSlides - this.convertToPx(this.options.gap);
+      const slideSize = this.getSlideSizeWithGap();
+      totalTrackSize =
+        slideSize * totalSlides - this.convertToPx(this.options.gap);
     }
 
-    return Math.max(0, totalTrackWidth - containerWidth);
+    return Math.max(0, totalTrackSize - containerSize);
   }
 
-  // Trả về ranh giới trượt chính xác dựa trên cấu hình centered / auto-centered
   public getBoundaries(): { max: number; min: number } {
-    if (!this.track || this.track.children.length === 0)
-      return { max: 0, min: 0 };
-
-    const containerWidth = this.getBoundingClientRect().width;
-    const leftPadPx = parseFloat(this.options.leftPadding) || 0;
+    if (!this.track || this.track.children.length === 0) return { max: 0, min: 0 };
+    const containerSize = this.getBoundingClientRect()[this.sizeDim];
+    const startPadPx = parseFloat(this.startPadding) || 0;
     const gapPx = this.convertToPx(this.options.gap);
     const totalSlides = this.track.children.length;
 
@@ -410,25 +430,16 @@ export class SxSlider extends HTMLElement {
     let minBound = -this.getMaxTranslate();
 
     if (this.options.centered && !this.options.autoCentered) {
-      // Tọa độ lớn nhất khi kéo thẻ đầu tiên ra giữa màn hình
-      let firstSlideW = this.options.autoWidth
-        ? (this.track.children[0]?.getBoundingClientRect().width || 0) + gapPx
-        : this.getSlideWidthWithGap();
-      maxBound = leftPadPx + containerWidth / 2 - firstSlideW / 2;
+      let firstSlideSize = this.options.autoSize
+        ? (this.track.children[0] ? this.getRectSize(this.track.children[0] as HTMLElement) : 0) + gapPx
+        : this.getSlideSizeWithGap();
+      maxBound = startPadPx + (containerSize / 2) - (firstSlideSize / 2);
 
-      // Tọa độ nhỏ nhất khi kéo thẻ cuối cùng ra giữa màn hình
       let lastIdx = totalSlides - 1;
-      let offsetToLeft = this.options.autoWidth
-        ? this.getOffsetForIndex(lastIdx)
-        : lastIdx * this.getSlideWidthWithGap();
-      let lastSlideW = this.options.autoWidth
-        ? (this.track.children[lastIdx]?.getBoundingClientRect().width || 0) +
-          gapPx
-        : this.getSlideWidthWithGap();
-      minBound =
-        leftPadPx + containerWidth / 2 - (offsetToLeft + lastSlideW / 2);
+      let offsetToStart = this.options.autoSize ? this.getOffsetForIndex(lastIdx) : lastIdx * this.getSlideSizeWithGap();
+      let lastSlideSize = this.options.autoSize ? (this.track.children[lastIdx] ? this.getRectSize(this.track.children[lastIdx] as HTMLElement) : 0) + gapPx : this.getSlideSizeWithGap();
+      minBound = startPadPx + (containerSize / 2) - (offsetToStart + lastSlideSize / 2);
     }
-
     return { max: maxBound, min: Math.min(maxBound, minBound) };
   }
 
@@ -443,7 +454,7 @@ export class SxSlider extends HTMLElement {
     if (realSlideCount === 0) return;
 
     const cloneCount = isLoop
-      ? this.options.autoWidth
+      ? this.options.autoSize
         ? this.originalSlidesCount
         : this.options.perView
       : 0;
@@ -455,17 +466,12 @@ export class SxSlider extends HTMLElement {
       return rIdx;
     };
 
-    // --- BẮT ĐẦU CẬP NHẬT: Thêm logic tính toán chỉ số trung tâm ---
-    // Tìm ra "độ lệch" (offset) tới slide ở giữa dựa vào perView
-    // VD: perView = 3 -> lệch 1. perView = 5 -> lệch 2. perView = 1 -> lệch 0.
     const centerOffset = this.options.centered ? 0 : Math.floor(this.options.perView / 2);
 
     const targetActiveReal = getRealIdx(this.currentIndex);
     const targetPrevReal = getRealIdx(this.currentIndex - 1);
     const targetNextReal = getRealIdx(this.currentIndex + 1);
-    // Tính toán realIndex của slide nằm chính giữa màn hình
     const targetCenterReal = getRealIdx(this.currentIndex + centerOffset);
-    // --- KẾT THÚC CẬP NHẬT ---
 
     const isInitial = this.isFirstHeightMeasure;
     if (isInitial) {
@@ -484,19 +490,16 @@ export class SxSlider extends HTMLElement {
       slide.removeAttribute("sx-slide-active");
       slide.removeAttribute("sx-slide-prev");
       slide.removeAttribute("sx-slide-next");
-      slide.removeAttribute("sx-slide-center"); // Nhớ xóa attribute cũ đi nhé
+      slide.removeAttribute("sx-slide-center");
 
       let realIndex = getRealIdx(index);
       slide.setAttribute("aria-label", `${realIndex + 1}/${realSlideCount}`);
 
-      if (realIndex === targetActiveReal)
-        slide.setAttribute("sx-slide-active", "");
+      if (realIndex === targetActiveReal) slide.setAttribute("sx-slide-active", "");
       if (realIndex === targetPrevReal) slide.setAttribute("sx-slide-prev", "");
       if (realIndex === targetNextReal) slide.setAttribute("sx-slide-next", "");
 
-      // Gắn attribute cho slide trung tâm (bao gồm cả bản gốc và clone)
-      if (realIndex === targetCenterReal)
-        slide.setAttribute("sx-slide-center", "");
+      if (realIndex === targetCenterReal) slide.setAttribute("sx-slide-center", "");
     });
 
     this.updateAutoHeight();
@@ -518,7 +521,7 @@ export class SxSlider extends HTMLElement {
       return;
     }
 
-    this.track.style.alignItems = "flex-start";
+    this.track.style.alignItems = "center";
 
     const slides = Array.from(this.track.children) as HTMLElement[];
     if (slides.length === 0) return;
@@ -531,27 +534,21 @@ export class SxSlider extends HTMLElement {
       const slide = slides[slideIndex];
 
       if (slide) {
-        // --- BẮT ĐẦU FIX: Kỹ Thuật "Clone & Measure" ---
-        // Tạo một bản sao vô hình để ép trình duyệt tính toán đích đến (Target Height)
-        // mà không làm gián đoạn hay ảnh hưởng tới CSS transition đang chạy trên thẻ thật.
         const clone = slide.cloneNode(true) as HTMLElement;
         clone.style.position = "absolute";
         clone.style.visibility = "hidden";
         clone.style.pointerEvents = "none";
         clone.style.transition = "none";
 
-        // Khóa cứng chiều rộng để nội dung text bên trong không bị rớt dòng sai lệch
-        clone.style.width = `${slide.getBoundingClientRect().width}px`;
+        clone.style[this.sizeDim] = `${slide.getBoundingClientRect()[this.sizeDim]}px`;
 
         const cloneChild = clone.firstElementChild as HTMLElement;
         if (cloneChild) {
-          cloneChild.style.transition = "none"; // Bóp chết transition của thẻ con
+          cloneChild.style.transition = "none";
         }
 
-        // Tạm thời gắn vào track để mượn context CSS hiện tại
         this.track.appendChild(clone);
 
-        // Đo đạc kích thước từ bản clone (Lúc này chắc chắn trả về 800px tuyệt đối)
         const height = cloneChild
           ? cloneChild.getBoundingClientRect().height
           : clone.getBoundingClientRect().height;
@@ -560,9 +557,7 @@ export class SxSlider extends HTMLElement {
           maxHeight = height;
         }
 
-        // Đo xong thì hủy phi tang ngay lập tức (Trình duyệt chưa kịp vẽ ra màn hình)
         this.track.removeChild(clone);
-        // --- KẾT THÚC FIX ---
       }
     }
 
@@ -587,24 +582,17 @@ export class SxSlider extends HTMLElement {
     const { min: minBound } = this.getBoundaries();
 
     for (let i = 0; i < totalSlides; i++) {
-      let offsetToLeft = this.options.autoWidth
-        ? this.getOffsetForIndex(i)
-        : i * this.getSlideWidthWithGap();
-      let currentSlideW = this.options.autoWidth
-        ? this.track.children[i].getBoundingClientRect().width +
-          this.convertToPx(this.options.gap)
-        : this.getSlideWidthWithGap();
+      let offsetToStart = this.options.autoSize ? this.getOffsetForIndex(i) : i * this.getSlideSizeWithGap();
+      let currentSlideSize = this.options.autoSize ? (this.getRectSize(this.track.children[i] as HTMLElement) + this.convertToPx(this.options.gap)) : this.getSlideSizeWithGap();
 
-      let expectedTranslate = parseFloat(this.options.leftPadding) || 0;
+      let expectedTranslate = parseFloat(this.startPadding) || 0;
       if (this.options.centered) {
-        const containerWidth = this.getBoundingClientRect().width;
-        expectedTranslate +=
-          containerWidth / 2 - (offsetToLeft + currentSlideW / 2);
+        const containerSize = this.getBoundingClientRect()[this.sizeDim];
+        expectedTranslate += (containerSize / 2) - (offsetToStart + currentSlideSize / 2);
       } else {
-        expectedTranslate -= offsetToLeft;
+        expectedTranslate -= offsetToStart;
       }
 
-      // Dung sai +1px để chống sai số hệ phân thập phân
       if (expectedTranslate <= minBound + 1) {
         return i;
       }
@@ -612,14 +600,12 @@ export class SxSlider extends HTMLElement {
     return Math.max(0, totalSlides - 1);
   }
 
-  private getResolvedPerMove(): number {
+private getResolvedPerMove(): number {
     if (this.options.perMove === "auto") {
-      return 1;
+      return this.options.autoSize ? this.getVisibleSlidesCount() : this.options.perView;
     }
 
-    const visibleSlides = this.getVisibleSlidesCount();
-    let val = Math.max(1, this.options.perMove);
-    return Math.min(val, visibleSlides);
+    return Math.max(1, this.options.perMove as number);
   }
 
   public next() {
@@ -662,43 +648,42 @@ export class SxSlider extends HTMLElement {
     }
   }
 
-public alignIndexToFreeTranslation(translate: number) {
+  public alignIndexToFreeTranslation(translate: number) {
     if (!this.track) return;
-    const leftPadPx = parseFloat(this.options.leftPadding) || 0;
-    const containerWidth = this.getBoundingClientRect().width;
+    const startPadPx = parseFloat(this.startPadding) || 0;
+    const containerSize = this.getBoundingClientRect()[this.sizeDim];
     const slides = Array.from(this.track.children) as HTMLElement[];
     const gapPx = this.convertToPx(this.options.gap);
 
     let closestIndex = 0;
     let minDiff = Infinity;
-    const currentActive = this.currentIndex; // Lưu trạng thái hiện tại để phân xử
+    const currentActive = this.currentIndex;
 
     for (let i = 0; i < slides.length; i++) {
-      let offsetToLeft = 0;
-      let currentSlideW = 0;
+      let offsetToStart = 0;
+      let currentSlideSize = 0;
 
-      if (this.options.autoWidth) {
-        offsetToLeft = this.getOffsetForIndex(i);
-        currentSlideW = slides[i].getBoundingClientRect().width + gapPx;
+      if (this.options.autoSize) {
+        offsetToStart = this.getOffsetForIndex(i);
+        currentSlideSize = this.getRectSize(slides[i]) + gapPx;
       } else {
-        const slideWidth = this.getSlideWidthWithGap();
-        offsetToLeft = i * slideWidth;
-        currentSlideW = slideWidth;
+        const slideSize = this.getSlideSizeWithGap();
+        offsetToStart = i * slideSize;
+        currentSlideSize = slideSize;
       }
 
-      let expectedTranslate = leftPadPx;
+      let expectedTranslate = startPadPx;
 
       if (this.options.centered) {
         expectedTranslate +=
-          containerWidth / 2 - (offsetToLeft + currentSlideW / 2);
+          containerSize / 2 - (offsetToStart + currentSlideSize / 2);
       } else {
-        expectedTranslate -= offsetToLeft;
+        expectedTranslate -= offsetToStart;
       }
 
       if (!this.options.loop) {
         const { max: maxBound, min: minBound } = this.getBoundaries();
         if (this.options.centered && this.options.autoCentered) {
-          // Ép không cho sinh ra khoảng trắng ở mép
           expectedTranslate = Math.max(
             minBound,
             Math.min(maxBound, expectedTranslate),
@@ -712,19 +697,15 @@ public alignIndexToFreeTranslation(translate: number) {
 
       const diff = Math.abs(translate - expectedTranslate);
 
-      // --- BẮT ĐẦU FIX: Phân xử hòa (Tie-breaker) ---
       if (diff < minDiff - 0.5) {
         minDiff = diff;
         closestIndex = i;
       } else if (Math.abs(diff - minDiff) <= 0.5) {
-        // Khi tọa độ của nhiều thẻ bị ép trùng nhau (do auto-centered),
-        // ưu tiên index nằm gần trạng thái của ngón tay hiện tại nhất!
         if (Math.abs(i - currentActive) < Math.abs(closestIndex - currentActive)) {
           closestIndex = i;
           minDiff = diff;
         }
       }
-      // --- KẾT THÚC FIX ---
     }
 
     this.currentIndex = closestIndex;

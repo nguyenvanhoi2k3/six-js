@@ -79,7 +79,7 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
 |rewind|boolean|Tua lại khi đến slide cuối|false|
 |direction|string|horizontal \| vertical|horizontal|
 |start-index|number|start index|0|
-|auto-width|boolean|tự động chia per-view theo width của slide content, per-vew khi này sẽ disable|false|
+|auto-size|boolean|tự động chia per-view theo width của slide content (hoặc theo height nếu là `vertical`), `per-vew` khi này sẽ disable|false|
 |auto-height|boolean|Height sẽ tự động khớp theo height content của từng slide|false|
 |effect|string|slide \| fade|false|
 |gap|number \| string|Ví dụ: `"20"`, `"1rem"`|0|
