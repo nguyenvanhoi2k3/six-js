@@ -21,6 +21,7 @@ export class SxSliderTrack extends HTMLElement {
   private scrollFriction = 1;
   private isScrollAnimating = false;
   private noConstrain = false;
+  private lastClientX = 0;
 
   private boundDragStart = this.dragStart.bind(this);
   private boundDragMove = this.dragMove.bind(this);
@@ -82,6 +83,7 @@ export class SxSliderTrack extends HTMLElement {
     this.prevTranslate = this.currentTranslate;
     this.isDragging = true;
     this.startX = this.getPositionX(event);
+    this.lastClientX = this.startX;
     this.velocity = 0;
 
     this.dragXs = [this.startX];
@@ -99,6 +101,7 @@ export class SxSliderTrack extends HTMLElement {
     }
 
     const currentX = this.getPositionX(event);
+    this.lastClientX = currentX;
     const now = performance.now();
 
     this.dragXs.push(currentX);
@@ -116,8 +119,7 @@ export class SxSliderTrack extends HTMLElement {
       this.currentTranslate = targetTranslate;
       this.checkLoopBoundsInstant();
     } else {
-      const maxBound = 0;
-      const minBound = -this.sliderCha.getMaxTranslate();
+      const { max: maxBound, min: minBound } = this.sliderCha.getBoundaries();
       const resistance = this.sliderCha.options.edgeResistance;
 
       if (targetTranslate > maxBound) {
@@ -171,46 +173,48 @@ export class SxSliderTrack extends HTMLElement {
 
       if (options.snap) {
         const leftPadPx = parseFloat(options.leftPadding) || 0;
-        let rawDestination = destination; 
+        let rawDestination = destination;
 
-        if (options.autoWidth) {
-          this.sliderCha.alignIndexToFreeTranslation(destination);
-          const targetIdx = this.sliderCha.getCurrentIndex();
+        this.sliderCha.alignIndexToFreeTranslation(destination);
+        const targetIdx = this.sliderCha.getCurrentIndex();
+
+        let offsetToLeft = options.autoWidth
+          ? this.sliderCha.getOffsetForIndex(targetIdx)
+          : targetIdx * this.sliderCha.getSlideWidthWithGap();
+        let currentSlideW = options.autoWidth
+          ? this.children[targetIdx].getBoundingClientRect().width +
+            this.sliderCha.convertToPx(options.gap)
+          : this.sliderCha.getSlideWidthWithGap();
+
+        if (options.centered) {
+          const containerWidth = this.sliderCha.getBoundingClientRect().width;
           destination =
-            -this.sliderCha.getOffsetForIndex(targetIdx) + leftPadPx;
+            leftPadPx + containerWidth / 2 - (offsetToLeft + currentSlideW / 2);
         } else {
-          const slideWidth = this.sliderCha.getSlideWidthWithGap();
-          const targetIndex = Math.round(
-            (leftPadPx - destination) / slideWidth,
-          );
-          destination = -(targetIndex * slideWidth) + leftPadPx;
+          destination = leftPadPx - offsetToLeft;
         }
 
         if (!options.loop) {
-          const minBound = -this.sliderCha.getMaxTranslate();
-          if (rawDestination <= minBound) {
-            destination = minBound;
-          }
+          const { max: maxBound, min: minBound } =
+            this.sliderCha.getBoundaries();
+          destination = Math.max(minBound, Math.min(maxBound, destination));
         }
       }
 
       if (options.loop) {
         this.startMomentumScroll(destination);
       } else {
-        const maxBound = 0;
-        const minBound = -this.sliderCha.getMaxTranslate();
-
+        const { max: maxBound, min: minBound } = this.sliderCha.getBoundaries();
         const clampedDestination = Math.max(
           minBound,
           Math.min(maxBound, destination),
         );
-
         this.startMomentumScroll(clampedDestination);
       }
     } else {
       this.style.transition = `transform ${options.speed}ms ease-out`;
 
-      const movedBy = this.currentTranslate - this.prevTranslate;
+      const movedBy = this.lastClientX - this.startX;
 
       if (options.perMove === "auto") {
         const startIndex = this.sliderCha.getCurrentIndex();
@@ -290,8 +294,7 @@ export class SxSliderTrack extends HTMLElement {
     if (this.sliderCha.options.loop) {
       this.checkLoopBoundsInstant();
     } else if (!this.noConstrain) {
-      const maxBound = 0;
-      const minBound = -this.sliderCha.getMaxTranslate();
+      const { max: maxBound, min: minBound } = this.sliderCha.getBoundaries();
       const exceeded =
         this.currentTranslate > maxBound || this.currentTranslate < minBound;
 
@@ -349,20 +352,41 @@ export class SxSliderTrack extends HTMLElement {
       originalTrackWidth = originalCount * slideWidth;
     }
 
-    const startRealBound = -clonesWidth + leftPaddingPx;
+    // --- XỬ LÝ CENTERED OFFSET ---
+    let shiftBase = 0;
+    if (this.sliderCha.options.centered) {
+      const containerWidth = this.sliderCha.getBoundingClientRect().width;
+      let firstSlideW = 0;
+      if (this.sliderCha.options.autoWidth) {
+        const gapPx = this.sliderCha.convertToPx(this.sliderCha.options.gap);
+        // FIX LỖI PRIVATE: Dùng trực tiếp this.children thay vì this.sliderCha.track.children
+        const targetSlide = this.children[cloneCount] as HTMLElement;
+        firstSlideW = targetSlide
+          ? targetSlide.getBoundingClientRect().width + gapPx
+          : 0;
+      } else {
+        firstSlideW = this.sliderCha.getSlideWidthWithGap();
+      }
+      shiftBase = containerWidth / 2 - firstSlideW / 2;
+    }
+
+    const startRealBound = -clonesWidth + leftPaddingPx + shiftBase;
     const endRealBound = startRealBound - originalTrackWidth;
 
     let needReset = false;
     let targetTranslate = this.currentTranslate;
     let shiftOffset = 0;
-    let indexShift = 0; 
+    let indexShift = 0;
 
-    if (this.currentTranslate > startRealBound) {
+    // Tăng dung sai (tolerance) lên 50px khi ở chế độ centered để tránh giật khi cuộn nhanh
+    const tolerance = this.sliderCha.options.centered ? 50 : 0;
+
+    if (this.currentTranslate > startRealBound + tolerance) {
       targetTranslate = this.currentTranslate - originalTrackWidth;
       shiftOffset = -originalTrackWidth;
       indexShift = originalCount;
       needReset = true;
-    } else if (this.currentTranslate <= endRealBound) {
+    } else if (this.currentTranslate <= endRealBound - tolerance) {
       targetTranslate = this.currentTranslate + originalTrackWidth;
       shiftOffset = originalTrackWidth;
       indexShift = -originalCount;
@@ -383,17 +407,10 @@ export class SxSliderTrack extends HTMLElement {
 
       this.setTransform(this.currentTranslate);
 
-      if (this.sliderCha.options.autoWidth) {
-        this.sliderCha.setCurrentIndex(
-          this.sliderCha.getCurrentIndex() + indexShift,
-        );
-      } else {
-        const slideWidth = this.sliderCha.getSlideWidthWithGap();
-        const logicalIndex = Math.round(
-          Math.abs(this.currentTranslate - leftPaddingPx) / slideWidth,
-        );
-        this.sliderCha.setCurrentIndex(logicalIndex);
-      }
+      // Cập nhật index cực kỳ an toàn bằng phép cộng trừ thẳng, không dùng phép chia tọa độ nữa
+      this.sliderCha.setCurrentIndex(
+        this.sliderCha.getCurrentIndex() + indexShift,
+      );
 
       this.isResetting = false;
     }
@@ -419,19 +436,33 @@ export class SxSliderTrack extends HTMLElement {
     const currentIndex = this.sliderCha.getCurrentIndex();
 
     let targetTranslate = leftPaddingPx;
+    let offsetToLeft = 0;
+    let currentSlideW = 0;
 
     if (options.autoWidth) {
-      targetTranslate -= this.sliderCha.getOffsetForIndex(currentIndex);
+      offsetToLeft = this.sliderCha.getOffsetForIndex(currentIndex);
+      const slides = Array.from(this.children) as HTMLElement[];
+      const gapPx = this.sliderCha.convertToPx(options.gap);
+      currentSlideW = slides[currentIndex]
+        ? slides[currentIndex].getBoundingClientRect().width + gapPx
+        : 0;
     } else {
       const slideWidth = this.sliderCha.getSlideWidthWithGap();
-      targetTranslate -= currentIndex * slideWidth;
+      offsetToLeft = currentIndex * slideWidth;
+      currentSlideW = slideWidth;
+    }
+
+    if (options.centered) {
+      const containerWidth = this.sliderCha.getBoundingClientRect().width;
+      targetTranslate +=
+        containerWidth / 2 - (offsetToLeft + currentSlideW / 2);
+    } else {
+      targetTranslate -= offsetToLeft;
     }
 
     if (!options.loop) {
-      if (currentIndex === 0) targetTranslate = 0;
-      const minTranslate = -this.sliderCha.getMaxTranslate();
-      if (targetTranslate < minTranslate) targetTranslate = minTranslate;
-      if (targetTranslate > 0) targetTranslate = 0;
+      const { max: maxBound, min: minBound } = this.sliderCha.getBoundaries();
+      targetTranslate = Math.max(minBound, Math.min(maxBound, targetTranslate));
     }
 
     this.currentTranslate = targetTranslate;
@@ -443,7 +474,7 @@ export class SxSliderTrack extends HTMLElement {
     }
 
     if (options.loop) {
-      const cloneCount = options.perView; 
+      const cloneCount = options.perView;
       const originalCount = this.sliderCha.originalSlidesCount;
 
       if (

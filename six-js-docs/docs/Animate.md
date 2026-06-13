@@ -26,3 +26,7 @@ Hỗ trợ tạo các hiệu ứng xuất hiện mượt mà khi phần tử đi
 |strength|number|Độ mạnh của hiệu ứng|30|
 |easing|string|ease-in \| ease-out \| ease-in-out \| expo-in \| expo-out \| expo-in-out \| back-in \| back-out \| back-in-out \| linear|ease-in-out|
 |group|boolean|Khi true các thẻ sẽ chạy theo thứ tự|false|
+
+<br />
+👉 **[DEMO](/sx-marquee-demo)**
+<br />

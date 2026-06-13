@@ -17,4 +17,7 @@ export interface SliderOptions {
   autoWidth: boolean;
   perMove: "auto" | number;
   autoHeight: boolean;
+  centered: boolean;    
+  autoCentered: boolean;
+  centerIfShort: boolean;
 }

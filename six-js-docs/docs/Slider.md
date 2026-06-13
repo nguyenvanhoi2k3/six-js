@@ -66,28 +66,32 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
 <br />
 |Attribute|Type|Description|Default|
 |---|---|---|---|
-|name|string|Tên slider, có thể dùng link đến nút prev,next|null|
+|name|string|Tên slider, có thể dùng link đến nút prev, next|null|
 |per-view|number|Số lượng slide trong viewport|1|
 |per-move|number\|auto|Số lượng slide di chuyển mỗi lần. Nếu số âm thì = 1, nếu số lớn như 999 thì = số lượng slide trong viewport, `auto`: 1 hoặc dừng lại ở slide gần nhất khi thả|auto|
-|right-padding|number|Lộ một phần slide tiếp theo|0|
+|right-padding|number|Lộ một phần slide tiếp theo nếu có|0|
 |left-padding|number|Lộ một phần slide trước đó nếu có|0|
 |speed|number|Tốc độ trượt slide|300|
 |edge-resistance|number|Khoảng cách cản khi kéo ở mép đầu/cuối.|100|
 |loop|boolean||false|
 |autoplay|boolean||false|
-|interval|number|thời gian chờ trước khi chuyển slide tiếp theo|3000|
+|interval|number|thời gian chờ trước khi chuyển slide tiếp theo ở `autoplay mode`|3000|
 |rewind|boolean|Tua lại khi đến slide cuối|false|
 |direction|string|horizontal \| vertical|horizontal|
 |start-index|number|start index|0|
 |auto-width|boolean|tự động chia per-view theo width của slide content, per-vew khi này sẽ disable|false|
-|auto-height|boolean||false|
+|auto-height|boolean|Height sẽ tự động khớp theo height content của từng slide|false|
 |effect|string|slide \| fade|false|
 |gap|number \| string|Ví dụ: `"20"`, `"1rem"`|0|
 |centered|boolean|Slide active luôn nằm giữa viewport|false|
-|centered-bounds|boolean|Căn giữa nhưng không để xuất hiện khoảng trắng ở 2 bên|false|
+|auto-centered|boolean|Slide active luôn nằm giữa viewport nhưng xóa khoảng trắng ở 2 bên|false|
 |center-if-short|boolean|Khi tổng số slide không đủ để lấp đầy viewport. `false`: slide căn trái, `true`: slide căn giữa|false|
 |grab-cursor|boolean|Bật tắt grab cursor|false|
 |drag|boolean \| free|`true`: cho phép drag \| `false`: chặn drag \| `free`: cho phép drag và slide trượt theo quán tính |true|
-|vertical-scroll|boolean|Khi direction="vertical", có thể cuộn slide bằng con lăn|false|
-|snap|boolean|Tự động về vị trí slide gần nhất ở chế độ drag-free|false|
+|vertical-scroll|boolean|Khi `direction="vertical"`, có thể cuộn slide bằng con lăn|false|
+|snap|boolean|Tự động về vị trí slide gần nhất ở chế độ `drag="free"`|false|
 |breakpoints|json||undefined|
+
+<br />
+👉 **[DEMO](/sx-marquee-demo)**
+<br />
