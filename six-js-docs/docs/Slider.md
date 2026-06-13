@@ -17,16 +17,17 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
   <sx-slider
     name="slider-1"
     per-view="1"
-    gap="10"
+    gap="0"
     speed="400"
     breakpoints="{
       360: {
         per-view: 2,
-        gap: 20
+        gap: 20,
+        effect: fade,
       },
       768: {
         per-view: 3,
-        gap: 30
+        gap: 0
       },
       1080: {
         per-view: 4,

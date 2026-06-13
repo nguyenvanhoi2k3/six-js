@@ -10,16 +10,14 @@
   </head>
 
   <body>
-    <sx-slider
+    <!-- <sx-slider
       direction="vertical"
       name="slider-1"
       per-view="3"
-      drag="true"
+      drag="free"
       gap="10"
       style="--sx-slider-height: 600px"
       vertical-scroll
-      per-move="2"
-      snap
       edge-resistance="0"
       >
       <sx-slider-track>
@@ -67,31 +65,61 @@
     </sx-slider>
     <h3>Link bằng name</h3>
     <sx-slider-prev name="slider-1">Prev</sx-slider-prev>
-    <sx-slider-next name="slider-1">Next</sx-slider-next>
+    <sx-slider-next name="slider-1">Next</sx-slider-next> -->
 
     <!-- horizontal -->
-    <sx-slider name="slider-2" per-view="2" gap="10" start-index="0" per-move="2" loop auto-size auto-height>
+    <sx-slider
+      name="slider-2"
+      effect="fade"
+      per-view="1"
+      gap="10"
+      start-index="0"
+      breakpoints="{
+      361: {
+        per-view: 2,
+        gap: 20,
+       effect: 'slide'
+
+      },
+      768: {
+        per-view: 3,
+        gap: 30,
+        effect: 'slide'
+      },
+      1080: {
+        per-view: 4,
+        gap: 40,
+        right-padding: 100,
+        effect: 'slide',
+        centered: 'true',
+        auto-centered: 'true',
+        auto-height: 'true',
+        grab-cursor: 'true',
+        auto-height: 'true'
+      }
+    }"
+    >
       <sx-slider-track>
         <sx-slider-slide>
-          <div class="slide" style="width: 300px; height: 400px">Slide 1</div>
+          <div class="slide" style="width: 100%; height: 400px">Slide 1</div>
         </sx-slider-slide>
         <sx-slider-slide>
-          <div class="slide" style="width: 300px; height: 500px">Slide 2</div>
+          <div class="slide" style="width: 100%; height: 500px">Slide 2</div>
         </sx-slider-slide>
         <sx-slider-slide>
-          <div class="slide" style="width: 500px; height: 400px">Slide 3</div>
+          <div class="slide" style="width: 100%; height: 400px">Slide 3</div>
         </sx-slider-slide>
         <sx-slider-slide>
-          <div class="slide" style="width: 500px; height: 400px">Slide 4</div>
+          <div class="slide" style="width: 100%; height: 400px">Slide 4</div>
         </sx-slider-slide>
         <sx-slider-slide>
-          <div class="slide" style="width: 500px; height: 400px">Slide 5</div>
+          <div class="slide" style="width: 100%; height: 400px">Slide 5</div>
         </sx-slider-slide>
         <sx-slider-slide>
-          <div class="slide" style="width: 500px; height: 400px">Slide 6</div>
+          <div class="slide" style="width: 100%; height: 400px">Slide 6</div>
         </sx-slider-slide>
         <sx-slider-slide>
-          <div class="slide" style="width: 500px; height: 400px">Slide 7</div>
+          <div class="slide" style="width: 100%; height: 400px">Slide 7</div>
         </sx-slider-slide>
       </sx-slider-track>
       <sx-slider-prev

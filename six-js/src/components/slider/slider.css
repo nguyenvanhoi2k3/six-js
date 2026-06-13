@@ -42,9 +42,46 @@ sx-slider-next {
   user-select: none;
 }
 
-/* (Tùy chọn) Ẩn nút khi slider đang bị vô hiệu hóa hoặc không có tác dụng */
-/* sx-slider-prev[disabled],
-sx-slider-next[disabled] {
-  opacity: 0.1;
-  pointer-events: none;
-} */
+/* =========================================
+    HIỆU ỨNG FADE 
+========================================= */
+
+/* Khi ở chế độ fade, khóa hoàn toàn dịch chuyển vật lý của Track */
+sx-slider[data-active-effect="fade"] sx-slider-track {
+  transform: none !important;
+}
+
+/* Xếp chồng tất cả các Slide lên nhau và ẩn đi */
+sx-slider[data-active-effect="fade"] sx-slider-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none; /* Tránh click nhầm slide dưới */
+  transition: opacity var(--sx-speed, 300ms) ease-in-out;
+  z-index: 0;
+}
+
+/* Chỉ làm nổi bật và hiện Slide đang Active */
+sx-slider[data-active-effect="fade"] sx-slider-slide[sx-slide-active] {
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 1;
+}
+
+/* Giữ slide đầu tiên trong Document Flow để đẩy chiều cao cho Slider cha */
+sx-slider[data-active-effect="fade"] sx-slider-slide:first-child {
+  position: relative !important;
+}
+
+/* KHÔI PHỤC TRẠNG THÁI KHI KHÔNG PHẢI FADE (MÀN HÌNH LỚN) */
+sx-slider:not([data-active-effect="fade"]) sx-slider-slide {
+  position: relative !important;
+  top: auto;
+  left: auto;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transition: none;
+}

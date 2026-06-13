@@ -22,4 +22,5 @@ export interface SliderOptions {
   centerIfShort: boolean;
   direction: "horizontal" | "vertical";
   verticalScroll: boolean;
+  effect: "slide" | "fade";
 }

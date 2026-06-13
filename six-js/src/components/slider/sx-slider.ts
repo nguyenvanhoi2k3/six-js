@@ -1,6 +1,7 @@
 import { SliderOptions } from "./slider-types";
 import { SxSliderTrack } from "./sx-slider-track";
 import { sliderRegistry } from "./slider-registry";
+import { Breakpoints } from "../../core/breakpoints";
 
 import "./sx-slider-track";
 import "./sx-slider-slide";
@@ -9,6 +10,8 @@ import "./sx-slider-next";
 
 export class SxSlider extends HTMLElement {
   public options!: SliderOptions;
+  private originalOptions!: SliderOptions;
+  private breakpointsConfig: Record<number, any> | null = null;
   private currentIndex: number = 0;
   private track: SxSliderTrack | null = null;
   private resizeObserver!: ResizeObserver;
@@ -23,7 +26,9 @@ export class SxSlider extends HTMLElement {
   }
 
   public get marginProp(): "marginBottom" | "marginRight" {
-    return this.options.direction === "vertical" ? "marginBottom" : "marginRight";
+    return this.options.direction === "vertical"
+      ? "marginBottom"
+      : "marginRight";
   }
 
   public get clientAxis(): "clientY" | "clientX" {
@@ -77,6 +82,8 @@ export class SxSlider extends HTMLElement {
       "center-if-short",
       "direction",
       "vertical-scroll",
+      "effect",
+      "breakpoints",
     ];
   }
 
@@ -151,10 +158,15 @@ export class SxSlider extends HTMLElement {
       parsedPerMove = isNaN(num) ? "auto" : num;
     }
 
-    let parsedDirection = this.getAttribute("direction") as "horizontal" | "vertical";
+    let parsedDirection = this.getAttribute("direction") as
+      | "horizontal"
+      | "vertical";
     if (parsedDirection !== "horizontal" && parsedDirection !== "vertical") {
       parsedDirection = "horizontal";
     }
+
+    let parsedEffect = this.getAttribute("effect");
+    if (parsedEffect !== "fade") parsedEffect = "slide";
 
     this.options = {
       name: this.getAttribute("name"),
@@ -180,7 +192,15 @@ export class SxSlider extends HTMLElement {
       centerIfShort: this.hasAttribute("center-if-short"),
       direction: parsedDirection,
       verticalScroll: this.hasAttribute("vertical-scroll"),
+      effect: parsedEffect as "slide" | "fade",
     };
+
+    this.originalOptions = { ...this.options };
+    this.breakpointsConfig = Breakpoints.parse(
+      this.getAttribute("breakpoints"),
+    );
+
+    this.style.setProperty("--sx-speed", `${this.options.speed}ms`);
   }
 
   public startAutoplay() {
@@ -229,8 +249,38 @@ export class SxSlider extends HTMLElement {
     }
   }
 
+  private formatUnit(val: any): string {
+    if (val === null || val === undefined || val === "") return "0px";
+    return isNaN(Number(val)) ? String(val) : `${val}px`;
+  }
+
   public updateLayout() {
     if (!this.track) return;
+
+    const containerSize = this.getBoundingClientRect()[this.sizeDim];
+
+    if (this.breakpointsConfig && this.originalOptions) {
+      this.options = Breakpoints.getMatch(
+        containerSize,
+        JSON.parse(JSON.stringify(this.originalOptions)),
+        this.breakpointsConfig,
+      );
+
+      const formatUnit = (val: any): string => {
+        if (val === null || val === undefined || val === "") return "0px";
+        return isNaN(Number(val)) ? String(val) : `${val}px`;
+      };
+
+      this.options.gap = formatUnit(this.options.gap);
+      this.options.leftPadding = formatUnit(this.options.leftPadding);
+      this.options.rightPadding = formatUnit(this.options.rightPadding);
+    }
+
+    if (this.options.effect === "fade") {
+      this.setAttribute("data-active-effect", "fade");
+    } else {
+      this.removeAttribute("data-active-effect");
+    }
 
     if (this.options.grabCursor && this.options.drag !== "false") {
       this.track.setAttribute("grab-cursor", "");
@@ -267,11 +317,6 @@ export class SxSlider extends HTMLElement {
     const rawLeft = this.getAttribute("left-padding");
     const rawRight = this.getAttribute("right-padding");
 
-    const formatUnit = (val: string | null): string => {
-      if (!val) return "0px";
-      return isNaN(Number(val)) ? val : `${val}px`;
-    };
-
     if (
       !this.options.autoSize &&
       this.options.perView === realSlideCount &&
@@ -283,11 +328,12 @@ export class SxSlider extends HTMLElement {
       this.options.leftPadding = "0px";
       this.options.rightPadding = "0px";
     } else {
-      this.options.leftPadding = formatUnit(rawLeft);
-      this.options.rightPadding = formatUnit(rawRight);
+      if (!this.breakpointsConfig) {
+        this.options.leftPadding = this.formatUnit(rawLeft);
+        this.options.rightPadding = this.formatUnit(rawRight);
+      }
     }
 
-    const containerSize = this.getBoundingClientRect()[this.sizeDim];
     const gapPx = this.convertToPx(this.options.gap);
     const leftPadPx = this.convertToPx(this.options.leftPadding);
     const rightPadPx = this.convertToPx(this.options.rightPadding);
@@ -297,12 +343,13 @@ export class SxSlider extends HTMLElement {
         slide.style[this.sizeDim] = "max-content";
       });
 
-      this.track.offsetHeight;
+      this.track.offsetHeight; 
 
       slides.forEach((slide) => {
         const child = slide.firstElementChild as HTMLElement;
         if (child) {
-          slide.style[this.sizeDim] = `${child.getBoundingClientRect()[this.sizeDim]}px`;
+          slide.style[this.sizeDim] =
+            `${child.getBoundingClientRect()[this.sizeDim]}px`;
         } else {
           slide.style[this.sizeDim] = "max-content";
         }
@@ -311,8 +358,9 @@ export class SxSlider extends HTMLElement {
 
       this.options.perView = this.getVisibleSlidesCount();
     } else {
+      const validContainerSize = containerSize || window.innerWidth;
       const availableSize =
-        containerSize -
+        validContainerSize -
         leftPadPx -
         rightPadPx -
         gapPx * (this.options.perView - 1);
@@ -365,10 +413,7 @@ export class SxSlider extends HTMLElement {
   public getSlideSizeWithGap(): number {
     if (!this.track || this.track.children.length === 0) return 0;
     const firstSlide = this.track.children[0] as HTMLElement;
-    return (
-      this.getRectSize(firstSlide) +
-      this.convertToPx(this.options.gap)
-    );
+    return this.getRectSize(firstSlide) + this.convertToPx(this.options.gap);
   }
 
   private getVisibleSlidesCount(): number {
@@ -420,7 +465,8 @@ export class SxSlider extends HTMLElement {
   }
 
   public getBoundaries(): { max: number; min: number } {
-    if (!this.track || this.track.children.length === 0) return { max: 0, min: 0 };
+    if (!this.track || this.track.children.length === 0)
+      return { max: 0, min: 0 };
     const containerSize = this.getBoundingClientRect()[this.sizeDim];
     const startPadPx = parseFloat(this.startPadding) || 0;
     const gapPx = this.convertToPx(this.options.gap);
@@ -431,14 +477,23 @@ export class SxSlider extends HTMLElement {
 
     if (this.options.centered && !this.options.autoCentered) {
       let firstSlideSize = this.options.autoSize
-        ? (this.track.children[0] ? this.getRectSize(this.track.children[0] as HTMLElement) : 0) + gapPx
+        ? (this.track.children[0]
+            ? this.getRectSize(this.track.children[0] as HTMLElement)
+            : 0) + gapPx
         : this.getSlideSizeWithGap();
-      maxBound = startPadPx + (containerSize / 2) - (firstSlideSize / 2);
+      maxBound = startPadPx + containerSize / 2 - firstSlideSize / 2;
 
       let lastIdx = totalSlides - 1;
-      let offsetToStart = this.options.autoSize ? this.getOffsetForIndex(lastIdx) : lastIdx * this.getSlideSizeWithGap();
-      let lastSlideSize = this.options.autoSize ? (this.track.children[lastIdx] ? this.getRectSize(this.track.children[lastIdx] as HTMLElement) : 0) + gapPx : this.getSlideSizeWithGap();
-      minBound = startPadPx + (containerSize / 2) - (offsetToStart + lastSlideSize / 2);
+      let offsetToStart = this.options.autoSize
+        ? this.getOffsetForIndex(lastIdx)
+        : lastIdx * this.getSlideSizeWithGap();
+      let lastSlideSize = this.options.autoSize
+        ? (this.track.children[lastIdx]
+            ? this.getRectSize(this.track.children[lastIdx] as HTMLElement)
+            : 0) + gapPx
+        : this.getSlideSizeWithGap();
+      minBound =
+        startPadPx + containerSize / 2 - (offsetToStart + lastSlideSize / 2);
     }
     return { max: maxBound, min: Math.min(maxBound, minBound) };
   }
@@ -466,7 +521,9 @@ export class SxSlider extends HTMLElement {
       return rIdx;
     };
 
-    const centerOffset = this.options.centered ? 0 : Math.floor(this.options.perView / 2);
+    const centerOffset = this.options.centered
+      ? 0
+      : Math.floor(this.options.perView / 2);
 
     const targetActiveReal = getRealIdx(this.currentIndex);
     const targetPrevReal = getRealIdx(this.currentIndex - 1);
@@ -495,11 +552,13 @@ export class SxSlider extends HTMLElement {
       let realIndex = getRealIdx(index);
       slide.setAttribute("aria-label", `${realIndex + 1}/${realSlideCount}`);
 
-      if (realIndex === targetActiveReal) slide.setAttribute("sx-slide-active", "");
+      if (realIndex === targetActiveReal)
+        slide.setAttribute("sx-slide-active", "");
       if (realIndex === targetPrevReal) slide.setAttribute("sx-slide-prev", "");
       if (realIndex === targetNextReal) slide.setAttribute("sx-slide-next", "");
 
-      if (realIndex === targetCenterReal) slide.setAttribute("sx-slide-center", "");
+      if (realIndex === targetCenterReal)
+        slide.setAttribute("sx-slide-center", "");
     });
 
     this.updateAutoHeight();
@@ -529,8 +588,26 @@ export class SxSlider extends HTMLElement {
     let maxHeight = 0;
     const visibleCount = this.options.perView;
 
+    const centerOffset = this.options.centered
+      ? Math.floor(visibleCount / 2)
+      : 0;
+    let startScanIndex = this.currentIndex - centerOffset;
+
+    if (!this.options.loop) {
+      startScanIndex = Math.max(0, startScanIndex);
+    }
+
     for (let i = 0; i < visibleCount; i++) {
-      const slideIndex = this.currentIndex + i;
+      let slideIndex = startScanIndex + i;
+
+      if (this.options.loop) {
+        if (slideIndex < 0) {
+          slideIndex = slides.length + slideIndex;
+        } else if (slideIndex >= slides.length) {
+          slideIndex = slideIndex % slides.length;
+        }
+      }
+
       const slide = slides[slideIndex];
 
       if (slide) {
@@ -540,7 +617,8 @@ export class SxSlider extends HTMLElement {
         clone.style.pointerEvents = "none";
         clone.style.transition = "none";
 
-        clone.style[this.sizeDim] = `${slide.getBoundingClientRect()[this.sizeDim]}px`;
+        clone.style[this.sizeDim] =
+          `${slide.getBoundingClientRect()[this.sizeDim]}px`;
 
         const cloneChild = clone.firstElementChild as HTMLElement;
         if (cloneChild) {
@@ -582,13 +660,19 @@ export class SxSlider extends HTMLElement {
     const { min: minBound } = this.getBoundaries();
 
     for (let i = 0; i < totalSlides; i++) {
-      let offsetToStart = this.options.autoSize ? this.getOffsetForIndex(i) : i * this.getSlideSizeWithGap();
-      let currentSlideSize = this.options.autoSize ? (this.getRectSize(this.track.children[i] as HTMLElement) + this.convertToPx(this.options.gap)) : this.getSlideSizeWithGap();
+      let offsetToStart = this.options.autoSize
+        ? this.getOffsetForIndex(i)
+        : i * this.getSlideSizeWithGap();
+      let currentSlideSize = this.options.autoSize
+        ? this.getRectSize(this.track.children[i] as HTMLElement) +
+          this.convertToPx(this.options.gap)
+        : this.getSlideSizeWithGap();
 
       let expectedTranslate = parseFloat(this.startPadding) || 0;
       if (this.options.centered) {
         const containerSize = this.getBoundingClientRect()[this.sizeDim];
-        expectedTranslate += (containerSize / 2) - (offsetToStart + currentSlideSize / 2);
+        expectedTranslate +=
+          containerSize / 2 - (offsetToStart + currentSlideSize / 2);
       } else {
         expectedTranslate -= offsetToStart;
       }
@@ -600,9 +684,9 @@ export class SxSlider extends HTMLElement {
     return Math.max(0, totalSlides - 1);
   }
 
-private getResolvedPerMove(): number {
+  private getResolvedPerMove(): number {
     if (this.options.perMove === "auto") {
-      return this.options.autoSize ? this.getVisibleSlidesCount() : this.options.perView;
+      return 1;
     }
 
     return Math.max(1, this.options.perMove as number);
@@ -701,7 +785,9 @@ private getResolvedPerMove(): number {
         minDiff = diff;
         closestIndex = i;
       } else if (Math.abs(diff - minDiff) <= 0.5) {
-        if (Math.abs(i - currentActive) < Math.abs(closestIndex - currentActive)) {
+        if (
+          Math.abs(i - currentActive) < Math.abs(closestIndex - currentActive)
+        ) {
           closestIndex = i;
           minDiff = diff;
         }
