@@ -122,7 +122,7 @@ sx-slider-pagination {
   gap: 10px;
 }
 
-.sx-pagination-bullet {
+.sx-slider-pagination-bullet {
   width: 10px;
   height: 10px;
   background: #ccc;
@@ -133,11 +133,11 @@ sx-slider-pagination {
   cursor: pointer;
 }
 
-.sx-pagination-bullet:hover {
+.sx-slider-pagination-bullet:hover {
   background-color: #000;
 }
 
-.sx-pagination-bullet[sx-bullet-active] {
+.sx-slider-pagination-bullet[sx-bullet-active] {
   background-color: #000;
 }
 
@@ -148,37 +148,44 @@ sx-slider-pagination[effect="dynamic"] {
   overflow: hidden;
   position: relative;
   transition: width 0.3s ease;
-  gap: 0; 
+  gap: 0;
 }
 
-sx-slider-pagination[effect="dynamic"] .sx-pagination-inner {
+sx-slider-pagination[effect="dynamic"] .sx-slider-pagination-inner {
   display: flex;
   align-items: center;
   transition: transform 0.3s ease;
   will-change: transform;
 }
 
-sx-slider-pagination[effect="dynamic"] .sx-pagination-bullet {
-  width: 8px;   
+sx-slider-pagination[effect="dynamic"] .sx-slider-pagination-bullet {
+  width: 8px;
   height: 8px;
   margin: 0 4px; /* Tổng kích thước 1 bullet kèm gap = 16px */
-  border: none;  
-  transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease;
+  border: none;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease,
+    background-color 0.3s ease;
 }
 
-sx-slider-pagination[effect="dynamic"] .sx-pagination-bullet[sx-bullet-active] {
+sx-slider-pagination[effect="dynamic"]
+  .sx-slider-pagination-bullet[sx-bullet-active] {
   transform: scale(1);
 }
 
-sx-slider-pagination[effect="dynamic"] .sx-pagination-bullet.sx-bullet-main {
+sx-slider-pagination[effect="dynamic"]
+  .sx-slider-pagination-bullet.sx-bullet-main {
   transform: scale(1);
 }
 
-sx-slider-pagination[effect="dynamic"] .sx-pagination-bullet.sx-bullet-medium {
+sx-slider-pagination[effect="dynamic"]
+  .sx-slider-pagination-bullet.sx-bullet-medium {
   transform: scale(0.66);
 }
 
-sx-slider-pagination[effect="dynamic"] .sx-pagination-bullet.sx-bullet-small {
+sx-slider-pagination[effect="dynamic"]
+  .sx-slider-pagination-bullet.sx-bullet-small {
   transform: scale(0.33);
 }
 
@@ -191,7 +198,7 @@ sx-slider-pagination[effect="snake"] {
   gap: 10px;
 }
 
-sx-slider-pagination[effect="snake"] .sx-pagination-bar {
+sx-slider-pagination[effect="snake"] .sx-slider-pagination-bar {
   position: absolute;
   height: 10px;
   background-color: #000;
@@ -199,20 +206,22 @@ sx-slider-pagination[effect="snake"] .sx-pagination-bar {
   top: 0;
   left: 0;
   width: 10px;
-  transition: left 0.3s cubic-bezier(0.25, 1, 0.5, 1),  
-              width 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  transition:
+    left 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+    width 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   pointer-events: none;
   z-index: 1;
 }
 
-sx-slider-pagination[effect="snake"] .sx-pagination-bullet {
+sx-slider-pagination[effect="snake"] .sx-slider-pagination-bullet {
   position: relative;
   z-index: 2;
   background: #ccc;
   transition: background-color 0.3s ease;
 }
 
-sx-slider-pagination[effect="snake"] .sx-pagination-bullet[sx-bullet-active] {
+sx-slider-pagination[effect="snake"]
+  .sx-slider-pagination-bullet[sx-bullet-active] {
   background: #000;
   z-index: 1000;
 }
@@ -225,8 +234,8 @@ sx-slider-pagination[effect="number"] {
   align-items: center;
 }
 
-sx-slider-pagination[effect="number"] .sx-pagination-bullet {
-  width: 24px;       /* Tăng kích thước ô để chứa được chữ số bên trong */
+sx-slider-pagination[effect="number"] .sx-slider-pagination-bullet {
+  width: 24px; /* Tăng kích thước ô để chứa được chữ số bên trong */
   height: 24px;
   border-radius: 4px; /* Có thể đổi thành hình vuông bo góc nhẹ giống các thư viện lớn */
   background: #f0f0f0;
@@ -234,7 +243,7 @@ sx-slider-pagination[effect="number"] .sx-pagination-bullet {
   color: #333;
   font-size: 12px;
   font-weight: 500;
-  
+
   /* Flexbox để đưa số vào chính giữa ô */
   display: inline-flex;
   align-items: center;
@@ -242,13 +251,14 @@ sx-slider-pagination[effect="number"] .sx-pagination-bullet {
   transition: all 0.3s ease;
 }
 
-sx-slider-pagination[effect="number"] .sx-pagination-bullet:hover {
+sx-slider-pagination[effect="number"] .sx-slider-pagination-bullet:hover {
   background-color: #000;
   border-color: #000;
   color: #fff;
 }
 
-sx-slider-pagination[effect="number"] .sx-pagination-bullet[sx-bullet-active] {
+sx-slider-pagination[effect="number"]
+  .sx-slider-pagination-bullet[sx-bullet-active] {
   background-color: #000;
   border-color: #000;
   color: #fff;
@@ -270,7 +280,7 @@ sx-slider-progress[direction="vertical"] {
   height: 100%;
 }
 
-.sx-progress-bar {
+.sx-slider-progress-bar {
   position: absolute;
   top: 0;
   left: 0;

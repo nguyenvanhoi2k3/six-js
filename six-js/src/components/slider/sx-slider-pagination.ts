@@ -31,7 +31,7 @@ export class SxSliderPagination extends HTMLElement {
 
   private handleAction(e: Event) {
     const target = e.target as HTMLElement;
-    if (target.classList.contains("sx-pagination-bullet")) {
+    if (target.classList.contains("sx-slider-pagination-bullet")) {
       const index = Number(target.getAttribute("data-index"));
       this.goToSlide(index);
     }
@@ -80,7 +80,7 @@ export class SxSliderPagination extends HTMLElement {
 
       // 2. Render snakeBar SAU CÙNG để nó có thứ tự DOM cao hơn, đè lên các bullet
       this.snakeBar = document.createElement("div");
-      this.snakeBar.className = "sx-pagination-bar";
+      this.snakeBar.className = "sx-slider-pagination-bar";
 
       // Khóa cứng các style hiển thị đè và chuyển động
       this.snakeBar.style.position = "absolute";
@@ -95,7 +95,7 @@ export class SxSliderPagination extends HTMLElement {
     // --- CASE 2: DYNAMIC EFFECT ---
     if (isDynamic) {
       this.innerContainer = document.createElement("div");
-      this.innerContainer.className = "sx-pagination-inner";
+      this.innerContainer.className = "sx-slider-pagination-inner";
       this.appendChild(this.innerContainer);
 
       bulletIndexes.forEach((targetIndex, i) => {
@@ -128,7 +128,7 @@ export class SxSliderPagination extends HTMLElement {
     appendNumber: boolean,
   ): HTMLSpanElement {
     const bullet = document.createElement("span");
-    bullet.className = "sx-pagination-bullet";
+    bullet.className = "sx-slider-pagination-bullet";
     bullet.setAttribute("data-index", targetIndex.toString());
     bullet.setAttribute("role", "button");
     bullet.setAttribute("tabindex", "0");
@@ -150,14 +150,14 @@ export class SxSliderPagination extends HTMLElement {
     if (!targetContainer) return;
 
     const bullets = Array.from(
-      targetContainer.querySelectorAll(".sx-pagination-bullet"),
+      targetContainer.querySelectorAll(".sx-slider-pagination-bullet"),
     ) as HTMLElement[];
     const total = bullets.length;
     if (total === 0) return;
 
     // 1. Đồng bộ thuộc tính active cho toàn bộ bullet
     bullets.forEach((b, i) => {
-      if (isDynamic) b.className = "sx-pagination-bullet";
+      if (isDynamic) b.className = "sx-slider-pagination-bullet";
 
       if (i === activeIndex) {
         b.setAttribute("sx-bullet-active", "");

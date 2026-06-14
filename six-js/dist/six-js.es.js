@@ -832,7 +832,7 @@ class Y extends HTMLElement {
   }
   handleAction(t) {
     const e = t.target;
-    if (e.classList.contains("sx-pagination-bullet")) {
+    if (e.classList.contains("sx-slider-pagination-bullet")) {
       const s = Number(e.getAttribute("data-index"));
       this.goToSlide(s);
     }
@@ -848,11 +848,11 @@ class Y extends HTMLElement {
       if (this.renderedSignature = l, this.innerHTML = "", this.snakeBar = null, i) {
         this.innerContainer = null, this.style.width = "", this.style.position = "relative", t.forEach((h, a) => {
           this.appendChild(this.createBulletDOM(h, a, !1));
-        }), this.snakeBar = document.createElement("div"), this.snakeBar.className = "sx-pagination-bar", this.snakeBar.style.position = "absolute", this.snakeBar.style.zIndex = "10", this.snakeBar.style.transition = "width 150ms ease-out, left 150ms ease-out", this.appendChild(this.snakeBar);
+        }), this.snakeBar = document.createElement("div"), this.snakeBar.className = "sx-slider-pagination-bar", this.snakeBar.style.position = "absolute", this.snakeBar.style.zIndex = "10", this.snakeBar.style.transition = "width 150ms ease-out, left 150ms ease-out", this.appendChild(this.snakeBar);
         return;
       }
       if (s) {
-        this.innerContainer = document.createElement("div"), this.innerContainer.className = "sx-pagination-inner", this.appendChild(this.innerContainer), t.forEach((h, a) => {
+        this.innerContainer = document.createElement("div"), this.innerContainer.className = "sx-slider-pagination-inner", this.appendChild(this.innerContainer), t.forEach((h, a) => {
           this.innerContainer.appendChild(
             this.createBulletDOM(h, a, !1)
           );
@@ -866,17 +866,17 @@ class Y extends HTMLElement {
   }
   createBulletDOM(t, e, s) {
     const i = document.createElement("span");
-    return i.className = "sx-pagination-bullet", i.setAttribute("data-index", t.toString()), i.setAttribute("role", "button"), i.setAttribute("tabindex", "0"), i.setAttribute("aria-label", `Go to slide ${e + 1}`), s && (i.textContent = (e + 1).toString()), i;
+    return i.className = "sx-slider-pagination-bullet", i.setAttribute("data-index", t.toString()), i.setAttribute("role", "button"), i.setAttribute("tabindex", "0"), i.setAttribute("aria-label", `Go to slide ${e + 1}`), s && (i.textContent = (e + 1).toString()), i;
   }
   updateActive(t) {
     const e = this.getAttribute("effect"), s = e === "dynamic", i = e === "snake", n = s ? this.innerContainer : this;
     if (!n) return;
     const l = Array.from(
-      n.querySelectorAll(".sx-pagination-bullet")
+      n.querySelectorAll(".sx-slider-pagination-bullet")
     ), h = l.length;
     if (h === 0) return;
     if (l.forEach((u, c) => {
-      s && (u.className = "sx-pagination-bullet"), c === t ? (u.setAttribute("sx-bullet-active", ""), u.setAttribute("aria-current", "true")) : (u.removeAttribute("sx-bullet-active"), u.removeAttribute("aria-current"));
+      s && (u.className = "sx-slider-pagination-bullet"), c === t ? (u.setAttribute("sx-bullet-active", ""), u.setAttribute("aria-current", "true")) : (u.removeAttribute("sx-bullet-active"), u.removeAttribute("aria-current"));
     }), i && this.snakeBar) {
       if (l[t]) {
         const x = t * 20, v = this.lastActiveIndex * 20;
@@ -919,7 +919,7 @@ class J extends HTMLElement {
   constructor() {
     super();
     o(this, "bar");
-    this.bar = document.createElement("div"), this.bar.className = "sx-progress-bar", this.appendChild(this.bar);
+    this.bar = document.createElement("div"), this.bar.className = "sx-slider-progress-bar", this.appendChild(this.bar);
   }
   update(t, e, s) {
     const i = Math.max(0, Math.min(1, t));

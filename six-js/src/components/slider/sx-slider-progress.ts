@@ -4,7 +4,7 @@ export class SxSliderProgress extends HTMLElement {
   constructor() {
     super();
     this.bar = document.createElement("div");
-    this.bar.className = "sx-progress-bar";
+    this.bar.className = "sx-slider-progress-bar";
     this.appendChild(this.bar);
   }
 
