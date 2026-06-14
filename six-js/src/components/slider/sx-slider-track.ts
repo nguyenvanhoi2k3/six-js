@@ -579,6 +579,8 @@ export class SxSliderTrack extends HTMLElement {
   public setTransform(value: number) {
     if (!this.sliderCha) return;
     this.style.transform = `${this.sliderCha.transformFn}(${value}px)`;
+
+    this.sliderCha.updateProgress(value, this.style.transition);
   }
 
   public updatePosition(instant = false) {

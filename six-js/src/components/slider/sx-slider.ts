@@ -7,6 +7,8 @@ import "./sx-slider-track";
 import "./sx-slider-slide";
 import "./sx-slider-prev";
 import "./sx-slider-next";
+import "./sx-slider-pagination";
+import "./sx-slider-progress";
 
 export class SxSlider extends HTMLElement {
   public options!: SliderOptions;
@@ -41,6 +43,100 @@ export class SxSlider extends HTMLElement {
 
   public get startPadding(): string {
     return this.options.leftPadding;
+  }
+
+  public updateProgress(translate: number, trackTransition: string) {
+    let scrollRatio = 0;
+    let baseRatio = 0;
+    const containerSize = this.getBoundingClientRect()[this.sizeDim];
+
+    if (!this.options.loop) {
+      // Chế độ thường
+      const { max, min } = this.getBoundaries();
+      const totalScroll = max - min;
+
+      if (totalScroll > 0) {
+        scrollRatio = (max - translate) / totalScroll;
+        // baseRatio = (Kích thước hiển thị) / (Kích thước hiển thị + Tổng quãng đường cuộn)
+        baseRatio = containerSize / (totalScroll + containerSize);
+      } else {
+        // Nếu không có gì để cuộn (ví dụ slider quá ngắn), thanh tiến trình đầy 100%
+        scrollRatio = 1;
+        baseRatio = 1;
+      }
+    } else {
+      // Chế độ Loop
+      const originalCount = this.originalSlidesCount;
+      if (originalCount > 0 && this.track) {
+        const cloneCount = this.options.autoSize
+          ? originalCount
+          : this.options.perView;
+        const startPadPx = parseFloat(this.startPadding) || 0;
+
+        let clonesSize = 0;
+        let originalTrackSize = 0;
+
+        if (this.options.autoSize) {
+          clonesSize = this.getOffsetForIndex(cloneCount);
+          originalTrackSize =
+            this.getOffsetForIndex(cloneCount + originalCount) - clonesSize;
+        } else {
+          const slideSize = this.getSlideSizeWithGap();
+          clonesSize = cloneCount * slideSize;
+          originalTrackSize = originalCount * slideSize;
+        }
+
+        if (originalTrackSize > 0) {
+          // Trong chế độ loop, track size thực tế là originalTrackSize
+          baseRatio = containerSize / originalTrackSize;
+
+          let shiftBase = 0;
+          if (this.options.centered) {
+            let firstSlideSize = this.options.autoSize
+              ? this.getRectSize(
+                  this.track.children[cloneCount] as HTMLElement,
+                ) + this.convertToPx(this.options.gap)
+              : this.getSlideSizeWithGap();
+            shiftBase = containerSize / 2 - firstSlideSize / 2;
+          }
+
+          const startRealBound = -clonesSize + startPadPx + shiftBase;
+          const distanceMoved = startRealBound - translate;
+
+          scrollRatio = distanceMoved / originalTrackSize;
+          // Loop wrap (Giữ ratio luôn trong khoảng 0 - 1)
+          scrollRatio = ((scrollRatio % 1) + 1) % 1;
+        } else {
+          scrollRatio = 1;
+          baseRatio = 1;
+        }
+      }
+    }
+
+    // Đảm bảo an toàn, không để baseRatio vượt quá 1
+    baseRatio = Math.max(0, Math.min(1, baseRatio));
+
+    // Tính toán ratio cuối cùng: Bắt đầu từ baseRatio và lấp đầy phần còn lại
+    const finalRatio = baseRatio + scrollRatio * (1 - baseRatio);
+
+    // Cập nhật tất cả các sx-progress liên kết với slider này
+    let progresses = Array.from(
+      this.querySelectorAll("sx-slider-progress"),
+    ) as any[];
+    if (this.options.name) {
+      const ext = Array.from(
+        document.querySelectorAll(
+          `sx-slider-progress[name="${this.options.name}"]`,
+        ),
+      );
+      progresses = Array.from(new Set([...progresses, ...ext]));
+    }
+
+    progresses.forEach((p) => {
+      if (typeof p.update === "function") {
+        p.update(finalRatio, this.options.direction, trackTransition);
+      }
+    });
   }
 
   public getRectSize(el: HTMLElement): number {
@@ -343,7 +439,7 @@ export class SxSlider extends HTMLElement {
         slide.style[this.sizeDim] = "max-content";
       });
 
-      this.track.offsetHeight; 
+      this.track.offsetHeight;
 
       slides.forEach((slide) => {
         const child = slide.firstElementChild as HTMLElement;
@@ -562,6 +658,39 @@ export class SxSlider extends HTMLElement {
     });
 
     this.updateAutoHeight();
+    this.updateNavigation();
+
+    const maxIdx = isLoop ? realSlideCount - 1 : this.getRealMaxIndex();
+    const resolvedPerMove = this.getResolvedPerMove();
+    let bulletIndexes: number[] = [];
+
+    if (resolvedPerMove > 1 && !this.options.autoSize) {
+      let i = 0;
+      while (i < maxIdx) {
+        bulletIndexes.push(i);
+        i += resolvedPerMove;
+      }
+      if (i !== maxIdx) {
+        bulletIndexes.push(maxIdx);
+      }
+    } else {
+      for (let i = 0; i <= maxIdx; i++) {
+        bulletIndexes.push(i);
+      }
+    }
+
+    let activeBulletIndex = bulletIndexes.indexOf(targetActiveReal);
+
+    if (activeBulletIndex === -1) {
+      for (let i = bulletIndexes.length - 1; i >= 0; i--) {
+        if (targetActiveReal >= bulletIndexes[i]) {
+          activeBulletIndex = i;
+          break;
+        }
+      }
+    }
+
+    this.updatePagination(bulletIndexes, activeBulletIndex);
 
     if (isInitial && tempStyle) {
       requestAnimationFrame(() => {
@@ -696,15 +825,19 @@ export class SxSlider extends HTMLElement {
     if (!this.track) return;
     const moveBy = this.getResolvedPerMove();
 
+    const remainder = ((this.currentIndex % moveBy) + moveBy) % moveBy;
+
+    const step = remainder !== 0 ? moveBy - remainder : moveBy;
+
     if (this.options.loop) {
-      this.currentIndex += moveBy;
+      this.currentIndex += step;
       this.updateSlideAttributes();
       this.track.updatePosition();
     } else {
       const maxIndex = this.getRealMaxIndex();
 
       if (this.currentIndex < maxIndex) {
-        this.currentIndex = Math.min(maxIndex, this.currentIndex + moveBy);
+        this.currentIndex = Math.min(maxIndex, this.currentIndex + step);
       } else if (this.options.rewind) {
         this.currentIndex = 0;
       }
@@ -717,19 +850,40 @@ export class SxSlider extends HTMLElement {
     if (!this.track) return;
     const moveBy = this.getResolvedPerMove();
 
+    const remainder = ((this.currentIndex % moveBy) + moveBy) % moveBy;
+
+    const step = remainder !== 0 ? remainder : moveBy;
+
     if (this.options.loop) {
-      this.currentIndex -= moveBy;
+      this.currentIndex -= step;
       this.updateSlideAttributes();
       this.track.updatePosition();
     } else {
       if (this.currentIndex > 0) {
-        this.currentIndex = Math.max(0, this.currentIndex - moveBy);
+        this.currentIndex = Math.max(0, this.currentIndex - step);
       } else if (this.options.rewind) {
         this.currentIndex = this.getRealMaxIndex();
       }
       this.updateSlideAttributes();
       this.track.updatePosition();
     }
+  }
+
+  public goTo(index: number) {
+    if (!this.track) return;
+
+    if (this.options.loop) {
+      const cloneCount = this.options.autoSize
+        ? this.originalSlidesCount
+        : this.options.perView;
+      this.currentIndex = index + cloneCount;
+    } else {
+      const maxIndex = this.getRealMaxIndex();
+      this.currentIndex = Math.max(0, Math.min(index, maxIndex));
+    }
+
+    this.updateSlideAttributes();
+    this.track.updatePosition();
   }
 
   public alignIndexToFreeTranslation(translate: number) {
@@ -805,6 +959,67 @@ export class SxSlider extends HTMLElement {
     if (this.options.loop && this.track) {
       this.track.checkLoopBoundsInstant();
     }
+  }
+
+  public updateNavigation() {
+    let prevBtns = Array.from(this.querySelectorAll("sx-slider-prev"));
+    let nextBtns = Array.from(this.querySelectorAll("sx-slider-next"));
+
+    if (this.options.name) {
+      const extPrev = Array.from(
+        document.querySelectorAll(
+          `sx-slider-prev[name="${this.options.name}"]`,
+        ),
+      );
+      const extNext = Array.from(
+        document.querySelectorAll(
+          `sx-slider-next[name="${this.options.name}"]`,
+        ),
+      );
+      prevBtns = Array.from(new Set([...prevBtns, ...extPrev]));
+      nextBtns = Array.from(new Set([...nextBtns, ...extNext]));
+    }
+
+    if (this.options.loop || this.options.rewind) {
+      prevBtns.forEach((b) => b.removeAttribute("sx-disabled"));
+      nextBtns.forEach((b) => b.removeAttribute("sx-disabled"));
+      return;
+    }
+
+    if (this.currentIndex <= 0) {
+      prevBtns.forEach((b) => b.setAttribute("sx-disabled", ""));
+    } else {
+      prevBtns.forEach((b) => b.removeAttribute("sx-disabled"));
+    }
+
+    const maxIndex = this.getRealMaxIndex();
+    if (this.currentIndex >= maxIndex) {
+      nextBtns.forEach((b) => b.setAttribute("sx-disabled", ""));
+    } else {
+      nextBtns.forEach((b) => b.removeAttribute("sx-disabled"));
+    }
+  }
+
+  public updatePagination(bulletIndexes: number[], activeIndex: number) {
+    let paginations = Array.from(
+      this.querySelectorAll("sx-slider-pagination"),
+    ) as any[];
+
+    if (this.options.name) {
+      const ext = Array.from(
+        document.querySelectorAll(`sx-slider-pagination[name="${this.options.name}"]`),
+      );
+      paginations = Array.from(new Set([...paginations, ...ext]));
+    }
+
+    paginations.forEach((p) => {
+      if (typeof p.renderBullets === "function") {
+        p.renderBullets(bulletIndexes);
+      }
+      if (typeof p.updateActive === "function") {
+        p.updateActive(activeIndex);
+      }
+    });
   }
 }
 

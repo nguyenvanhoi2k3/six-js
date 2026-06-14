@@ -114,3 +114,168 @@ h6 {
   transition: 0.3s;
 }
 
+/* ==========================================================================
+   PAGINATION CƠ BẢN & MẶC ĐỊNH
+   ========================================================================== */
+sx-slider-pagination {
+  display: flex;
+  gap: 10px;
+}
+
+.sx-pagination-bullet {
+  width: 10px;
+  height: 10px;
+  background: #ccc;
+  border: 1px solid #000;
+  display: block;
+  border-radius: 50%;
+  transition: 0.3s;
+  cursor: pointer;
+}
+
+.sx-pagination-bullet:hover {
+  background-color: #000;
+}
+
+.sx-pagination-bullet[sx-bullet-active] {
+  background-color: #000;
+}
+
+/* ==========================================================================
+   DYNAMIC PAGINATION CUSTOM (Kích hoạt qua effect="dynamic")
+   ========================================================================== */
+sx-slider-pagination[effect="dynamic"] {
+  overflow: hidden;
+  position: relative;
+  transition: width 0.3s ease;
+  gap: 0; 
+}
+
+sx-slider-pagination[effect="dynamic"] .sx-pagination-inner {
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s ease;
+  will-change: transform;
+}
+
+sx-slider-pagination[effect="dynamic"] .sx-pagination-bullet {
+  width: 8px;   
+  height: 8px;
+  margin: 0 4px; /* Tổng kích thước 1 bullet kèm gap = 16px */
+  border: none;  
+  transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease;
+}
+
+sx-slider-pagination[effect="dynamic"] .sx-pagination-bullet[sx-bullet-active] {
+  transform: scale(1);
+}
+
+sx-slider-pagination[effect="dynamic"] .sx-pagination-bullet.sx-bullet-main {
+  transform: scale(1);
+}
+
+sx-slider-pagination[effect="dynamic"] .sx-pagination-bullet.sx-bullet-medium {
+  transform: scale(0.66);
+}
+
+sx-slider-pagination[effect="dynamic"] .sx-pagination-bullet.sx-bullet-small {
+  transform: scale(0.33);
+}
+
+/* ==========================================================================
+   SNAKE PAGINATION (Kích hoạt qua effect="snake")
+   ========================================================================== */
+sx-slider-pagination[effect="snake"] {
+  position: relative;
+  display: flex;
+  gap: 10px;
+}
+
+sx-slider-pagination[effect="snake"] .sx-pagination-bar {
+  position: absolute;
+  height: 10px;
+  background-color: #000;
+  border-radius: 5px;
+  top: 0;
+  left: 0;
+  width: 10px;
+  transition: left 0.3s cubic-bezier(0.25, 1, 0.5, 1),  
+              width 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+
+sx-slider-pagination[effect="snake"] .sx-pagination-bullet {
+  position: relative;
+  z-index: 2;
+  background: #ccc;
+  transition: background-color 0.3s ease;
+}
+
+sx-slider-pagination[effect="snake"] .sx-pagination-bullet[sx-bullet-active] {
+  background: #000;
+  z-index: 1000;
+}
+
+/* ==========================================================================
+   NUMBER PAGINATION CUSTOM (Kích hoạt qua effect="number")
+   ========================================================================== */
+sx-slider-pagination[effect="number"] {
+  gap: 8px; /* Khoảng cách giữa các ô số */
+  align-items: center;
+}
+
+sx-slider-pagination[effect="number"] .sx-pagination-bullet {
+  width: 24px;       /* Tăng kích thước ô để chứa được chữ số bên trong */
+  height: 24px;
+  border-radius: 4px; /* Có thể đổi thành hình vuông bo góc nhẹ giống các thư viện lớn */
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  color: #333;
+  font-size: 12px;
+  font-weight: 500;
+  
+  /* Flexbox để đưa số vào chính giữa ô */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+sx-slider-pagination[effect="number"] .sx-pagination-bullet:hover {
+  background-color: #000;
+  border-color: #000;
+  color: #fff;
+}
+
+sx-slider-pagination[effect="number"] .sx-pagination-bullet[sx-bullet-active] {
+  background-color: #000;
+  border-color: #000;
+  color: #fff;
+}
+/* Progress Bar */
+sx-slider-progress {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 4px; /* Độ dày mặc định */
+  background: rgba(0, 0, 0, 0.1); /* Màu nền */
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+sx-slider[direction="vertical"] sx-slider-progress,
+sx-slider-progress[direction="vertical"] {
+  width: 4px;
+  height: 100%;
+}
+
+.sx-progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #007bff; /* Màu chạy của thanh tiến trình */
+  will-change: transform;
+}

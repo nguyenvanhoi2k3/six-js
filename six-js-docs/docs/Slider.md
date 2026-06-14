@@ -6,12 +6,13 @@ title: Slider
 <br />
 Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người dùng vuốt hoặc điều hướng giữa nhiều slide tương tự.
 
-👉 **[DEMO](/sx-marquee-demo)**
+👉 **[DEMO](/sx-slider-demo)**
 
 ---
 
 <br />
-## Usage
+
+## sx-slider
 
 ```html
   <sx-slider
@@ -60,27 +61,24 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
       <!-- render thumbnail ở đây -->
     </sx-slider-thumbnail>
   </sx-slider>
-  <h3>Điều khiển slider bằng name</h3>
-  <sx-slider-prev name="slider-1">Prev</sx-slider-prev>
-  <sx-slider-next name="slider-1">Next</sx-slider-next>
 ```
 <br />
 |Attribute|Type|Description|Default|
 |---|---|---|---|
-|name|string|Tên slider, có thể dùng link đến nút prev, next|null|
+|name|string|Tên duy nhất của slider|null|
 |per-view|number|Số lượng slide trong viewport|1|
-|per-move|number\|auto|Số lượng slide di chuyển mỗi lần. Nếu số âm thì = 1, nếu số lớn như 999 thì = số lượng slide trong viewport, `auto`: 1 hoặc dừng lại ở slide gần nhất khi thả|auto|
+|per-move|number\|string|`auto`: 1 hoặc dừng lại ở slide gần nhất khi thả|auto|
 |right-padding|number|Lộ một phần slide tiếp theo nếu có|0|
 |left-padding|number|Lộ một phần slide trước đó nếu có|0|
 |speed|number|Tốc độ trượt slide|300|
 |edge-resistance|number|Khoảng cách cản khi kéo ở mép đầu/cuối.|100|
 |loop|boolean||false|
 |autoplay|boolean||false|
-|interval|number|thời gian chờ trước khi chuyển slide tiếp theo ở `autoplay mode`|3000|
+|interval|number|Thời gian chờ trước khi chuyển slide tiếp theo ở `autoplay mode`|3000|
 |rewind|boolean|Tua lại khi đến slide cuối|false|
 |direction|string|horizontal \| vertical|horizontal|
-|start-index|number|start index|0|
-|auto-size|boolean|tự động chia per-view theo width của slide content (hoặc theo height nếu là `vertical`), `per-vew` khi này sẽ disable|false|
+|start-index|number|Slide bắt đầu khi khởi tạo|0|
+|auto-size|boolean|Tự động chia per-view theo width của slide content (hoặc theo height nếu là `vertical`), `per-vew` khi này sẽ disable|false|
 |auto-height|boolean|Height sẽ tự động khớp theo height content của từng slide|false|
 |effect|string|slide \| fade|false|
 |gap|number \| string|Ví dụ: `"20"`, `"1rem"`|0|
@@ -91,8 +89,46 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
 |drag|boolean \| free|`true`: cho phép drag \| `false`: chặn drag \| `free`: cho phép drag và slide trượt theo quán tính |true|
 |vertical-scroll|boolean|Khi `direction="vertical"`, có thể cuộn slide bằng con lăn|false|
 |snap|boolean|Tự động về vị trí slide gần nhất ở chế độ `drag="free"`|false|
-|breakpoints|json||undefined|
+|breakpoints|json|Hỗ trợ responsive mọi thuộc tính trừ `direction`|undefined|
 
 <br />
-👉 **[DEMO](/sx-marquee-demo)**
+
+## sx-slider-prev, sx-slider-next
+```html
+  <sx-slider-prev name="slider-1">Prev</sx-slider-prev>
+  <sx-slider-next name="slider-1">Next</sx-slider-next>
+```
+<br />
+|Attribute|Type|Description|Default|
+|---|---|---|---|
+|name|string|Dùng trong trường hợp navigation nằm ngoài slider|null|
+<br />
+
+## sx-slider-pagination
+```html
+  <sx-slider-pagination name="slider-1" effect="dynamic"></sx-slider-pagination>
+```
+
+<br />
+|Attribute|Type|Description|Default|
+|---|---|---|---|
+|name|string|Dùng trong trường hợp pagination nằm ngoài slider|null|
+|effect|string|Có 3 kiểu: dynamic \| snake \| number|Default sẽ render ra các thẻ span rỗng để css|
+<br />
+:::note
+effect hỗ trợ render html cần thiết, vẫn cần css để có hiệu ứng, xem 👉 **[Tại đây](/sx-slider-demo)**
+:::
+<br />
+## sx-slider-progress
+Thanh tiến trình slider
+```html
+   <sx-slider-progress name="slider-1"></sx-slider-progress>
+```
+<br />
+|Attribute|Type|Description|Default|
+|---|---|---|---|
+|name|string|Dùng trong trường hợp progress nằm ngoài slider|null|
+<br />
+
+👉 **[DEMO](/sx-slider-demo)**
 <br />
