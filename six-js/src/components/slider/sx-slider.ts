@@ -172,7 +172,7 @@ export class SxSlider extends HTMLElement {
       "vertical-scroll",
       "effect",
       "breakpoints",
-      "thumbs",
+      "sync",
       "lock-active",
     ];
   }
@@ -319,7 +319,7 @@ export class SxSlider extends HTMLElement {
       direction: parsedDirection,
       verticalScroll: this.hasAttribute("vertical-scroll"),
       effect: parsedEffect as "slide" | "fade",
-      thumbs: this.getAttribute("thumbs"),
+      sync: this.getAttribute("sync"),
       lockActive: this.hasAttribute("lock-active"),
     };
 
@@ -738,10 +738,10 @@ export class SxSlider extends HTMLElement {
     this.updatePagination(bulletIndexes, activeBulletIndex);
 
     if (
-      this.options.thumbs &&
+      this.options.sync &&
       (this.isClickRouting || !this.options.lockActive)
     ) {
-      const linkedSlider = sliderRegistry.get(this.options.thumbs) as SxSlider;
+      const linkedSlider = sliderRegistry.get(this.options.sync) as SxSlider;
       if (linkedSlider) {
         linkedSlider.syncFromController(targetActiveReal);
       }

@@ -1,7 +1,7 @@
 var P = Object.defineProperty;
 var L = (m, o, t) => o in m ? P(m, o, { enumerable: !0, configurable: !0, writable: !0, value: t }) : m[o] = t;
 var h = (m, o, t) => L(m, typeof o != "symbol" ? o + "" : o, t);
-const F = "0.0.13", k = {
+const F = "0.0.14", k = {
   "ease-in": "cubic-bezier(0.42, 0, 1, 1)",
   "ease-out": "cubic-bezier(0, 0, 0.58, 1)",
   "ease-in-out": "cubic-bezier(0.42, 0, 0.58, 1)",
@@ -1040,7 +1040,7 @@ class j extends HTMLElement {
       "vertical-scroll",
       "effect",
       "breakpoints",
-      "thumbs",
+      "sync",
       "lock-active"
     ];
   }
@@ -1116,7 +1116,7 @@ class j extends HTMLElement {
       direction: p,
       verticalScroll: this.hasAttribute("vertical-scroll"),
       effect: u,
-      thumbs: this.getAttribute("thumbs"),
+      sync: this.getAttribute("sync"),
       lockActive: this.hasAttribute("lock-active")
     }, this.originalOptions = { ...this.options }, this.breakpointsConfig = E.parse(
       this.getAttribute("breakpoints")
@@ -1296,8 +1296,8 @@ class j extends HTMLElement {
           break;
         }
     }
-    if (this.updatePagination(x, C), this.options.thumbs && (this.isClickRouting || !this.options.lockActive)) {
-      const g = y.get(this.options.thumbs);
+    if (this.updatePagination(x, C), this.options.sync && (this.isClickRouting || !this.options.lockActive)) {
+      const g = y.get(this.options.sync);
       g && g.syncFromController(a);
     }
     u && c && requestAnimationFrame(() => {
