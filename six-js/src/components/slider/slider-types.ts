@@ -23,4 +23,6 @@ export interface SliderOptions {
   direction: "horizontal" | "vertical";
   verticalScroll: boolean;
   effect: "slide" | "fade";
+  thumbs?: string | null;
+  lockActive?: boolean;
 }

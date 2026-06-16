@@ -1,6 +1,6 @@
-var R = Object.defineProperty;
-var L = (g, r, t) => r in g ? R(g, r, { enumerable: !0, configurable: !0, writable: !0, value: t }) : g[r] = t;
-var o = (g, r, t) => L(g, typeof r != "symbol" ? r + "" : r, t);
+var P = Object.defineProperty;
+var L = (m, o, t) => o in m ? P(m, o, { enumerable: !0, configurable: !0, writable: !0, value: t }) : m[o] = t;
+var h = (m, o, t) => L(m, typeof o != "symbol" ? o + "" : o, t);
 const F = "0.0.13", k = {
   "ease-in": "cubic-bezier(0.42, 0, 1, 1)",
   "ease-out": "cubic-bezier(0, 0, 0.58, 1)",
@@ -15,9 +15,9 @@ const F = "0.0.13", k = {
 }, S = class S extends HTMLElement {
   constructor() {
     super(...arguments);
-    o(this, "animation");
-    o(this, "options");
-    o(this, "order", S.counter++);
+    h(this, "animation");
+    h(this, "options");
+    h(this, "order", S.counter++);
   }
   static get reduceMotion() {
     return this.mediaQuery.matches;
@@ -67,9 +67,9 @@ const F = "0.0.13", k = {
     this.style.opacity = "0", this.style.transform = `translate3d(${t}px, ${e}px, 0)`;
   }
   play(t = 0) {
-    var h;
+    var a;
     const { x: e, y: s, easing: i, duration: n, delay: l } = this.options;
-    (h = this.animation) == null || h.cancel(), this.animation = this.animate(
+    (a = this.animation) == null || a.cancel(), this.animation = this.animate(
       [
         {
           opacity: 0,
@@ -87,14 +87,14 @@ const F = "0.0.13", k = {
         fill: "forwards"
       }
     ), this.animation.onfinish = () => {
-      var a;
-      this.style.opacity = "1", this.style.transform = "translate3d(0,0,0)", (a = this.animation) == null || a.cancel(), this.animation = void 0;
+      var r;
+      this.style.opacity = "1", this.style.transform = "translate3d(0,0,0)", (r = this.animation) == null || r.cancel(), this.animation = void 0;
     };
   }
 };
-o(S, "counter", 0), o(S, "mediaQuery", window.matchMedia(
+h(S, "counter", 0), h(S, "mediaQuery", window.matchMedia(
   "(prefers-reduced-motion: reduce)"
-)), o(S, "groupQueue", /* @__PURE__ */ new Set()), o(S, "isProcessingGroup", !1), o(S, "observer", new IntersectionObserver(
+)), h(S, "groupQueue", /* @__PURE__ */ new Set()), h(S, "isProcessingGroup", !1), h(S, "observer", new IntersectionObserver(
   (t) => {
     for (const e of t) {
       if (e.intersectionRect.width * e.intersectionRect.height < 1)
@@ -113,20 +113,20 @@ let z = S;
 customElements.get("sx-animate") || customElements.define("sx-animate", z);
 class D {
   constructor() {
-    o(this, "_listeners", /* @__PURE__ */ new Set());
-    o(this, "_time", 0);
+    h(this, "_listeners", /* @__PURE__ */ new Set());
+    h(this, "_time", 0);
     // seconds
-    o(this, "_delta", 0);
+    h(this, "_delta", 0);
     // ms
-    o(this, "_frame", 0);
-    o(this, "_start", this._now());
-    o(this, "_last", this._start);
-    o(this, "_lagThreshold", 500);
-    o(this, "_adjustedLag", 33);
-    o(this, "_gap", 1e3 / 240);
-    o(this, "_nextTime", this._gap);
-    o(this, "_id", null);
-    o(this, "_tick", () => {
+    h(this, "_frame", 0);
+    h(this, "_start", this._now());
+    h(this, "_last", this._start);
+    h(this, "_lagThreshold", 500);
+    h(this, "_adjustedLag", 33);
+    h(this, "_gap", 1e3 / 240);
+    h(this, "_nextTime", this._gap);
+    h(this, "_id", null);
+    h(this, "_tick", () => {
       let t = this._now() - this._last;
       (t > this._lagThreshold || t < 0) && (this._start += t - this._adjustedLag), this._last += t;
       const e = this._last - this._start, s = e - this._nextTime;
@@ -146,32 +146,32 @@ class D {
   _now() {
     return typeof performance < "u" ? performance.now() : Date.now();
   }
-  _request(r) {
-    return typeof requestAnimationFrame < "u" ? requestAnimationFrame(r) : setTimeout(r, 16);
+  _request(o) {
+    return typeof requestAnimationFrame < "u" ? requestAnimationFrame(o) : setTimeout(o, 16);
   }
-  _cancel(r) {
+  _cancel(o) {
     if (typeof cancelAnimationFrame < "u") {
-      cancelAnimationFrame(r);
+      cancelAnimationFrame(o);
       return;
     }
-    clearTimeout(r);
+    clearTimeout(o);
   }
   _wake() {
     if (this._id !== null) return;
-    const r = this._now();
-    this._start = r - this._time * 1e3, this._last = r, this._tick();
+    const o = this._now();
+    this._start = o - this._time * 1e3, this._last = o, this._tick();
   }
-  add(r) {
-    return this._listeners.add(r), this._wake(), r;
+  add(o) {
+    return this._listeners.add(o), this._wake(), o;
   }
-  addOnce(r) {
+  addOnce(o) {
     const t = (e, s, i) => {
-      this.remove(t), r(e, s, i);
+      this.remove(t), o(e, s, i);
     };
     return this.add(t), t;
   }
-  remove(r) {
-    this._listeners.delete(r), this._listeners.size === 0 && this.sleep();
+  remove(o) {
+    this._listeners.delete(o), this._listeners.size === 0 && this.sleep();
   }
   clear() {
     this._listeners.clear(), this.sleep();
@@ -179,14 +179,14 @@ class D {
   sleep() {
     this._id !== null && (this._cancel(this._id), this._id = null);
   }
-  fps(r) {
-    r = Math.max(1, r), this._gap = 1e3 / r, this._nextTime = this._time * 1e3 + this._gap;
+  fps(o) {
+    o = Math.max(1, o), this._gap = 1e3 / o, this._nextTime = this._time * 1e3 + this._gap;
   }
-  lagSmoothing(r = 500, t = 33) {
-    this._lagThreshold = r || 1 / 0, this._adjustedLag = Math.min(t, this._lagThreshold);
+  lagSmoothing(o = 500, t = 33) {
+    this._lagThreshold = o || 1 / 0, this._adjustedLag = Math.min(t, this._lagThreshold);
   }
-  deltaRatio(r = 60) {
-    return this._delta / (1e3 / r);
+  deltaRatio(o = 60) {
+    return this._delta / (1e3 / o);
   }
   get time() {
     return this._time;
@@ -204,52 +204,52 @@ class D {
     return this._listeners.size;
   }
 }
-const C = new D(), I = /* @__PURE__ */ new WeakMap();
-let w = [], M = null;
-function B(g, r) {
-  w.push({ instance: g, type: r }), M === null && (M = requestAnimationFrame(_));
+const v = new D(), M = /* @__PURE__ */ new WeakMap();
+let I = [], w = null;
+function B(m, o) {
+  I.push({ instance: m, type: o }), w === null && (w = requestAnimationFrame(_));
 }
 function _() {
-  const g = w.slice();
-  w.length = 0, M = null;
-  for (let r = 0; r < g.length; r++) {
-    const { instance: t, type: e } = g[r];
+  const m = I.slice();
+  I.length = 0, w = null;
+  for (let o = 0; o < m.length; o++) {
+    const { instance: t, type: e } = m[o];
     e === "enter" ? t.enter() : t.leave && t.leave();
   }
 }
-const P = new IntersectionObserver(
-  (g) => {
-    for (let r = 0; r < g.length; r++) {
-      const t = g[r], e = I.get(t.target);
+const R = new IntersectionObserver(
+  (m) => {
+    for (let o = 0; o < m.length; o++) {
+      const t = m[o], e = M.get(t.target);
       e && (t.isIntersecting ? B(e, "enter") : B(e, "leave"));
     }
   },
   { threshold: 0.05 }
 );
-function O(g, r) {
-  I.set(g, r), P.observe(g);
+function O(m, o) {
+  M.set(m, o), R.observe(m);
 }
-function N(g) {
-  I.delete(g), P.unobserve(g);
+function N(m) {
+  M.delete(m), R.unobserve(m);
 }
 class q extends HTMLElement {
   constructor() {
     super();
-    o(this, "inner", null);
-    o(this, "resizeObserver", null);
-    o(this, "setupRafId", null);
-    o(this, "offset", 0);
-    o(this, "isHovered", !1);
-    o(this, "cachedResetBounds", 0);
-    o(this, "isSettingUp", !1);
-    o(this, "isVisible", !1);
-    o(this, "onMouseEnter", () => {
+    h(this, "inner", null);
+    h(this, "resizeObserver", null);
+    h(this, "setupRafId", null);
+    h(this, "offset", 0);
+    h(this, "isHovered", !1);
+    h(this, "cachedResetBounds", 0);
+    h(this, "isSettingUp", !1);
+    h(this, "isVisible", !1);
+    h(this, "onMouseEnter", () => {
       this.pauseOnHover && (this.isHovered = !0);
     });
-    o(this, "onMouseLeave", () => {
+    h(this, "onMouseLeave", () => {
       this.isHovered = !1;
     });
-    o(this, "updateAnimation", (t, e) => {
+    h(this, "updateAnimation", (t, e) => {
       if (this.isHovered || this.cachedResetBounds <= 0) return;
       const s = e / 1e3, i = this.speed * s;
       this.direction === "left" ? (this.offset -= i, this.clone ? this.offset <= -this.cachedResetBounds && (this.offset += this.cachedResetBounds) : this.offset <= -this.cachedResetBounds && (this.offset = this.offsetWidth)) : (this.offset += i, this.clone ? this.offset >= 0 && (this.offset -= this.cachedResetBounds) : this.offset >= this.offsetWidth && (this.offset = -this.cachedResetBounds)), this.applyTransform(this.offset);
@@ -300,16 +300,16 @@ class q extends HTMLElement {
       this.scheduleSetup();
     }), this.resizeObserver.observe(this), O(this, {
       enter: () => {
-        this.isVisible || (this.isVisible = !0, C.add(this.updateAnimation));
+        this.isVisible || (this.isVisible = !0, v.add(this.updateAnimation));
       },
       leave: () => {
-        this.isVisible && (this.isVisible = !1, C.remove(this.updateAnimation));
+        this.isVisible && (this.isVisible = !1, v.remove(this.updateAnimation));
       }
     });
   }
   disconnectedCallback() {
     var t;
-    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (t = this.resizeObserver) == null || t.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), N(this), C.remove(this.updateAnimation);
+    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (t = this.resizeObserver) == null || t.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), N(this), v.remove(this.updateAnimation);
   }
   attributeChangedCallback(t, e, s) {
     e !== s && (t === "gap" ? (this.updateGapVar(), setTimeout(() => this.scheduleSetup(), 50)) : (t === "direction" || t === "speed" || t === "clone") && this.scheduleSetup());
@@ -361,9 +361,9 @@ class q extends HTMLElement {
         const s = this.offsetWidth, i = this.inner.offsetWidth;
         if (this.clone && i > 0 && s > 0) {
           const n = i < s ? Math.ceil(s * 2 / i) : 2, l = document.createDocumentFragment();
-          for (let h = 1; h < n; h++)
-            for (const a of e) {
-              const d = a.cloneNode(!0);
+          for (let a = 1; a < n; a++)
+            for (const r of e) {
+              const d = r.cloneNode(!0);
               d.setAttribute("data-clone", "true"), l.appendChild(d);
             }
           this.inner.appendChild(l);
@@ -408,75 +408,75 @@ customElements.get("sx-marquee-inner") || customElements.define("sx-marquee-inne
 customElements.get("sx-marquee-item") || customElements.define("sx-marquee-item", V);
 class W {
   constructor() {
-    o(this, "sliders", /* @__PURE__ */ new Map());
+    h(this, "sliders", /* @__PURE__ */ new Map());
   }
-  register(r, t) {
-    this.sliders.set(r, t);
+  register(o, t) {
+    this.sliders.set(o, t);
   }
-  unregister(r) {
-    this.sliders.delete(r);
+  unregister(o) {
+    this.sliders.delete(o);
   }
-  get(r) {
-    return this.sliders.get(r);
+  get(o) {
+    return this.sliders.get(o);
   }
 }
-const T = new W();
+const y = new W();
 class E {
-  static parse(r) {
-    if (!r) return null;
+  static parse(o) {
+    if (!o) return null;
     try {
-      let t = r.replace(/'/g, '"');
+      let t = o.replace(/'/g, '"');
       return t = t.replace(/([{,]\s*)([a-zA-Z0-9_.-]+)\s*:/g, '$1"$2":'), t = t.replace(/,\s*([}\]])/g, "$1"), JSON.parse(t);
     } catch (t) {
       return console.warn("SixJS: Lỗi cú pháp JSON ở thuộc tính breakpoints", t), null;
     }
   }
-  static getMatch(r, t, e) {
+  static getMatch(o, t, e) {
     if (!e) return { ...t };
     let s = { ...t };
     const i = Object.keys(e).map(Number).sort((n, l) => n - l);
     for (const n of i)
-      if (r >= n) {
+      if (o >= n) {
         const l = this.kebabToCamel(e[n]);
         s = { ...s, ...l };
       }
     return s;
   }
-  static kebabToCamel(r) {
-    if (typeof r != "object" || r === null) return r;
+  static kebabToCamel(o) {
+    if (typeof o != "object" || o === null) return o;
     const t = {};
-    for (const e in r) {
+    for (const e in o) {
       const s = e.replace(/-([a-z])/g, (i) => i[1].toUpperCase());
-      t[s] = r[e];
+      t[s] = o[e];
     }
     return t;
   }
 }
 class G {
-  constructor(r, t, e = 0.92) {
-    o(this, "velocity", 0);
-    o(this, "friction");
-    o(this, "onUpdate");
-    o(this, "onComplete");
-    o(this, "isRunning", !1);
-    o(this, "tickerCallback");
-    this.onUpdate = r, this.onComplete = t, this.friction = e, this.tickerCallback = (s, i, n) => this.loop(i);
+  constructor(o, t, e = 0.92) {
+    h(this, "velocity", 0);
+    h(this, "friction");
+    h(this, "onUpdate");
+    h(this, "onComplete");
+    h(this, "isRunning", !1);
+    h(this, "tickerCallback");
+    this.onUpdate = o, this.onComplete = t, this.friction = e, this.tickerCallback = (s, i, n) => this.loop(i);
   }
-  setFriction(r) {
-    this.friction = r;
+  setFriction(o) {
+    this.friction = o;
   }
-  addVelocity(r) {
-    this.velocity += r, this.isRunning || this.start();
+  addVelocity(o) {
+    this.velocity += o, this.isRunning || this.start();
   }
   stop() {
-    this.isRunning && (this.isRunning = !1, this.velocity = 0, C.remove(this.tickerCallback));
+    this.isRunning && (this.isRunning = !1, this.velocity = 0, v.remove(this.tickerCallback));
   }
   start() {
-    this.isRunning || (this.isRunning = !0, C.add(this.tickerCallback));
+    this.isRunning || (this.isRunning = !0, v.add(this.tickerCallback));
   }
-  loop(r) {
+  loop(o) {
     if (!this.isRunning) return;
-    const t = r / 16.67, e = Math.pow(this.friction, t);
+    const t = o / 16.67, e = Math.pow(this.friction, t);
     if (Math.abs(this.velocity) < 0.1) {
       this.stop(), this.onComplete();
       return;
@@ -487,29 +487,29 @@ class G {
 class H extends HTMLElement {
   constructor() {
     super();
-    o(this, "sliderCha", null);
-    o(this, "isDragging", !1);
-    o(this, "startX", 0);
-    o(this, "currentTranslate", 0);
-    o(this, "prevTranslate", 0);
-    o(this, "isResetting", !1);
-    o(this, "dragXs", []);
-    o(this, "dragTimes", []);
-    o(this, "velocity", 0);
-    o(this, "scrollDuration", 0);
-    o(this, "scrollStartTime", 0);
-    o(this, "scrollFrom", 0);
-    o(this, "scrollToTarget", 0);
-    o(this, "scrollFriction", 1);
-    o(this, "isScrollAnimating", !1);
-    o(this, "noConstrain", !1);
-    o(this, "lastClientAxis", 0);
-    o(this, "lastWheelTime", 0);
-    o(this, "boundWheel", this.onWheel.bind(this));
-    o(this, "boundDragStart", this.dragStart.bind(this));
-    o(this, "boundDragMove", this.dragMove.bind(this));
-    o(this, "boundDragEnd", this.dragEnd.bind(this));
-    o(this, "handleScrollEnd", () => {
+    h(this, "sliderCha", null);
+    h(this, "isDragging", !1);
+    h(this, "startX", 0);
+    h(this, "currentTranslate", 0);
+    h(this, "prevTranslate", 0);
+    h(this, "isResetting", !1);
+    h(this, "dragXs", []);
+    h(this, "dragTimes", []);
+    h(this, "velocity", 0);
+    h(this, "scrollDuration", 0);
+    h(this, "scrollStartTime", 0);
+    h(this, "scrollFrom", 0);
+    h(this, "scrollToTarget", 0);
+    h(this, "scrollFriction", 1);
+    h(this, "isScrollAnimating", !1);
+    h(this, "noConstrain", !1);
+    h(this, "lastClientAxis", 0);
+    h(this, "lastWheelTime", 0);
+    h(this, "boundWheel", this.onWheel.bind(this));
+    h(this, "boundDragStart", this.dragStart.bind(this));
+    h(this, "boundDragMove", this.dragMove.bind(this));
+    h(this, "boundDragEnd", this.dragEnd.bind(this));
+    h(this, "handleScrollEnd", () => {
       if (!this.sliderCha) return;
       const t = this.sliderCha.options;
       if (t.snap || t.drag !== "free")
@@ -523,7 +523,7 @@ class H extends HTMLElement {
       }
       this.sliderCha.startAutoplay();
     });
-    o(this, "wheelInertia", new G(
+    h(this, "wheelInertia", new G(
       (t) => {
         if (this.sliderCha) {
           if (this.currentTranslate += t, this.sliderCha.options.loop)
@@ -538,7 +538,7 @@ class H extends HTMLElement {
       () => this.handleScrollEnd(),
       0.92
     ));
-    o(this, "scrollTickerCallback", () => this.runScrollLoop());
+    h(this, "scrollTickerCallback", () => this.runScrollLoop());
   }
   connectedCallback() {
     this.sliderCha = this.closest("sx-slider"), this.initDragEvents(), this.addEventListener("transitionend", () => {
@@ -593,8 +593,8 @@ class H extends HTMLElement {
     if (this.sliderCha.options.loop)
       this.currentTranslate = n, this.checkLoopBoundsInstant();
     else {
-      const { max: l, min: h } = this.sliderCha.getBoundaries(), a = this.sliderCha.options.edgeResistance;
-      n > l ? n = a <= 0 ? l : l + Math.min(a, (n - l) * 0.3) : n < h && (n = a <= 0 ? h : h - Math.min(a, (h - n) * 0.3)), this.currentTranslate = n;
+      const { max: l, min: a } = this.sliderCha.getBoundaries(), r = this.sliderCha.options.edgeResistance;
+      n > l ? n = r <= 0 ? l : l + Math.min(r, (n - l) * 0.3) : n < a && (n = r <= 0 ? a : a - Math.min(r, (a - n) * 0.3)), this.currentTranslate = n;
     }
     this.setTransform(this.currentTranslate);
   }
@@ -619,12 +619,12 @@ class H extends HTMLElement {
         const n = parseFloat(this.sliderCha.startPadding) || 0;
         this.sliderCha.alignIndexToFreeTranslation(i);
         const l = this.sliderCha.getCurrentIndex();
-        let h = t.autoSize ? this.sliderCha.getOffsetForIndex(l) : l * this.sliderCha.getSlideSizeWithGap(), a = t.autoSize ? this.children[l].getBoundingClientRect()[this.sliderCha.sizeDim] + this.sliderCha.convertToPx(t.gap) : this.sliderCha.getSlideSizeWithGap();
+        let a = t.autoSize ? this.sliderCha.getOffsetForIndex(l) : l * this.sliderCha.getSlideSizeWithGap(), r = t.autoSize ? this.children[l].getBoundingClientRect()[this.sliderCha.sizeDim] + this.sliderCha.convertToPx(t.gap) : this.sliderCha.getSlideSizeWithGap();
         if (t.centered) {
           const d = this.sliderCha.getBoundingClientRect()[this.sliderCha.sizeDim];
-          i = n + d / 2 - (h + a / 2);
+          i = n + d / 2 - (a + r / 2);
         } else
-          i = n - h;
+          i = n - a;
         if (!t.loop) {
           const { max: d, min: p } = this.sliderCha.getBoundaries();
           i = Math.max(p, Math.min(d, i));
@@ -633,11 +633,11 @@ class H extends HTMLElement {
       if (t.loop)
         this.startMomentumScroll(i);
       else {
-        const { max: n, min: l } = this.sliderCha.getBoundaries(), h = Math.max(
+        const { max: n, min: l } = this.sliderCha.getBoundaries(), a = Math.max(
           l,
           Math.min(n, i)
         );
-        this.startMomentumScroll(h);
+        this.startMomentumScroll(a);
       }
     } else {
       this.style.transition = `transform ${t.speed}ms ease-out`;
@@ -658,7 +658,7 @@ class H extends HTMLElement {
       this.currentTranslate = t, this.setTransform(this.currentTranslate), this.prevTranslate = this.currentTranslate, (l = this.sliderCha) != null && l.options.loop && this.checkLoopBoundsInstant(), s && s();
       return;
     }
-    this.scrollStartTime = performance.now(), this.isScrollAnimating = !0, C.add(this.scrollTickerCallback);
+    this.scrollStartTime = performance.now(), this.isScrollAnimating = !0, v.add(this.scrollTickerCallback);
   }
   runScrollLoop() {
     if (!this.isScrollAnimating || !this.sliderCha) return;
@@ -666,36 +666,36 @@ class H extends HTMLElement {
     if (this.currentTranslate += l, this.setTransform(this.currentTranslate), this.sliderCha.options.loop)
       this.checkLoopBoundsInstant();
     else if (!this.noConstrain) {
-      const { max: h, min: a } = this.sliderCha.getBoundaries(), d = this.sliderCha.options.edgeResistance;
-      if (this.currentTranslate > h || this.currentTranslate < a) {
-        if (this.currentTranslate > h) {
-          if (d <= 0) {
-            this.currentTranslate = h, this.setTransform(this.currentTranslate), this.cancelMomentumScroll(), this.sliderCha.startAutoplay();
-            return;
-          } else if (this.currentTranslate > h + d) {
-            this.currentTranslate = h + d, this.setTransform(this.currentTranslate), this.cancelMomentumScroll(), this.startMomentumScroll(h, 600, void 0, !0);
-            return;
-          }
-        } else if (this.currentTranslate < a) {
+      const { max: a, min: r } = this.sliderCha.getBoundaries(), d = this.sliderCha.options.edgeResistance;
+      if (this.currentTranslate > a || this.currentTranslate < r) {
+        if (this.currentTranslate > a) {
           if (d <= 0) {
             this.currentTranslate = a, this.setTransform(this.currentTranslate), this.cancelMomentumScroll(), this.sliderCha.startAutoplay();
             return;
-          } else if (this.currentTranslate < a - d) {
-            this.currentTranslate = a - d, this.setTransform(this.currentTranslate), this.cancelMomentumScroll(), this.startMomentumScroll(a, 600, void 0, !0);
+          } else if (this.currentTranslate > a + d) {
+            this.currentTranslate = a + d, this.setTransform(this.currentTranslate), this.cancelMomentumScroll(), this.startMomentumScroll(a, 600, void 0, !0);
+            return;
+          }
+        } else if (this.currentTranslate < r) {
+          if (d <= 0) {
+            this.currentTranslate = r, this.setTransform(this.currentTranslate), this.cancelMomentumScroll(), this.sliderCha.startAutoplay();
+            return;
+          } else if (this.currentTranslate < r - d) {
+            this.currentTranslate = r - d, this.setTransform(this.currentTranslate), this.cancelMomentumScroll(), this.startMomentumScroll(r, 600, void 0, !0);
             return;
           }
         }
         if (this.scrollFriction *= 0.6, Math.abs(l) < 1) {
-          const u = this.currentTranslate > h ? h : a;
+          const u = this.currentTranslate > a ? a : r;
           this.startMomentumScroll(u, 600, void 0, !0);
           return;
         }
       }
     }
-    s >= 1 && Math.abs(l) < 0.5 && (this.isScrollAnimating = !1, this.prevTranslate = this.currentTranslate, C.remove(this.scrollTickerCallback), this.sliderCha.alignIndexToFreeTranslation(this.currentTranslate), this.sliderCha.startAutoplay());
+    s >= 1 && Math.abs(l) < 0.5 && (this.isScrollAnimating = !1, this.prevTranslate = this.currentTranslate, v.remove(this.scrollTickerCallback), this.sliderCha.alignIndexToFreeTranslation(this.currentTranslate), this.sliderCha.startAutoplay());
   }
   cancelMomentumScroll() {
-    this.isScrollAnimating = !1, C.remove(this.scrollTickerCallback);
+    this.isScrollAnimating = !1, v.remove(this.scrollTickerCallback);
   }
   checkLoopBoundsInstant() {
     if (!this.sliderCha || !this.sliderCha.options.loop) return;
@@ -712,16 +712,16 @@ class H extends HTMLElement {
       const b = this.sliderCha.getBoundingClientRect()[this.sliderCha.sizeDim];
       let x = 0;
       if (this.sliderCha.options.autoSize) {
-        const v = this.sliderCha.convertToPx(this.sliderCha.options.gap), m = this.children[e];
-        x = m ? m.getBoundingClientRect()[this.sliderCha.sizeDim] + v : 0;
+        const C = this.sliderCha.convertToPx(this.sliderCha.options.gap), g = this.children[e];
+        x = g ? g.getBoundingClientRect()[this.sliderCha.sizeDim] + C : 0;
       } else
         x = this.sliderCha.getSlideSizeWithGap();
       l = b / 2 - x / 2;
     }
-    const h = -n + s + l, a = h - i;
+    const a = -n + s + l, r = a - i;
     let d = !1, p = this.currentTranslate, u = 0, c = 0;
     const f = this.sliderCha.options.centered ? 50 : 0;
-    this.currentTranslate > h + f ? (p = this.currentTranslate - i, u = -i, c = t, d = !0) : this.currentTranslate <= a - f && (p = this.currentTranslate + i, u = i, c = -t, d = !0), d && (this.isResetting = !0, this.style.transition = "none", this.currentTranslate = p, this.prevTranslate = this.currentTranslate, this.isScrollAnimating && (this.scrollFrom += u, this.scrollToTarget += u), this.setTransform(this.currentTranslate), this.sliderCha.setCurrentIndex(
+    this.currentTranslate > a + f ? (p = this.currentTranslate - i, u = -i, c = t, d = !0) : this.currentTranslate <= r - f && (p = this.currentTranslate + i, u = i, c = -t, d = !0), d && (this.isResetting = !0, this.style.transition = "none", this.currentTranslate = p, this.prevTranslate = this.currentTranslate, this.isScrollAnimating && (this.scrollFrom += u, this.scrollToTarget += u), this.setTransform(this.currentTranslate), this.sliderCha.setCurrentIndex(
       this.sliderCha.getCurrentIndex() + c
     ), this.isResetting = !1);
   }
@@ -734,27 +734,27 @@ class H extends HTMLElement {
     const e = this.sliderCha.options;
     t ? this.style.transition = "none" : this.style.transition = `transform ${e.speed}ms ease-out`;
     const s = parseFloat(this.sliderCha.startPadding) || 0, i = this.sliderCha.getCurrentIndex();
-    let n = s, l = 0, h = 0;
+    let n = s, l = 0, a = 0;
     if (e.autoSize) {
       l = this.sliderCha.getOffsetForIndex(i);
-      const a = Array.from(this.children), d = this.sliderCha.convertToPx(e.gap);
-      h = a[i] ? a[i].getBoundingClientRect()[this.sliderCha.sizeDim] + d : 0;
+      const r = Array.from(this.children), d = this.sliderCha.convertToPx(e.gap);
+      a = r[i] ? r[i].getBoundingClientRect()[this.sliderCha.sizeDim] + d : 0;
     } else {
-      const a = this.sliderCha.getSlideSizeWithGap();
-      l = i * a, h = a;
+      const r = this.sliderCha.getSlideSizeWithGap();
+      l = i * r, a = r;
     }
     if (e.centered) {
-      const a = this.sliderCha.getBoundingClientRect()[this.sliderCha.sizeDim];
-      n += a / 2 - (l + h / 2);
+      const r = this.sliderCha.getBoundingClientRect()[this.sliderCha.sizeDim];
+      n += r / 2 - (l + a / 2);
     } else
       n -= l;
     if (!e.loop) {
-      const { max: a, min: d } = this.sliderCha.getBoundaries();
-      n = Math.max(d, Math.min(a, n));
+      const { max: r, min: d } = this.sliderCha.getBoundaries();
+      n = Math.max(d, Math.min(r, n));
     }
     if (this.currentTranslate = n, this.prevTranslate = this.currentTranslate, this.setTransform(this.currentTranslate), t && this.offsetHeight, e.loop) {
-      const a = e.perView, d = this.sliderCha.originalSlidesCount;
-      (i >= a + d || i < a) && setTimeout(() => {
+      const r = e.perView, d = this.sliderCha.originalSlidesCount;
+      (i >= r + d || i < r) && setTimeout(() => {
         this.checkLoopBoundsInstant();
       }, e.speed);
     }
@@ -769,8 +769,8 @@ class X extends HTMLElement {
 customElements.get("sx-slider-slide") || customElements.define("sx-slider-slide", X);
 class U extends HTMLElement {
   constructor() {
-    super(), this.addEventListener("click", () => this.handleAction()), this.addEventListener("keydown", (r) => {
-      (r.key === "Enter" || r.key === " ") && (r.preventDefault(), this.handleAction());
+    super(), this.addEventListener("click", () => this.handleAction()), this.addEventListener("keydown", (o) => {
+      (o.key === "Enter" || o.key === " ") && (o.preventDefault(), this.handleAction());
     });
   }
   connectedCallback() {
@@ -778,9 +778,9 @@ class U extends HTMLElement {
   }
   handleAction() {
     if (this.hasAttribute("sx-disabled")) return;
-    const r = this.getAttribute("name");
-    if (r) {
-      const t = T.get(r);
+    const o = this.getAttribute("name");
+    if (o) {
+      const t = y.get(o);
       t && t.prev();
     } else {
       const t = this.closest("sx-slider");
@@ -789,10 +789,10 @@ class U extends HTMLElement {
   }
 }
 customElements.get("sx-slider-prev") || customElements.define("sx-slider-prev", U);
-class Q extends HTMLElement {
+class Y extends HTMLElement {
   constructor() {
-    super(), this.addEventListener("click", () => this.handleAction()), this.addEventListener("keydown", (r) => {
-      (r.key === "Enter" || r.key === " ") && (r.preventDefault(), this.handleAction());
+    super(), this.addEventListener("click", () => this.handleAction()), this.addEventListener("keydown", (o) => {
+      (o.key === "Enter" || o.key === " ") && (o.preventDefault(), this.handleAction());
     });
   }
   connectedCallback() {
@@ -800,9 +800,9 @@ class Q extends HTMLElement {
   }
   handleAction() {
     if (this.hasAttribute("sx-disabled")) return;
-    const r = this.getAttribute("name");
-    if (r) {
-      const t = T.get(r);
+    const o = this.getAttribute("name");
+    if (o) {
+      const t = y.get(o);
       t && t.next();
     } else {
       const t = this.closest("sx-slider");
@@ -810,16 +810,16 @@ class Q extends HTMLElement {
     }
   }
 }
-customElements.get("sx-slider-next") || customElements.define("sx-slider-next", Q);
-class Y extends HTMLElement {
+customElements.get("sx-slider-next") || customElements.define("sx-slider-next", Y);
+class Q extends HTMLElement {
   constructor() {
     super();
-    o(this, "renderedSignature", "");
-    o(this, "innerContainer", null);
-    o(this, "snakeBar", null);
-    o(this, "maxVisibleBullets", 5);
-    o(this, "bulletWidthWithGap", 16);
-    o(this, "lastActiveIndex", 0);
+    h(this, "renderedSignature", "");
+    h(this, "innerContainer", null);
+    h(this, "snakeBar", null);
+    h(this, "maxVisibleBullets", 5);
+    h(this, "bulletWidthWithGap", 16);
+    h(this, "lastActiveIndex", 0);
     this.addEventListener("click", (t) => this.handleAction(t)), this.addEventListener("keydown", (t) => {
       (t.key === "Enter" || t.key === " ") && (t.preventDefault(), this.handleAction(t));
     });
@@ -840,27 +840,27 @@ class Y extends HTMLElement {
   goToSlide(t) {
     const e = this.getAttribute("name");
     let s = null;
-    e ? s = T.get(e) : s = this.closest("sx-slider"), s && typeof s.goTo == "function" && s.goTo(t);
+    e ? s = y.get(e) : s = this.closest("sx-slider"), s && typeof s.goTo == "function" && s.goTo(t);
   }
   renderBullets(t) {
     const e = this.getAttribute("effect"), s = e === "dynamic", i = e === "snake", n = e === "number", l = t.join(",") + `_effect:${e}`;
     if (this.renderedSignature !== l) {
       if (this.renderedSignature = l, this.innerHTML = "", this.snakeBar = null, i) {
-        this.innerContainer = null, this.style.width = "", this.style.position = "relative", t.forEach((h, a) => {
-          this.appendChild(this.createBulletDOM(h, a, !1));
+        this.innerContainer = null, this.style.width = "", this.style.position = "relative", t.forEach((a, r) => {
+          this.appendChild(this.createBulletDOM(a, r, !1));
         }), this.snakeBar = document.createElement("div"), this.snakeBar.className = "sx-slider-pagination-bar", this.snakeBar.style.position = "absolute", this.snakeBar.style.zIndex = "10", this.snakeBar.style.transition = "width 150ms ease-out, left 150ms ease-out", this.appendChild(this.snakeBar);
         return;
       }
       if (s) {
-        this.innerContainer = document.createElement("div"), this.innerContainer.className = "sx-slider-pagination-inner", this.appendChild(this.innerContainer), t.forEach((h, a) => {
+        this.innerContainer = document.createElement("div"), this.innerContainer.className = "sx-slider-pagination-inner", this.appendChild(this.innerContainer), t.forEach((a, r) => {
           this.innerContainer.appendChild(
-            this.createBulletDOM(h, a, !1)
+            this.createBulletDOM(a, r, !1)
           );
         }), t.length > this.maxVisibleBullets ? this.style.width = `${this.maxVisibleBullets * this.bulletWidthWithGap}px` : this.style.width = "auto";
         return;
       }
-      this.innerContainer = null, this.style.width = "", t.forEach((h, a) => {
-        this.appendChild(this.createBulletDOM(h, a, n));
+      this.innerContainer = null, this.style.width = "", t.forEach((a, r) => {
+        this.appendChild(this.createBulletDOM(a, r, n));
       });
     }
   }
@@ -873,21 +873,21 @@ class Y extends HTMLElement {
     if (!n) return;
     const l = Array.from(
       n.querySelectorAll(".sx-slider-pagination-bullet")
-    ), h = l.length;
-    if (h === 0) return;
+    ), a = l.length;
+    if (a === 0) return;
     if (l.forEach((u, c) => {
       s && (u.className = "sx-slider-pagination-bullet"), c === t ? (u.setAttribute("sx-bullet-active", ""), u.setAttribute("aria-current", "true")) : (u.removeAttribute("sx-bullet-active"), u.removeAttribute("aria-current"));
     }), i && this.snakeBar) {
       if (l[t]) {
-        const x = t * 20, v = this.lastActiveIndex * 20;
+        const x = t * 20, C = this.lastActiveIndex * 20;
         if (t > this.lastActiveIndex) {
-          const m = x - v + 10;
-          this.snakeBar.style.left = `${v}px`, this.snakeBar.style.width = `${m}px`, setTimeout(() => {
+          const g = x - C + 10;
+          this.snakeBar.style.left = `${C}px`, this.snakeBar.style.width = `${g}px`, setTimeout(() => {
             this.getAttribute("effect") === "snake" && (this.snakeBar.style.left = `${x}px`, this.snakeBar.style.width = "10px");
           }, 150);
         } else if (t < this.lastActiveIndex) {
-          const m = v - x + 10;
-          this.snakeBar.style.left = `${x}px`, this.snakeBar.style.width = `${m}px`, setTimeout(() => {
+          const g = C - x + 10;
+          this.snakeBar.style.left = `${x}px`, this.snakeBar.style.width = `${g}px`, setTimeout(() => {
             this.getAttribute("effect") === "snake" && (this.snakeBar.style.width = "10px");
           }, 150);
         } else
@@ -896,29 +896,29 @@ class Y extends HTMLElement {
       this.lastActiveIndex = t;
       return;
     }
-    if (!s || h <= this.maxVisibleBullets || !this.innerContainer) {
+    if (!s || a <= this.maxVisibleBullets || !this.innerContainer) {
       this.innerContainer && (this.innerContainer.style.transform = "translateX(0px)");
       return;
     }
-    let a = t - Math.floor(this.maxVisibleBullets / 2);
-    a < 0 && (a = 0), a > h - this.maxVisibleBullets && (a = h - this.maxVisibleBullets);
-    const d = a + this.maxVisibleBullets - 1;
+    let r = t - Math.floor(this.maxVisibleBullets / 2);
+    r < 0 && (r = 0), r > a - this.maxVisibleBullets && (r = a - this.maxVisibleBullets);
+    const d = r + this.maxVisibleBullets - 1;
     l.forEach((u, c) => {
-      c >= a && c <= d ? c === a ? u.classList.add(c === 0 ? "sx-bullet-main" : "sx-bullet-small") : c === a + 1 ? u.classList.add(c === 1 ? "sx-bullet-main" : "sx-bullet-medium") : c === d ? u.classList.add(
-        c === h - 1 ? "sx-bullet-main" : "sx-bullet-small"
+      c >= r && c <= d ? c === r ? u.classList.add(c === 0 ? "sx-bullet-main" : "sx-bullet-small") : c === r + 1 ? u.classList.add(c === 1 ? "sx-bullet-main" : "sx-bullet-medium") : c === d ? u.classList.add(
+        c === a - 1 ? "sx-bullet-main" : "sx-bullet-small"
       ) : c === d - 1 ? u.classList.add(
-        c === h - 2 ? "sx-bullet-main" : "sx-bullet-medium"
+        c === a - 2 ? "sx-bullet-main" : "sx-bullet-medium"
       ) : u.classList.add("sx-bullet-main") : u.classList.add("sx-bullet-small");
     });
-    const p = -a * this.bulletWidthWithGap;
+    const p = -r * this.bulletWidthWithGap;
     this.innerContainer.style.transform = `translateX(${p}px)`;
   }
 }
-customElements.get("sx-slider-pagination") || customElements.define("sx-slider-pagination", Y);
+customElements.get("sx-slider-pagination") || customElements.define("sx-slider-pagination", Q);
 class J extends HTMLElement {
   constructor() {
     super();
-    o(this, "bar");
+    h(this, "bar");
     this.bar = document.createElement("div"), this.bar.className = "sx-slider-progress-bar", this.appendChild(this.bar);
   }
   update(t, e, s) {
@@ -930,18 +930,19 @@ customElements.get("sx-slider-progress") || customElements.define("sx-slider-pro
 class j extends HTMLElement {
   constructor() {
     super();
-    o(this, "options");
-    o(this, "originalOptions");
-    o(this, "breakpointsConfig", null);
-    o(this, "currentIndex", 0);
-    o(this, "track", null);
-    o(this, "resizeObserver");
-    o(this, "originalSlidesCount", 0);
-    o(this, "autoplayTimer", null);
-    o(this, "isFirstInit", !0);
-    o(this, "lastContainerSize", 0);
-    o(this, "isFirstHeightMeasure", !0);
-    o(this, "handleVisibilityChange", () => {
+    h(this, "options");
+    h(this, "originalOptions");
+    h(this, "breakpointsConfig", null);
+    h(this, "currentIndex", 0);
+    h(this, "track", null);
+    h(this, "resizeObserver");
+    h(this, "originalSlidesCount", 0);
+    h(this, "autoplayTimer", null);
+    h(this, "isFirstInit", !0);
+    h(this, "lastContainerSize", 0);
+    h(this, "isFirstHeightMeasure", !0);
+    h(this, "isClickRouting", !1);
+    h(this, "handleVisibilityChange", () => {
       document.hidden ? this.stopAutoplay() : this.options.autoplay && this.startAutoplay();
     });
     this.parseOptions();
@@ -965,48 +966,48 @@ class j extends HTMLElement {
     let s = 0, i = 0;
     const n = this.getBoundingClientRect()[this.sizeDim];
     if (this.options.loop) {
-      const a = this.originalSlidesCount;
-      if (a > 0 && this.track) {
-        const d = this.options.autoSize ? a : this.options.perView, p = parseFloat(this.startPadding) || 0;
+      const r = this.originalSlidesCount;
+      if (r > 0 && this.track) {
+        const d = this.options.autoSize ? r : this.options.perView, p = parseFloat(this.startPadding) || 0;
         let u = 0, c = 0;
         if (this.options.autoSize)
-          u = this.getOffsetForIndex(d), c = this.getOffsetForIndex(d + a) - u;
+          u = this.getOffsetForIndex(d), c = this.getOffsetForIndex(d + r) - u;
         else {
           const f = this.getSlideSizeWithGap();
-          u = d * f, c = a * f;
+          u = d * f, c = r * f;
         }
         if (c > 0) {
           i = n / c;
           let f = 0;
           if (this.options.centered) {
-            let v = this.options.autoSize ? this.getRectSize(
+            let C = this.options.autoSize ? this.getRectSize(
               this.track.children[d]
             ) + this.convertToPx(this.options.gap) : this.getSlideSizeWithGap();
-            f = n / 2 - v / 2;
+            f = n / 2 - C / 2;
           }
           s = (-u + p + f - t) / c, s = (s % 1 + 1) % 1;
         } else
           s = 1, i = 1;
       }
     } else {
-      const { max: a, min: d } = this.getBoundaries(), p = a - d;
-      p > 0 ? (s = (a - t) / p, i = n / (p + n)) : (s = 1, i = 1);
+      const { max: r, min: d } = this.getBoundaries(), p = r - d;
+      p > 0 ? (s = (r - t) / p, i = n / (p + n)) : (s = 1, i = 1);
     }
     i = Math.max(0, Math.min(1, i));
     const l = i + s * (1 - i);
-    let h = Array.from(
+    let a = Array.from(
       this.querySelectorAll("sx-slider-progress")
     );
     if (this.options.name) {
-      const a = Array.from(
+      const r = Array.from(
         document.querySelectorAll(
           `sx-slider-progress[name="${this.options.name}"]`
         )
       );
-      h = Array.from(/* @__PURE__ */ new Set([...h, ...a]));
+      a = Array.from(/* @__PURE__ */ new Set([...a, ...r]));
     }
-    h.forEach((a) => {
-      typeof a.update == "function" && a.update(l, this.options.direction, e);
+    a.forEach((r) => {
+      typeof r.update == "function" && r.update(l, this.options.direction, e);
     });
   }
   getRectSize(t) {
@@ -1038,17 +1039,41 @@ class j extends HTMLElement {
       "direction",
       "vertical-scroll",
       "effect",
-      "breakpoints"
+      "breakpoints",
+      "thumbs",
+      "lock-active"
     ];
   }
   connectedCallback() {
-    this.track = this.querySelector("sx-slider-track"), this.options.name && T.register(this.options.name, this), this.resizeObserver = new ResizeObserver(() => {
+    if (this.track = this.querySelector("sx-slider-track"), this.options.name && y.register(this.options.name, this), this.resizeObserver = new ResizeObserver(() => {
       const t = this.getBoundingClientRect()[this.sizeDim];
       t !== this.lastContainerSize && (this.lastContainerSize = t, this.updateLayout());
-    }), this.resizeObserver.observe(this), this.track && this.initLoopClones(), document.addEventListener("visibilitychange", this.handleVisibilityChange), this.startAutoplay();
+    }), this.resizeObserver.observe(this), this.track) {
+      let t = 0, e = 0;
+      this.track.addEventListener("mousedown", (s) => {
+        t = s.clientX, e = s.clientY;
+      }), this.track.addEventListener(
+        "touchstart",
+        (s) => {
+          s.touches.length > 0 && (t = s.touches[0].clientX, e = s.touches[0].clientY);
+        },
+        { passive: !0 }
+      ), this.track.addEventListener("click", (s) => {
+        const i = Math.abs(s.clientX - t), n = Math.abs(s.clientY - e);
+        if (i > 6 || n > 6) return;
+        const l = s.target.closest("sx-slider-slide");
+        if (!l) return;
+        const a = l.getAttribute("data-real-index");
+        if (a !== null) {
+          const r = parseInt(a, 10);
+          this.goTo(r, !0);
+        }
+      }), this.initLoopClones();
+    }
+    document.addEventListener("visibilitychange", this.handleVisibilityChange), this.startAutoplay();
   }
   disconnectedCallback() {
-    this.options.name && T.unregister(this.options.name), this.resizeObserver.disconnect(), this.stopAutoplay(), document.removeEventListener(
+    this.options.name && y.unregister(this.options.name), this.resizeObserver.disconnect(), this.stopAutoplay(), document.removeEventListener(
       "visibilitychange",
       this.handleVisibilityChange
     );
@@ -1057,10 +1082,10 @@ class j extends HTMLElement {
     this.parseOptions(), this.updateLayout(), this.startAutoplay();
   }
   parseOptions() {
-    const t = (c) => c ? isNaN(Number(c)) ? c : `${c}px` : "0px", e = this.getAttribute("edge-resistance"), s = e !== null ? Number(e) : 100, i = this.getAttribute("interval"), n = i !== null ? Number(i) : 4e3, l = this.getAttribute("start-index"), h = l !== null ? Number(l) : 0, a = this.getAttribute("per-move");
+    const t = (c) => c ? isNaN(Number(c)) ? c : `${c}px` : "0px", e = this.getAttribute("edge-resistance"), s = e !== null ? Number(e) : 100, i = this.getAttribute("interval"), n = i !== null ? Number(i) : 4e3, l = this.getAttribute("start-index"), a = l !== null ? Number(l) : 0, r = this.getAttribute("per-move");
     let d = "auto";
-    if (a !== null && a !== "auto") {
-      const c = Number(a);
+    if (r !== null && r !== "auto") {
+      const c = Number(r);
       d = isNaN(c) ? "auto" : c;
     }
     let p = this.getAttribute("direction");
@@ -1081,16 +1106,18 @@ class j extends HTMLElement {
       snap: this.hasAttribute("snap"),
       autoplay: this.hasAttribute("autoplay"),
       interval: isNaN(n) ? 4e3 : n,
-      startIndex: isNaN(h) ? 0 : h,
+      startIndex: isNaN(a) ? 0 : a,
       autoSize: this.hasAttribute("auto-size"),
       perMove: d,
       autoHeight: this.hasAttribute("auto-height"),
-      centered: this.hasAttribute("centered"),
+      centered: this.hasAttribute("centered") || this.hasAttribute("auto-centered"),
       autoCentered: this.hasAttribute("auto-centered"),
       centerIfShort: this.hasAttribute("center-if-short"),
       direction: p,
       verticalScroll: this.hasAttribute("vertical-scroll"),
-      effect: u
+      effect: u,
+      thumbs: this.getAttribute("thumbs"),
+      lockActive: this.hasAttribute("lock-active")
     }, this.originalOptions = { ...this.options }, this.breakpointsConfig = E.parse(
       this.getAttribute("breakpoints")
     ), this.style.setProperty("--sx-speed", `${this.options.speed}ms`);
@@ -1108,6 +1135,9 @@ class j extends HTMLElement {
     this.track.querySelectorAll("[data-clone]").forEach((i) => i.remove());
     const e = Array.from(this.track.children);
     if (this.originalSlidesCount = e.length, this.originalSlidesCount === 0) return;
+    e.forEach((i, n) => {
+      i.setAttribute("data-real-index", n.toString());
+    });
     const s = this.options.autoSize ? this.originalSlidesCount : this.options.perView;
     for (let i = 0; i < s; i++) {
       const l = e[e.length - 1 - i].cloneNode(!0);
@@ -1123,8 +1153,11 @@ class j extends HTMLElement {
   }
   updateLayout() {
     if (!this.track) return;
-    const t = this.getBoundingClientRect()[this.sizeDim];
-    if (this.breakpointsConfig && this.originalOptions) {
+    const t = this.getBoundingClientRect()[this.sizeDim], e = Array.from(this.track.children);
+    if (e.length === 0) return;
+    if (this.options.loop || e.forEach((c, f) => {
+      c.setAttribute("data-real-index", f.toString());
+    }), this.breakpointsConfig && this.originalOptions) {
       this.options = E.getMatch(
         t,
         JSON.parse(JSON.stringify(this.originalOptions)),
@@ -1133,10 +1166,7 @@ class j extends HTMLElement {
       const c = (f) => f == null || f === "" ? "0px" : isNaN(Number(f)) ? String(f) : `${f}px`;
       this.options.gap = c(this.options.gap), this.options.leftPadding = c(this.options.leftPadding), this.options.rightPadding = c(this.options.rightPadding);
     }
-    this.options.effect === "fade" ? this.setAttribute("data-active-effect", "fade") : this.removeAttribute("data-active-effect"), this.options.grabCursor && this.options.drag !== "false" ? this.track.setAttribute("grab-cursor", "") : this.track.removeAttribute("grab-cursor");
-    const e = Array.from(this.track.children);
-    if (e.length === 0) return;
-    this.options.loop && this.originalSlidesCount === 0 && this.initLoopClones();
+    this.options.effect === "fade" ? this.setAttribute("data-active-effect", "fade") : this.removeAttribute("data-active-effect"), this.options.grabCursor && this.options.drag !== "false" ? this.track.setAttribute("grab-cursor", "") : this.track.removeAttribute("grab-cursor"), this.options.loop && this.originalSlidesCount === 0 && this.initLoopClones();
     const s = this.track.querySelectorAll("[data-clone]").length, i = e.length - s;
     if (this.isFirstInit && i > 0) {
       const c = Math.max(
@@ -1152,7 +1182,7 @@ class j extends HTMLElement {
     }
     const n = this.getAttribute("left-padding"), l = this.getAttribute("right-padding");
     !this.options.autoSize && this.options.perView === i && n && parseFloat(n) > 0 && l && parseFloat(l) > 0 ? (this.options.leftPadding = "0px", this.options.rightPadding = "0px") : this.breakpointsConfig || (this.options.leftPadding = this.formatUnit(n), this.options.rightPadding = this.formatUnit(l));
-    const h = this.convertToPx(this.options.gap), a = this.convertToPx(this.options.leftPadding), d = this.convertToPx(this.options.rightPadding);
+    const a = this.convertToPx(this.options.gap), r = this.convertToPx(this.options.leftPadding), d = this.convertToPx(this.options.rightPadding);
     if (this.options.autoSize)
       e.forEach((c) => {
         c.style[this.sizeDim] = "max-content";
@@ -1161,7 +1191,7 @@ class j extends HTMLElement {
         f ? c.style[this.sizeDim] = `${f.getBoundingClientRect()[this.sizeDim]}px` : c.style[this.sizeDim] = "max-content", c.style[this.marginProp] = this.options.gap;
       }), this.options.perView = this.getVisibleSlidesCount();
     else {
-      const b = ((t || window.innerWidth) - a - d - h * (this.options.perView - 1)) / this.options.perView;
+      const b = ((t || window.innerWidth) - r - d - a * (this.options.perView - 1)) / this.options.perView;
       e.forEach((x) => {
         x.style[this.sizeDim] = `${b}px`, x.style[this.marginProp] = this.options.gap;
       });
@@ -1171,8 +1201,8 @@ class j extends HTMLElement {
     if (this.options.autoSize) {
       let c = 0;
       u.forEach((f) => {
-        c += this.getRectSize(f) + h;
-      }), c -= h, p = c < t;
+        c += this.getRectSize(f) + a;
+      }), c -= a, p = c < t;
     } else
       p = i < this.options.perView;
     this.options.centerIfShort && p ? (this.track.style.justifyContent = "center", this.options.loop && this.track.querySelectorAll("[data-clone]").forEach((f) => f.remove())) : this.track.style.justifyContent = "", this.track.updatePosition(!0), this.updateSlideAttributes();
@@ -1223,9 +1253,9 @@ class j extends HTMLElement {
     const t = this.getBoundingClientRect()[this.sizeDim], e = parseFloat(this.startPadding) || 0, s = this.convertToPx(this.options.gap), i = this.track.children.length;
     let n = 0, l = -this.getMaxTranslate();
     if (this.options.centered && !this.options.autoCentered) {
-      let h = this.options.autoSize ? (this.track.children[0] ? this.getRectSize(this.track.children[0]) : 0) + s : this.getSlideSizeWithGap();
-      n = e + t / 2 - h / 2;
-      let a = i - 1, d = this.options.autoSize ? this.getOffsetForIndex(a) : a * this.getSlideSizeWithGap(), p = this.options.autoSize ? (this.track.children[a] ? this.getRectSize(this.track.children[a]) : 0) + s : this.getSlideSizeWithGap();
+      let a = this.options.autoSize ? (this.track.children[0] ? this.getRectSize(this.track.children[0]) : 0) + s : this.getSlideSizeWithGap();
+      n = e + t / 2 - a / 2;
+      let r = i - 1, d = this.options.autoSize ? this.getOffsetForIndex(r) : r * this.getSlideSizeWithGap(), p = this.options.autoSize ? (this.track.children[r] ? this.getRectSize(this.track.children[r]) : 0) + s : this.getSlideSizeWithGap();
       l = e + t / 2 - (d + p / 2);
     }
     return { max: n, min: Math.min(n, l) };
@@ -1236,39 +1266,69 @@ class j extends HTMLElement {
     if (t.length === 0) return;
     const e = this.options.loop, s = e ? this.originalSlidesCount : t.length;
     if (s === 0) return;
-    const i = e ? this.options.autoSize ? this.originalSlidesCount : this.options.perView : 0, n = (m) => {
-      if (!e) return m;
-      let y = (m - i) % s;
-      return y < 0 && (y += s), y;
-    }, l = this.options.centered ? 0 : Math.floor(this.options.perView / 2), h = n(this.currentIndex), a = n(this.currentIndex - 1), d = n(this.currentIndex + 1), p = n(this.currentIndex + l), u = this.isFirstHeightMeasure;
+    const i = e ? this.options.autoSize ? this.originalSlidesCount : this.options.perView : 0, n = (g) => {
+      if (!e) return g;
+      let A = (g - i) % s;
+      return A < 0 && (A += s), A;
+    }, l = this.options.centered ? 0 : Math.floor(this.options.perView / 2), a = n(this.currentIndex), r = n(this.currentIndex - 1), d = n(this.currentIndex + 1), p = n(this.currentIndex + l), u = this.isFirstHeightMeasure;
     u && (this.isFirstHeightMeasure = !1);
     let c = null;
-    u && (c = document.createElement("style"), c.innerHTML = "sx-slider-slide, sx-slider-slide * { transition: none !important; }", this.appendChild(c), this.offsetHeight), t.forEach((m, y) => {
-      m.removeAttribute("sx-slide-active"), m.removeAttribute("sx-slide-prev"), m.removeAttribute("sx-slide-next"), m.removeAttribute("sx-slide-center");
-      let A = n(y);
-      m.setAttribute("aria-label", `${A + 1}/${s}`), A === h && m.setAttribute("sx-slide-active", ""), A === a && m.setAttribute("sx-slide-prev", ""), A === d && m.setAttribute("sx-slide-next", ""), A === p && m.setAttribute("sx-slide-center", "");
+    u && (c = document.createElement("style"), c.innerHTML = "sx-slider-slide, sx-slider-slide * { transition: none !important; }", this.appendChild(c), this.offsetHeight), this.options.lockActive && !this.isClickRouting && !u || t.forEach((g, A) => {
+      g.removeAttribute("sx-slide-active"), g.removeAttribute("sx-slide-prev"), g.removeAttribute("sx-slide-next"), g.removeAttribute("sx-slide-center");
+      let T = n(A);
+      g.setAttribute("aria-label", `${T + 1}/${s}`), T === a && g.setAttribute("sx-slide-active", ""), T === r && g.setAttribute("sx-slide-prev", ""), T === d && g.setAttribute("sx-slide-next", ""), T === p && g.setAttribute("sx-slide-center", "");
     }), this.updateAutoHeight(), this.updateNavigation();
     const f = e ? s - 1 : this.getRealMaxIndex(), b = this.getResolvedPerMove();
     let x = [];
     if (b > 1 && !this.options.autoSize) {
-      let m = 0;
-      for (; m < f; )
-        x.push(m), m += b;
-      m !== f && x.push(f);
+      let g = 0;
+      for (; g < f; )
+        x.push(g), g += b;
+      g !== f && x.push(f);
     } else
-      for (let m = 0; m <= f; m++)
-        x.push(m);
-    let v = x.indexOf(h);
-    if (v === -1) {
-      for (let m = x.length - 1; m >= 0; m--)
-        if (h >= x[m]) {
-          v = m;
+      for (let g = 0; g <= f; g++)
+        x.push(g);
+    let C = x.indexOf(a);
+    if (C === -1) {
+      for (let g = x.length - 1; g >= 0; g--)
+        if (a >= x[g]) {
+          C = g;
           break;
         }
     }
-    this.updatePagination(x, v), u && c && requestAnimationFrame(() => {
+    if (this.updatePagination(x, C), this.options.thumbs && (this.isClickRouting || !this.options.lockActive)) {
+      const g = y.get(this.options.thumbs);
+      g && g.syncFromController(a);
+    }
+    u && c && requestAnimationFrame(() => {
       c == null || c.remove();
     });
+  }
+  /**
+   * 🌟 ĐÓN NHẬN ĐỒNG BỘ: Đã sửa tích hợp Circuit Breaker và Thuật toán tìm đường đi ngắn nhất
+   */
+  syncFromController(t) {
+    if (!this.track) return;
+    const e = this.options.loop, s = Array.from(this.track.children), i = this.track.querySelectorAll("[data-clone]").length, n = e ? this.originalSlidesCount : s.length - i;
+    if (((a) => {
+      if (!e) return a;
+      const r = this.options.autoSize ? this.originalSlidesCount : this.options.perView;
+      let d = (a - r) % n;
+      return d < 0 && (d += n), d;
+    })(this.currentIndex) !== t) {
+      if (e) {
+        const a = this.options.autoSize ? this.originalSlidesCount : this.options.perView, r = t + a, d = this.originalSlidesCount, p = s.length;
+        let u = r, c = Math.abs(r - this.currentIndex);
+        [r - d, r, r + d].forEach((b) => {
+          if (b >= 0 && b < p) {
+            const x = Math.abs(b - this.currentIndex);
+            x < c && (c = x, u = b);
+          }
+        }), this.currentIndex = u;
+      } else
+        this.currentIndex = Math.max(0, Math.min(t, n - 1));
+      this.isClickRouting = !0, this.updateSlideAttributes(), this.track.updatePosition(), this.isClickRouting = !1;
+    }
   }
   updateAutoHeight() {
     if (!this.track) return;
@@ -1284,12 +1344,12 @@ class j extends HTMLElement {
     let n = this.currentIndex - i;
     this.options.loop || (n = Math.max(0, n));
     for (let l = 0; l < s; l++) {
-      let h = n + l;
-      this.options.loop && (h < 0 ? h = t.length + h : h >= t.length && (h = h % t.length));
-      const a = t[h];
-      if (a) {
-        const d = a.cloneNode(!0);
-        d.style.position = "absolute", d.style.visibility = "hidden", d.style.pointerEvents = "none", d.style.transition = "none", d.style[this.sizeDim] = `${a.getBoundingClientRect()[this.sizeDim]}px`;
+      let a = n + l;
+      this.options.loop && (a < 0 ? a = t.length + a : a >= t.length && (a = a % t.length));
+      const r = t[a];
+      if (r) {
+        const d = r.cloneNode(!0);
+        d.style.position = "absolute", d.style.visibility = "hidden", d.style.pointerEvents = "none", d.style.transition = "none", d.style[this.sizeDim] = `${r.getBoundingClientRect()[this.sizeDim]}px`;
         const p = d.firstElementChild;
         p && (p.style.transition = "none"), this.track.appendChild(d);
         const u = p ? p.getBoundingClientRect().height : d.getBoundingClientRect().height;
@@ -1302,7 +1362,11 @@ class j extends HTMLElement {
     return this.currentIndex;
   }
   setCurrentIndex(t) {
-    this.currentIndex = t, this.updateSlideAttributes();
+    this.currentIndex = t, this.updateSlideAttributes(), this.dispatchEvent(
+      new CustomEvent("sx-change", {
+        detail: { activeIndex: this.currentIndex }
+      })
+    );
   }
   getRealMaxIndex() {
     if (!this.track || this.track.children.length === 0) return 0;
@@ -1310,8 +1374,8 @@ class j extends HTMLElement {
     for (let s = 0; s < t; s++) {
       let i = this.options.autoSize ? this.getOffsetForIndex(s) : s * this.getSlideSizeWithGap(), n = this.options.autoSize ? this.getRectSize(this.track.children[s]) + this.convertToPx(this.options.gap) : this.getSlideSizeWithGap(), l = parseFloat(this.startPadding) || 0;
       if (this.options.centered) {
-        const h = this.getBoundingClientRect()[this.sizeDim];
-        l += h / 2 - (i + n / 2);
+        const a = this.getBoundingClientRect()[this.sizeDim];
+        l += a / 2 - (i + n / 2);
       } else
         l -= i;
       if (l <= e + 1)
@@ -1337,23 +1401,32 @@ class j extends HTMLElement {
     const t = this.getResolvedPerMove(), e = (this.currentIndex % t + t) % t, s = e !== 0 ? e : t;
     this.options.loop ? (this.currentIndex -= s, this.updateSlideAttributes(), this.track.updatePosition()) : (this.currentIndex > 0 ? this.currentIndex = Math.max(0, this.currentIndex - s) : this.options.rewind && (this.currentIndex = this.getRealMaxIndex()), this.updateSlideAttributes(), this.track.updatePosition());
   }
-  goTo(t) {
+  /**
+   * 🌟 ĐỊNH TUYẾN CLICK: Thuật toán tìm đường ngắn nhất (Shortest Path) bảo vệ click bản sao clone
+   */
+  goTo(t, e = !1) {
     if (this.track) {
-      if (this.options.loop) {
-        const e = this.options.autoSize ? this.originalSlidesCount : this.options.perView;
-        this.currentIndex = t + e;
+      if (e && (this.isClickRouting = !0), this.options.loop) {
+        const s = this.options.autoSize ? this.originalSlidesCount : this.options.perView, i = t + s, n = this.originalSlidesCount, l = this.track.children.length;
+        let a = i, r = Math.abs(i - this.currentIndex);
+        [i - n, i, i + n].forEach((p) => {
+          if (p >= 0 && p < l) {
+            const u = Math.abs(p - this.currentIndex);
+            u < r && (r = u, a = p);
+          }
+        }), this.currentIndex = a;
       } else {
-        const e = this.getRealMaxIndex();
-        this.currentIndex = Math.max(0, Math.min(t, e));
+        const s = Array.from(this.track.children), i = this.track.querySelectorAll("[data-clone]").length, n = s.length - i;
+        this.currentIndex = Math.max(0, Math.min(t, n - 1));
       }
-      this.updateSlideAttributes(), this.track.updatePosition();
+      this.updateSlideAttributes(), this.track.updatePosition(), this.isClickRouting = !1;
     }
   }
   alignIndexToFreeTranslation(t) {
     if (!this.track) return;
     const e = parseFloat(this.startPadding) || 0, s = this.getBoundingClientRect()[this.sizeDim], i = Array.from(this.track.children), n = this.convertToPx(this.options.gap);
-    let l = 0, h = 1 / 0;
-    const a = this.currentIndex;
+    let l = 0, a = 1 / 0;
+    const r = this.currentIndex;
     for (let d = 0; d < i.length; d++) {
       let p = 0, u = 0;
       if (this.options.autoSize)
@@ -1371,7 +1444,7 @@ class j extends HTMLElement {
         ) : this.options.centered || (d === 0 && (c = 0), c < x && (c = x), c > 0 && (c = 0));
       }
       const f = Math.abs(t - c);
-      f < h - 0.5 ? (h = f, l = d) : Math.abs(f - h) <= 0.5 && Math.abs(d - a) < Math.abs(l - a) && (l = d, h = f);
+      f < a - 0.5 ? (a = f, l = d) : Math.abs(f - a) <= 0.5 && Math.abs(d - r) < Math.abs(l - r) && (l = d, a = f);
     }
     if (this.currentIndex = l, !this.options.loop) {
       const d = this.getRealMaxIndex();
@@ -1407,7 +1480,9 @@ class j extends HTMLElement {
     );
     if (this.options.name) {
       const i = Array.from(
-        document.querySelectorAll(`sx-slider-pagination[name="${this.options.name}"]`)
+        document.querySelectorAll(
+          `sx-slider-pagination[name="${this.options.name}"]`
+        )
       );
       s = Array.from(/* @__PURE__ */ new Set([...s, ...i]));
     }

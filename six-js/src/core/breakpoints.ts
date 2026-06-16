@@ -3,17 +3,12 @@ export class Breakpoints {
 static parse(attributeValue: string | null): Record<number, any> | null {
     if (!attributeValue) return null;
     try {
-      // 1. Chuyển đổi tất cả nháy đơn thành nháy kép
       let fixedJson = attributeValue.replace(/'/g, '"');
 
-      // 2. Tự động bọc ngoặc kép cho các key bị thiếu (như per-view, gap, 1080)
-      // Dùng regex nhận diện các từ nằm sau dấu { hoặc , và nằm trước dấu :
       fixedJson = fixedJson.replace(/([{,]\s*)([a-zA-Z0-9_.-]+)\s*:/g, '$1"$2":');
 
-      // 3. XÓA DẤU PHẨY THỪA ở cuối mỗi block (nguyên nhân chính làm JSON.parse sập)
       fixedJson = fixedJson.replace(/,\s*([}\]])/g, '$1');
 
-      // Chạy JSON.parse nguyên chuẩn một cách an toàn
       return JSON.parse(fixedJson);
     } catch (e) {
       console.warn("SixJS: Lỗi cú pháp JSON ở thuộc tính breakpoints", e);

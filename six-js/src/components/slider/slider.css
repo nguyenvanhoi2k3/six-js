@@ -78,7 +78,7 @@ sx-slider:not([data-active-effect="fade"]) sx-slider-slide {
   position: relative !important;
   top: auto;
   left: auto;
-  opacity: 1 !important;
+  opacity: 1;
   pointer-events: auto !important;
   transition: none;
 }

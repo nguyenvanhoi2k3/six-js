@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>six-js</title>
 
-    <link rel="stylesheet" href="./index.css" />
     <link rel="stylesheet" href="./dist/six-js.css" />
+    <link rel="stylesheet" href="./index.css" />
   </head>
 
   <body>
@@ -68,7 +68,7 @@
     <sx-slider-next name="slider-1">Next</sx-slider-next> -->
 
     <!-- horizontal -->
-    <sx-slider name="slider-2" per-view="1" gap="10" effect="fade">
+    <sx-slider name="slider-2" thumbs="slider-2-thumb" per-view="1" gap="10" effect="fade">
       <sx-slider-track>
         <sx-slider-slide>
           <div class="slide" style="width: 100%; height: 400px">Slide 1</div>
@@ -130,12 +130,52 @@
         "
       ></sx-slider-pagination>
     </sx-slider>
+    <sx-slider name="slider-2-thumb" thumbs="slider-2" per-view="5" gap="10" snap  drag="free" lock-active centered>
+      <sx-slider-track>
+        <sx-slider-slide>
+          <div class="slide" style="width: 100%">Slide 1</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide" style="width: 100%">Slide 2</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide" style="width: 100%">Slide 3</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide" style="width: 100%">Slide 4</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide" style="width: 100%">Slide 5</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide" style="width: 100%">Slide 6</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide" style="width: 100%">Slide 7</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide" style="width: 100%">Slide 8</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide" style="width: 100%">Slide 9</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide" style="width: 100%">Slide 10</div>
+        </sx-slider-slide>
+      </sx-slider-track>
+    </sx-slider>
     <h3>Link bằng name</h3>
     <sx-slider-prev name="slider-2">Prev</sx-slider-prev>
     <sx-slider-next name="slider-2">Next</sx-slider-next>
-    <sx-slider-pagination name="slider-2" effect="dynamic"></sx-slider-pagination>
+    <sx-slider-pagination
+      name="slider-2"
+      effect="dynamic"
+    ></sx-slider-pagination>
     <sx-slider-pagination name="slider-2" effect="snake"></sx-slider-pagination>
-    <sx-slider-pagination name="slider-2" effect="number"></sx-slider-pagination>
+    <sx-slider-pagination
+      name="slider-2"
+      effect="number"
+    ></sx-slider-pagination>
 
     <sx-slider-progress name="slider-2"></sx-slider-progress>
     <script src="./dist/six-js.umd.js"></script>
