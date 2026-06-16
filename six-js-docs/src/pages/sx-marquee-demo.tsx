@@ -1,7 +1,6 @@
 import React from "react";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 
-// Đổi tên component cho đúng với tên file marquee-demo
 export default function SxMarqueeDemoPage() {
   return (
     <BrowserOnly
@@ -12,7 +11,6 @@ export default function SxMarqueeDemoPage() {
       }
     >
       {() => {
-        // Chỉ nạp thư viện khi chạy trên trình duyệt (Client-side)
         require("@six-js/core");
 
         return (
