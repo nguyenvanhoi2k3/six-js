@@ -5,7 +5,7 @@ title: Marquee
 <br />
 Hỗ trợ tạo hiệu ứng chữ hoặc nội dung chạy liên tục (vô tận) mượt mà.
 
-👉 **[DEMO](/sx-marquee-demo)**
+👉 **[DEMO](/marquee)**
 
 ---
 <br />

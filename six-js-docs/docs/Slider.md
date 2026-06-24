@@ -6,7 +6,7 @@ title: Slider
 <br />
 Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người dùng vuốt hoặc điều hướng giữa nhiều slide tương tự.
 
-👉 **[DEMO](/sx-slider-demo)**
+👉 **[DEMO](/slider)**
 
 ---
 
@@ -57,9 +57,6 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
       <!-- render thanh tiến trình cơ bản để tự do css,
        thanh tiến trình này phải phục vụ cho cả chức năng draggable -->
     </sx-slider-progress>
-    <sx-slider-thumbnail>
-      <!-- render thumbnail ở đây -->
-    </sx-slider-thumbnail>
   </sx-slider>
 ```
 <br />
@@ -78,8 +75,8 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
 |rewind|boolean|Tua lại khi đến slide cuối|false|
 |direction|string|horizontal \| vertical|horizontal|
 |start-index|number|Slide bắt đầu khi khởi tạo|0|
-|auto-size|boolean|Tự động chia per-view theo width của slide content (hoặc theo height nếu là `vertical`), `per-vew` khi này sẽ disable|false|
-|auto-height|boolean|Height sẽ tự động khớp theo height content của từng slide|false|
+|auto-size|boolean|Tự động chia per-view theo width của slide content (hoặc theo height nếu là direction `vertical`), `per-vew` khi này sẽ disable|false|
+|auto-height|boolean|Height slider sẽ tự động khớp theo height content của từng slide trong viewport|false|
 |effect|string|slide \| fade|false|
 |gap|number \| string|Ví dụ: `"20"`, `"1rem"`|0|
 |centered|boolean|Slide active luôn nằm giữa viewport|false|
@@ -89,6 +86,7 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
 |drag|boolean \| free|`true`: cho phép drag \| `false`: chặn drag \| `free`: cho phép drag và slide trượt theo quán tính |true|
 |vertical-scroll|boolean|Khi `direction="vertical"`, có thể cuộn slide bằng con lăn|false|
 |snap|boolean|Tự động về vị trí slide gần nhất ở chế độ `drag="free"`|false|
+|lock-active|boolean|Sự kiện drag hoặc sự kiện next, prev sẽ cho phép trượt slide để xem các slide khác mà vẫn giữ nguyên slide đang active|false|
 |breakpoints|json|Hỗ trợ responsive mọi thuộc tính trừ `direction`|undefined|
 
 <br />
@@ -116,7 +114,7 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
 |effect|string|Có 3 kiểu: dynamic \| snake \| number|Default sẽ render ra các thẻ span rỗng để css|
 <br />
 :::note
-effect hỗ trợ render html cần thiết, vẫn cần css để có hiệu ứng, xem 👉 **[Tại đây](/sx-slider-demo)**
+effect hỗ trợ render html cần thiết, vẫn cần css để có hiệu ứng, xem 👉 **[Tại đây](/slider)**
 :::
 <br />
 ## sx-slider-progress
@@ -130,5 +128,5 @@ Thanh tiến trình slider
 |name|string|Dùng trong trường hợp progress nằm ngoài slider|null|
 <br />
 
-👉 **[DEMO](/sx-slider-demo)**
+👉 **[DEMO](/slider)**
 <br />

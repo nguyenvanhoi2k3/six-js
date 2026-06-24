@@ -1,3 +1,4 @@
+// six-js\src\components\slider\slider-types.ts
 export interface SliderOptions {
   name: string | null;
   perView: number;

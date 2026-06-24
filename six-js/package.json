@@ -1,7 +1,7 @@
 {
   "name": "@six-js/core",
   "author": "Hội Nguyễn",
-  "version": "0.0.14",
+  "version": "0.0.24",
   "type": "module",
   "main": "./dist/six-js.umd.js",
   "keywords": [
@@ -11,10 +11,10 @@
     "web-components"
   ],
   "module": "./dist/six-js.es.js",
-  "types": "./dist/types/index.d.ts",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/six-js.es.js",
       "require": "./dist/six-js.umd.js"
     },
@@ -25,14 +25,15 @@
   ],
   "scripts": {
     "gen-version": "node -e \"const fs = require('fs'); const pkg = require('./package.json'); fs.writeFileSync('./src/version.ts', `export const VERSION = '${pkg.version}';\\n`);\"",
-    "build": "npm run gen-version && tsc && vite build",
-    "dev": "npm run gen-version && concurrently \"tsc --watch --preserveWatchOutput\" \"vite build --watch\""
+    "build": "npm run gen-version && vite build",
+    "dev": "npm run gen-version && vite build --watch"
   },
   "devDependencies": {
     "@types/node": "^22.10.1",
     "concurrently": "^10.0.3",
     "rollup-plugin-minify-html-literals": "^1.2.6",
     "typescript": "^5.6.3",
-    "vite": "^5.4.11"
+    "vite": "^5.4.11",
+    "vite-plugin-dts": "^5.0.2"
   }
 }

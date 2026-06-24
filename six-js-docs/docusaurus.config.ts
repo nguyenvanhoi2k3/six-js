@@ -1,3 +1,4 @@
+// C:\Users\nguye\OneDrive\Máy tính\six-js-librari\six-js-docs\docusaurus.config.ts
 import { themes as prismThemes } from "prism-react-renderer";
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
@@ -6,7 +7,8 @@ import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
   title: "Six-JS Library",
-  tagline: "A powerful JavaScript library for building interactive web applications.",
+  tagline:
+    "A powerful JavaScript library for building interactive web applications.",
   favicon: "img/favicon.ico",
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -35,6 +37,18 @@ const config: Config = {
     defaultLocale: "en",
     locales: ["en"],
   },
+
+  //dùng npm
+  // clientModules: [
+  //   require.resolve("@six-js/core"),
+  //   require.resolve("@six-js/core/style.css"),
+  // ],
+
+  // dùng local
+  clientModules: [
+    require.resolve("../six-js/dist/six-js.es.js"),
+    require.resolve("../six-js/dist/style.css"),
+  ],
 
   presets: [
     [
@@ -104,7 +118,7 @@ const config: Config = {
           title: "Docs",
           items: [
             {
-              // ĐÃ SỬA: Đổi từ "Tutorial" trỏ về "/docs/intro" (bị gãy) 
+              // ĐÃ SỬA: Đổi từ "Tutorial" trỏ về "/docs/intro" (bị gãy)
               // sang "Components" trỏ về một trang thực tế tồn tại
               label: "Components",
               to: "/docs/Animate",

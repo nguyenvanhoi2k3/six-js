@@ -1,3 +1,4 @@
+// six-js\src\components\animate\animate.ts
 import { EASINGS, type EasingType } from "../../easing/easing";
 
 type AnimateType =

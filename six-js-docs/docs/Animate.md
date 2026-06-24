@@ -5,7 +5,7 @@ title: Animate
 <br />
 Hỗ trợ tạo các hiệu ứng xuất hiện mượt mà khi phần tử đi vào viewport.
 
-👉 **[DEMO](/sx-animate-demo)**
+👉 **[DEMO](/animate)**
 
 ---
 <br />

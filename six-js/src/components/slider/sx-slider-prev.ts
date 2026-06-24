@@ -1,3 +1,4 @@
+// six-js\src\components\slider\sx-slider-prev.ts
 import { sliderRegistry } from './slider-registry';
 
 export class SxSliderPrev extends HTMLElement {

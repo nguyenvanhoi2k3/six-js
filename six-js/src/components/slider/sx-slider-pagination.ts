@@ -1,3 +1,4 @@
+// six-js\src\components\slider\sx-slider-pagination.ts
 import { sliderRegistry } from "./slider-registry";
 
 export class SxSliderPagination extends HTMLElement {

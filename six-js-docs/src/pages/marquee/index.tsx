@@ -1,3 +1,4 @@
+// C:\Users\nguye\OneDrive\Máy tính\six-js-librari\six-js-docs\src\pages\sx-marquee-demo.tsx
 import React from "react";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 
@@ -11,8 +12,6 @@ export default function SxMarqueeDemoPage() {
       }
     >
       {() => {
-        require("@six-js/core");
-
         return (
           <>
             <div style={{ height: "10vh" }} />

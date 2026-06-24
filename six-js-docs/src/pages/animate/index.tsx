@@ -11,10 +11,6 @@ export default function SxAnimateDemoPage() {
       }
     >
       {() => {
-        // Đưa thư viện vào đây để Node.js không đọc nó khi build,
-        // thư viện sẽ chỉ được kích hoạt khi chạy trên trình duyệt (Client-side)
-        require("@six-js/core");
-
         return (
           <>
             <sx-animate type="fade" duration={800}>

@@ -1,7 +1,7 @@
 var P = Object.defineProperty;
 var L = (m, o, t) => o in m ? P(m, o, { enumerable: !0, configurable: !0, writable: !0, value: t }) : m[o] = t;
 var h = (m, o, t) => L(m, typeof o != "symbol" ? o + "" : o, t);
-const F = "0.0.14", k = {
+const k = {
   "ease-in": "cubic-bezier(0.42, 0, 1, 1)",
   "ease-out": "cubic-bezier(0, 0, 0.58, 1)",
   "ease-in-out": "cubic-bezier(0.42, 0, 0.58, 1)",
@@ -111,7 +111,7 @@ h(S, "counter", 0), h(S, "mediaQuery", window.matchMedia(
 ));
 let z = S;
 customElements.get("sx-animate") || customElements.define("sx-animate", z);
-class D {
+class F {
   constructor() {
     h(this, "_listeners", /* @__PURE__ */ new Set());
     h(this, "_time", 0);
@@ -204,12 +204,12 @@ class D {
     return this._listeners.size;
   }
 }
-const v = new D(), M = /* @__PURE__ */ new WeakMap();
+const v = new F(), M = /* @__PURE__ */ new WeakMap();
 let I = [], w = null;
 function B(m, o) {
-  I.push({ instance: m, type: o }), w === null && (w = requestAnimationFrame(_));
+  I.push({ instance: m, type: o }), w === null && (w = requestAnimationFrame(D));
 }
-function _() {
+function D() {
   const m = I.slice();
   I.length = 0, w = null;
   for (let o = 0; o < m.length; o++) {
@@ -226,13 +226,13 @@ const R = new IntersectionObserver(
   },
   { threshold: 0.05 }
 );
-function O(m, o) {
+function _(m, o) {
   M.set(m, o), R.observe(m);
 }
-function N(m) {
+function O(m) {
   M.delete(m), R.unobserve(m);
 }
-class q extends HTMLElement {
+class N extends HTMLElement {
   constructor() {
     super();
     h(this, "inner", null);
@@ -298,7 +298,7 @@ class q extends HTMLElement {
     }
     this.addEventListener("mouseenter", this.onMouseEnter), this.addEventListener("mouseleave", this.onMouseLeave), this.resizeObserver = new ResizeObserver(() => {
       this.scheduleSetup();
-    }), this.resizeObserver.observe(this), O(this, {
+    }), this.resizeObserver.observe(this), _(this, {
       enter: () => {
         this.isVisible || (this.isVisible = !0, v.add(this.updateAnimation));
       },
@@ -309,7 +309,7 @@ class q extends HTMLElement {
   }
   disconnectedCallback() {
     var t;
-    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (t = this.resizeObserver) == null || t.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), N(this), v.remove(this.updateAnimation);
+    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (t = this.resizeObserver) == null || t.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), O(this), v.remove(this.updateAnimation);
   }
   attributeChangedCallback(t, e, s) {
     e !== s && (t === "gap" ? (this.updateGapVar(), setTimeout(() => this.scheduleSetup(), 50)) : (t === "direction" || t === "speed" || t === "clone") && this.scheduleSetup());
@@ -396,17 +396,17 @@ class q extends HTMLElement {
     this.inner && (this.inner.style.transform = `translate3d(${t}px,0,0)`);
   }
 }
-class $ extends HTMLElement {
+class q extends HTMLElement {
 }
-class V extends HTMLElement {
+class $ extends HTMLElement {
   connectedCallback() {
     this.style.cssText = "display:inline-block;flex-shrink:0;";
   }
 }
-customElements.get("sx-marquee") || customElements.define("sx-marquee", q);
-customElements.get("sx-marquee-inner") || customElements.define("sx-marquee-inner", $);
-customElements.get("sx-marquee-item") || customElements.define("sx-marquee-item", V);
-class W {
+customElements.get("sx-marquee") || customElements.define("sx-marquee", N);
+customElements.get("sx-marquee-inner") || customElements.define("sx-marquee-inner", q);
+customElements.get("sx-marquee-item") || customElements.define("sx-marquee-item", $);
+class V {
   constructor() {
     h(this, "sliders", /* @__PURE__ */ new Map());
   }
@@ -420,7 +420,7 @@ class W {
     return this.sliders.get(o);
   }
 }
-const y = new W();
+const y = new V();
 class E {
   static parse(o) {
     if (!o) return null;
@@ -452,7 +452,7 @@ class E {
     return t;
   }
 }
-class G {
+class W {
   constructor(o, t, e = 0.92) {
     h(this, "velocity", 0);
     h(this, "friction");
@@ -484,7 +484,7 @@ class G {
     this.onUpdate(this.velocity * t), this.velocity *= e;
   }
 }
-class H extends HTMLElement {
+class G extends HTMLElement {
   constructor() {
     super();
     h(this, "sliderCha", null);
@@ -523,7 +523,7 @@ class H extends HTMLElement {
       }
       this.sliderCha.startAutoplay();
     });
-    h(this, "wheelInertia", new G(
+    h(this, "wheelInertia", new W(
       (t) => {
         if (this.sliderCha) {
           if (this.currentTranslate += t, this.sliderCha.options.loop)
@@ -760,14 +760,14 @@ class H extends HTMLElement {
     }
   }
 }
-customElements.get("sx-slider-track") || customElements.define("sx-slider-track", H);
-class X extends HTMLElement {
+customElements.get("sx-slider-track") || customElements.define("sx-slider-track", G);
+class H extends HTMLElement {
   constructor() {
     super();
   }
 }
-customElements.get("sx-slider-slide") || customElements.define("sx-slider-slide", X);
-class U extends HTMLElement {
+customElements.get("sx-slider-slide") || customElements.define("sx-slider-slide", H);
+class X extends HTMLElement {
   constructor() {
     super(), this.addEventListener("click", () => this.handleAction()), this.addEventListener("keydown", (o) => {
       (o.key === "Enter" || o.key === " ") && (o.preventDefault(), this.handleAction());
@@ -788,8 +788,8 @@ class U extends HTMLElement {
     }
   }
 }
-customElements.get("sx-slider-prev") || customElements.define("sx-slider-prev", U);
-class Y extends HTMLElement {
+customElements.get("sx-slider-prev") || customElements.define("sx-slider-prev", X);
+class U extends HTMLElement {
   constructor() {
     super(), this.addEventListener("click", () => this.handleAction()), this.addEventListener("keydown", (o) => {
       (o.key === "Enter" || o.key === " ") && (o.preventDefault(), this.handleAction());
@@ -810,8 +810,8 @@ class Y extends HTMLElement {
     }
   }
 }
-customElements.get("sx-slider-next") || customElements.define("sx-slider-next", Y);
-class Q extends HTMLElement {
+customElements.get("sx-slider-next") || customElements.define("sx-slider-next", U);
+class Y extends HTMLElement {
   constructor() {
     super();
     h(this, "renderedSignature", "");
@@ -914,8 +914,8 @@ class Q extends HTMLElement {
     this.innerContainer.style.transform = `translateX(${p}px)`;
   }
 }
-customElements.get("sx-slider-pagination") || customElements.define("sx-slider-pagination", Q);
-class J extends HTMLElement {
+customElements.get("sx-slider-pagination") || customElements.define("sx-slider-pagination", Y);
+class Q extends HTMLElement {
   constructor() {
     super();
     h(this, "bar");
@@ -926,8 +926,8 @@ class J extends HTMLElement {
     this.bar.style.transition = s || "none", e === "vertical" ? (this.bar.style.transformOrigin = "top center", this.bar.style.transform = `scaleY(${i})`) : (this.bar.style.transformOrigin = "left center", this.bar.style.transform = `scaleX(${i})`);
   }
 }
-customElements.get("sx-slider-progress") || customElements.define("sx-slider-progress", J);
-class j extends HTMLElement {
+customElements.get("sx-slider-progress") || customElements.define("sx-slider-progress", Q);
+class J extends HTMLElement {
   constructor() {
     super();
     h(this, "options");
@@ -1120,7 +1120,7 @@ class j extends HTMLElement {
       lockActive: this.hasAttribute("lock-active")
     }, this.originalOptions = { ...this.options }, this.breakpointsConfig = E.parse(
       this.getAttribute("breakpoints")
-    ), this.style.setProperty("--sx-speed", `${this.options.speed}ms`);
+    );
   }
   startAutoplay() {
     this.stopAutoplay(), this.options.autoplay && this.options.interval > 0 && (this.autoplayTimer = window.setInterval(() => {
@@ -1153,6 +1153,7 @@ class j extends HTMLElement {
   }
   updateLayout() {
     if (!this.track) return;
+    this.style.setProperty("--sx-speed", `${this.options.speed}ms`);
     const t = this.getBoundingClientRect()[this.sizeDim], e = Array.from(this.track.children);
     if (e.length === 0) return;
     if (this.options.loop || e.forEach((c, f) => {
@@ -1304,9 +1305,6 @@ class j extends HTMLElement {
       c == null || c.remove();
     });
   }
-  /**
-   * 🌟 ĐÓN NHẬN ĐỒNG BỘ: Đã sửa tích hợp Circuit Breaker và Thuật toán tìm đường đi ngắn nhất
-   */
   syncFromController(t) {
     if (!this.track) return;
     const e = this.options.loop, s = Array.from(this.track.children), i = this.track.querySelectorAll("[data-clone]").length, n = e ? this.originalSlidesCount : s.length - i;
@@ -1401,9 +1399,6 @@ class j extends HTMLElement {
     const t = this.getResolvedPerMove(), e = (this.currentIndex % t + t) % t, s = e !== 0 ? e : t;
     this.options.loop ? (this.currentIndex -= s, this.updateSlideAttributes(), this.track.updatePosition()) : (this.currentIndex > 0 ? this.currentIndex = Math.max(0, this.currentIndex - s) : this.options.rewind && (this.currentIndex = this.getRealMaxIndex()), this.updateSlideAttributes(), this.track.updatePosition());
   }
-  /**
-   * 🌟 ĐỊNH TUYẾN CLICK: Thuật toán tìm đường ngắn nhất (Shortest Path) bảo vệ click bản sao clone
-   */
   goTo(t, e = !1) {
     if (this.track) {
       if (e && (this.isClickRouting = !0), this.options.loop) {
@@ -1464,7 +1459,11 @@ class j extends HTMLElement {
           `sx-slider-next[name="${this.options.name}"]`
         )
       );
-      t = Array.from(/* @__PURE__ */ new Set([...t, ...i])), e = Array.from(/* @__PURE__ */ new Set([...e, ...n]));
+      t = Array.from(
+        /* @__PURE__ */ new Set([...t, ...i])
+      ), e = Array.from(
+        /* @__PURE__ */ new Set([...e, ...n])
+      );
     }
     if (this.options.loop || this.options.rewind) {
       t.forEach((i) => i.removeAttribute("sx-disabled")), e.forEach((i) => i.removeAttribute("sx-disabled"));
@@ -1491,5 +1490,13 @@ class j extends HTMLElement {
     });
   }
 }
-customElements.get("sx-slider") || customElements.define("sx-slider", j);
-console.log(`@six-js/core v${F}`);
+customElements.get("sx-slider") || customElements.define("sx-slider", J);
+const j = "0.0.24";
+console.log(`@six-js/core v${j}`);
+export {
+  z as SxAnimate,
+  N as SxMarquee,
+  q as SxMarqueeInner,
+  $ as SxMarqueeItem,
+  j as VERSION
+};

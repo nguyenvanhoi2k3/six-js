@@ -1,3 +1,4 @@
+// six-js\src\components\slider\sx-slider.ts
 import { SliderOptions } from "./slider-types";
 import { SxSliderTrack } from "./sx-slider-track";
 import { sliderRegistry } from "./slider-registry";
@@ -183,7 +184,7 @@ export class SxSlider extends HTMLElement {
   }
 
   connectedCallback() {
-    this.track = this.querySelector("sx-slider-track");
+    this.track = this.querySelector("sx-slider-track") as SxSliderTrack | null;
 
     if (this.options.name) {
       sliderRegistry.register(this.options.name, this);
@@ -327,8 +328,6 @@ export class SxSlider extends HTMLElement {
     this.breakpointsConfig = Breakpoints.parse(
       this.getAttribute("breakpoints"),
     );
-
-    this.style.setProperty("--sx-speed", `${this.options.speed}ms`);
   }
 
   public startAutoplay() {
@@ -389,6 +388,8 @@ export class SxSlider extends HTMLElement {
   public updateLayout() {
     if (!this.track) return;
 
+    this.style.setProperty("--sx-speed", `${this.options.speed}ms`);
+    
     const containerSize = this.getBoundingClientRect()[this.sizeDim];
     const slides = Array.from(this.track.children) as HTMLElement[];
     if (slides.length === 0) return;
@@ -754,9 +755,6 @@ export class SxSlider extends HTMLElement {
     }
   }
 
-  /**
-   * 🌟 ĐÓN NHẬN ĐỒNG BỘ: Đã sửa tích hợp Circuit Breaker và Thuật toán tìm đường đi ngắn nhất
-   */
   public syncFromController(realIndex: number) {
     if (!this.track) return;
 
@@ -982,9 +980,6 @@ export class SxSlider extends HTMLElement {
     }
   }
 
-  /**
-   * 🌟 ĐỊNH TUYẾN CLICK: Thuật toán tìm đường ngắn nhất (Shortest Path) bảo vệ click bản sao clone
-   */
   public goTo(index: number, isClick: boolean = false) {
     if (!this.track) return;
 
@@ -1118,8 +1113,12 @@ export class SxSlider extends HTMLElement {
           `sx-slider-next[name="${this.options.name}"]`,
         ),
       );
-      prevBtns = Array.from(new Set([...prevBtns, ...extPrev]));
-      nextBtns = Array.from(new Set([...nextBtns, ...extNext]));
+      prevBtns = Array.from(
+        new Set([...prevBtns, ...extPrev]),
+      ) as HTMLElement[];
+      nextBtns = Array.from(
+        new Set([...nextBtns, ...extNext]),
+      ) as HTMLElement[];
     }
 
     if (this.options.loop || this.options.rewind) {

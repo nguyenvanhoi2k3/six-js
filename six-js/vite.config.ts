@@ -1,7 +1,9 @@
+// six-js/vite.config.ts
 import { defineConfig } from "vite";
 import { resolve } from "path";
+import { readFileSync, writeFileSync } from "fs";
 import minifyHTML from "rollup-plugin-minify-html-literals";
-import type { PreRenderedAsset } from "rollup";
+import dts from "vite-plugin-dts";
 
 export default defineConfig({
   build: {
@@ -15,14 +17,31 @@ export default defineConfig({
     },
     rollupOptions: {
       plugins: [((minifyHTML as any).default || minifyHTML)()],
-      output: {
-        assetFileNames: (assetInfo: PreRenderedAsset) => {
-          if (assetInfo.name?.endsWith(".css")) {
-            return "six-js.css";
-          }
-          return "[name].[ext]";
-        },
-      },
     },
   },
+  plugins: [
+    dts({
+      cleanVueFileName: true,
+      copyDtsFiles: true, // 👈 copy nguyên văn các file .d.ts thuần, không qua rollup-dts xử lý
+      beforeWriteFile: (filePath, content) => {
+        return {
+          filePath,
+          content: content.replace(/import\s+['"].*\.css['"];?\s*/g, ""),
+        };
+      },
+      afterBuild: () => {
+        // Tự chèn reference vào dist/index.d.ts vì vite-plugin-dts
+        // không tự trace side-effect import của file .d.ts thuần
+        const indexDtsPath = resolve(__dirname, "dist/index.d.ts");
+        const current = readFileSync(indexDtsPath, "utf-8");
+
+        if (!current.includes("jsx.d.ts")) {
+          writeFileSync(
+            indexDtsPath,
+            `/// <reference path="./jsx.d.ts" />\n${current}`,
+          );
+        }
+      },
+    }),
+  ],
 });

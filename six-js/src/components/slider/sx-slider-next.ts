@@ -1,3 +1,4 @@
+// six-js\src\components\slider\sx-slider-next.ts
 import { sliderRegistry } from './slider-registry';
 
 export class SxSliderNext extends HTMLElement {

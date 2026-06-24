@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>six-js</title>
 
-    <link rel="stylesheet" href="./dist/six-js.css" />
+    <link rel="stylesheet" href="./dist/style.css" />
     <link rel="stylesheet" href="./index.css" />
   </head>
 
@@ -68,102 +68,122 @@
     <sx-slider-next name="slider-1">Next</sx-slider-next> -->
 
     <!-- horizontal -->
-    <sx-slider name="slider-2" sync="slider-2-thumb" per-view="1" gap="10" effect="fade">
-      <sx-slider-track>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%; height: 400px">Slide 1</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%; height: 400px">Slide 2</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%; height: 400px">Slide 3</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%; height: 400px">Slide 4</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%; height: 400px">Slide 5</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%; height: 400px">Slide 6</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%; height: 400px">Slide 7</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%; height: 400px">Slide 8</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%; height: 400px">Slide 9</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%; height: 400px">Slide 10</div>
-        </sx-slider-slide>
-      </sx-slider-track>
-      <sx-slider-prev
-        style="
-          position: absolute;
-          top: 50%;
-          transform: translateY(-50%);
-          left: 0;
-        "
-        >Prev</sx-slider-prev
+    <div style="display: flex;">
+      <sx-slider
+        name="slider-2"
+        sync="slider-2-thumb"
+        per-view="1"
+        gap="10"
+        effect="fade"
       >
-      <sx-slider-next
-        style="
-          position: absolute;
-          top: 50%;
-          transform: translateY(-50%);
-          right: 0;
-        "
-        >Next</sx-slider-next
+        <sx-slider-track>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 100%;">Slide 1</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 100%;">Slide 2</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 100%;">Slide 3</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 100%;">Slide 4</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 100%;">Slide 5</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 100%;">Slide 6</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 100%;">Slide 7</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 100%;">Slide 8</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 100%;">Slide 9</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 100%;">Slide 10</div>
+          </sx-slider-slide>
+        </sx-slider-track>
+        <sx-slider-prev
+          style="
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            left: 0;
+          "
+          >Prev</sx-slider-prev
+        >
+        <sx-slider-next
+          style="
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            right: 0;
+          "
+          >Next</sx-slider-next
+        >
+        <sx-slider-pagination
+          style="
+            display: flex;
+            justify-content: center;
+            position: absolute;
+            bottom: 6px;
+            left: 0;
+            right: 0;
+          "
+        ></sx-slider-pagination>
+      </sx-slider>
+      <sx-slider
+        name="slider-2-thumb"
+        direction="vertical"
+        sync="slider-2"
+        per-view="5"
+        gap="10"
+        snap
+        drag="free"
+        lock-active
+        auto-centered
+        auto-size
+        style=" width: 100px;"
       >
-      <sx-slider-pagination
-        style="
-          display: flex;
-          justify-content: center;
-          position: absolute;
-          bottom: 6px;
-          left: 0;
-          right: 0;
-        "
-      ></sx-slider-pagination>
-    </sx-slider>
-    <sx-slider name="slider-2-thumb" sync="slider-2" per-view="5" gap="10" snap  drag="free" lock-active centered>
-      <sx-slider-track>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%">Slide 1</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%">Slide 2</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%">Slide 3</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%">Slide 4</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%">Slide 5</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%">Slide 6</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%">Slide 7</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%">Slide 8</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%">Slide 9</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide" style="width: 100%">Slide 10</div>
-        </sx-slider-slide>
-      </sx-slider-track>
-    </sx-slider>
+        <sx-slider-track>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 150px;">Slide 1</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 150px;">Slide 2</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 150px;">Slide 3</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 150px;">Slide 4</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 150px;">Slide 5</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 150px;">Slide 6</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 150px;">Slide 7</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 150px;">Slide 8</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 150px;">Slide 9</div>
+          </sx-slider-slide>
+          <sx-slider-slide>
+            <div class="slide" style="width: 100%; height: 150px;">Slide 10</div>
+          </sx-slider-slide>
+        </sx-slider-track>
+      </sx-slider>
+    </div>
     <h3>Link bằng name</h3>
     <sx-slider-prev name="slider-2">Prev</sx-slider-prev>
     <sx-slider-next name="slider-2">Next</sx-slider-next>

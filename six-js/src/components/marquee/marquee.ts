@@ -1,3 +1,4 @@
+// six-js\src\components\marquee\marquee.ts
 import { ticker } from "../../core/ticker";
 import { observe, unobserve } from "../../core/observer";
 

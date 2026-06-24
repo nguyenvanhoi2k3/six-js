@@ -1,3 +1,4 @@
+// six-js\tsconfig.json
 {
   "compilerOptions": {
     "target": "ESNext",
@@ -19,7 +20,7 @@
     "skipLibCheck": true
   },
   "include": [
-    "src/**/*"
+    "src",
   ],
   "exclude": [
     "dist",

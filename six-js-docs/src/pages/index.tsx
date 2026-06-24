@@ -1,4 +1,4 @@
-
+// C:\Users\nguye\OneDrive\Máy tính\six-js-librari\six-js-docs\src\pages\index.tsx
 import type { ReactNode } from "react";
 import clsx from "clsx";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";

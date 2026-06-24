@@ -1,3 +1,4 @@
+// six-js\src\components\slider\sx-slider-progress.ts
 export class SxSliderProgress extends HTMLElement {
   private bar: HTMLDivElement;
 

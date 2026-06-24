@@ -1,3 +1,4 @@
+// six-js\src\components\slider\sx-slider-track.ts
 import { SxSlider } from "./sx-slider";
 import { InertiaPhysics } from "../../core/inertia-physics";
 import { ticker, TickerCallback } from "../../core/ticker";
@@ -100,7 +101,7 @@ export class SxSliderTrack extends HTMLElement {
   }
 
   connectedCallback() {
-    this.sliderCha = this.closest("sx-slider");
+    this.sliderCha = this.closest("sx-slider") as SxSlider | null;
     this.initDragEvents();
 
     this.addEventListener("transitionend", () => {
