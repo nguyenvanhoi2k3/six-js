@@ -1,83 +1,131 @@
-// C:\Users\nguye\OneDrive\Máy tính\six-js-librari\six-js-docs\src\pages\sx-marquee-demo.tsx
 import React from "react";
-import BrowserOnly from "@docusaurus/BrowserOnly";
+import LayoutProvider from "@theme/Layout/Provider";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import CodeBlock from "@theme/CodeBlock";
+
+const marquee1 = `<sx-marquee>
+  <sx-marquee-inner>
+    <sx-marquee-item>
+      <span>🔥 Tin tức mới nhất: Hot sale tháng 11!</span>
+    </sx-marquee-item>
+  </sx-marquee-inner>
+</sx-marquee>`;
+
+const marquee2 = `<sx-marquee direction="right" speed="120">
+  <sx-marquee-inner>
+    <sx-marquee-item>
+      <span>🔥 Tin tức mới nhất: Hot sale tháng 11!</span>
+    </sx-marquee-item>
+  </sx-marquee-inner>
+</sx-marquee>`;
+
+const marquee3 = `<sx-marquee clone="false" speed="200">
+  <sx-marquee-inner>
+    <sx-marquee-item>
+      <span>Khi clone false nội dung sẽ không bị lặp lại</span>
+    </sx-marquee-item>
+  </sx-marquee-inner>
+</sx-marquee>`;
+
+const marquee4 = `<sx-marquee pause-on-hover="false">
+  <sx-marquee-inner>
+    <sx-marquee-item>
+      <img
+        style="width: 300px; height: 200px; object-fit: cover;"
+        src="https://images.pexels.com/photos/11774912/pexels-photo-11774912.jpeg"
+        alt=""
+      />
+    </sx-marquee-item>
+
+    <sx-marquee-item>
+      <img
+        style="width: 280px; height: 250px; object-fit: cover;"
+        src="https://images.pexels.com/photos/10737735/pexels-photo-10737735.jpeg"
+        alt=""
+      />
+    </sx-marquee-item>
+
+    <sx-marquee-item>
+      <img
+        style="width: 300px; height: 200px; object-fit: cover;"
+        src="https://images.pexels.com/photos/5739232/pexels-photo-5739232.jpeg"
+        alt=""
+      />
+    </sx-marquee-item>
+
+    <sx-marquee-item>
+      <img
+        style="width: 220px; height: 220px; object-fit: cover;"
+        src="https://images.pexels.com/photos/36412364/pexels-photo-36412364.jpeg"
+        alt=""
+      />
+    </sx-marquee-item>
+  </sx-marquee-inner>
+</sx-marquee>`;
 
 export default function SxMarqueeDemoPage() {
   return (
-    <BrowserOnly
-      fallback={
-        <div className="flex-center" style={{ padding: "2rem" }}>
-          Đang tải bản demo...
-        </div>
-      }
-    >
-      {() => {
-        return (
-          <>
-            <div style={{ height: "10vh" }} />
-
-            <sx-marquee
-              className="flex-center"
-              style={{
-                border: "1px solid #797878",
-                background: "#ccc",
-                height: "50px",
-              }}
-              direction="right"
-              speed="100"
-              pause-on-hover="false"
-            >
+    <LayoutProvider>
+      <>
+        <h3 className="flex-center m-10">Marquee cơ bản</h3>
+        <Tabs>
+          <TabItem value="demo" label="Demo" default>
+            <sx-marquee>
               <sx-marquee-inner>
                 <sx-marquee-item>
                   <span>🔥 Tin tức mới nhất: Hot sale tháng 11!</span>
                 </sx-marquee-item>
               </sx-marquee-inner>
             </sx-marquee>
+          </TabItem>
+          <TabItem value="html" label="Html">
+            <CodeBlock language="html">{marquee1}</CodeBlock>
+          </TabItem>
+        </Tabs>
 
-            <div style={{ height: "20vh" }} />
+        <div className="h30"></div>
 
-            <sx-marquee
-              className="flex-center"
-              style={{
-                border: "1px solid #797878",
-                background: "#ccc",
-                height: "50px",
-              }}
-              speed="100"
-              pause-on-hover="false"
-            >
+        <h3 className="flex-center m-10">direction + speed</h3>
+        <Tabs>
+          <TabItem value="demo" label="Demo" default>
+            <sx-marquee direction="right" speed="120">
               <sx-marquee-inner>
                 <sx-marquee-item>
-                  <span>item marquee 1</span>
-                </sx-marquee-item>
-                <sx-marquee-item>
-                  <span>item marquee 2</span>
-                </sx-marquee-item>
-                <sx-marquee-item>
-                  <span>item marquee 3</span>
-                </sx-marquee-item>
-                <sx-marquee-item>
-                  <span>item marquee 4</span>
+                  <span>🔥 Tin tức mới nhất: Hot sale tháng 11!</span>
                 </sx-marquee-item>
               </sx-marquee-inner>
             </sx-marquee>
+          </TabItem>
+          <TabItem value="html" label="Html">
+            <CodeBlock language="html">{marquee2}</CodeBlock>
+          </TabItem>
+        </Tabs>
 
-            <div style={{ height: "20vh" }} />
+        <div className="h30"></div>
 
-            <sx-marquee speed="200" clone="false">
+        <h3 className="flex-center m-10">clone="false"</h3>
+        <Tabs>
+          <TabItem value="demo" label="Demo" default>
+            <sx-marquee clone="false" speed="200">
               <sx-marquee-inner>
                 <sx-marquee-item>
-                  <span>
-                    Khi clone="false" nội dung sẽ không được nhân bản và tự chạy
-                    lại khi đi hết
-                  </span>
+                  <span>Khi clone false nội dung sẽ không bị lặp lại</span>
                 </sx-marquee-item>
               </sx-marquee-inner>
             </sx-marquee>
+          </TabItem>
+          <TabItem value="html" label="Html">
+            <CodeBlock language="html">{marquee3}</CodeBlock>
+          </TabItem>
+        </Tabs>
 
-            <div style={{ height: "20vh" }} />
+        <div className="h30"></div>
 
-            <sx-marquee className="flex-center" direction="right" speed="150">
+        <h3 className="flex-center m-10">pause-on-hover="false"</h3>
+        <Tabs>
+          <TabItem value="demo" label="Demo" default>
+            <sx-marquee pause-on-hover="false">
               <sx-marquee-inner>
                 <sx-marquee-item>
                   <img
@@ -125,59 +173,14 @@ export default function SxMarqueeDemoPage() {
                 </sx-marquee-item>
               </sx-marquee-inner>
             </sx-marquee>
+          </TabItem>
+          <TabItem value="html" label="Html">
+            <CodeBlock language="html">{marquee4}</CodeBlock>
+          </TabItem>
+        </Tabs>
 
-            <div style={{ height: "20vh" }} />
-
-            <sx-marquee
-              className="flex-center"
-              speed="100"
-              gap="50"
-              pause-on-hover="false"
-            >
-              <sx-marquee-inner>
-                <sx-marquee-item>
-                  <img
-                    src="https://cdn-icons-png.flaticon.com/128/1384/1384060.png"
-                    alt=""
-                  />
-                </sx-marquee-item>
-                <sx-marquee-item>
-                  <img
-                    src="https://cdn-icons-png.flaticon.com/128/5968/5968764.png"
-                    alt=""
-                  />
-                </sx-marquee-item>
-                <sx-marquee-item>
-                  <img
-                    src="https://cdn-icons-png.flaticon.com/128/15707/15707749.png"
-                    alt=""
-                  />
-                </sx-marquee-item>
-                <sx-marquee-item>
-                  <img
-                    src="https://cdn-icons-png.flaticon.com/128/3116/3116491.png"
-                    alt=""
-                  />
-                </sx-marquee-item>
-                <sx-marquee-item>
-                  <img
-                    src="https://cdn-icons-png.flaticon.com/128/5969/5969020.png"
-                    alt=""
-                  />
-                </sx-marquee-item>
-                <sx-marquee-item>
-                  <img
-                    src="https://cdn-icons-png.flaticon.com/128/5968/5968472.png"
-                    alt=""
-                  />
-                </sx-marquee-item>
-              </sx-marquee-inner>
-            </sx-marquee>
-
-            <div style={{ height: "20vh" }} />
-          </>
-        );
-      }}
-    </BrowserOnly>
+        <div className="h30"></div>
+      </>
+    </LayoutProvider>
   );
 }

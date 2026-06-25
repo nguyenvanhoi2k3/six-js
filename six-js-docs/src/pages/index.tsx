@@ -4,7 +4,7 @@ import clsx from "clsx";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
 import Heading from "@theme/Heading";
-
+import type {} from "@six-js/core";
 import styles from "./index.module.css";
 
 function HomepageHeader() {
@@ -29,8 +29,7 @@ export default function Home(): ReactNode {
       description="Description will go into a meta tag in <head />"
     >
       <HomepageHeader />
-      <main>
-      </main>
+      <main></main>
     </Layout>
   );
 }
