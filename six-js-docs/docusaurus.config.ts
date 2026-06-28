@@ -45,17 +45,11 @@ const config: Config = {
     locales: ["en"],
   },
 
-  //dùng npm
-  // clientModules: [
-  //   require.resolve("@six-js/core"),
-  //   require.resolve("@six-js/core/style.css"),
-  // ],
-
   // dùng local
-  clientModules: [
-    require.resolve("../six-js/dist/six-js.es.js"),
-    require.resolve("../six-js/dist/style.css"),
-  ],
+  // clientModules: [
+  //   require.resolve("../six-js/dist/six-js.es.js"),
+  //   require.resolve("../six-js/dist/style.css"),
+  // ],
 
   presets: [
     [

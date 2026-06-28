@@ -1,7 +1,9 @@
 import React from "react";
 import LayoutProvider from "@theme/Layout/Provider";
+import { useSixJs } from "../../useSixJs";
 
 export default function SxAnimateDemoPage() {
+  useSixJs();
   return (
     <LayoutProvider>
       <>
@@ -114,7 +116,7 @@ export default function SxAnimateDemoPage() {
             REPLAY
           </sx-animate>
         </div>
-        
+
         <div className="flex-center gp-20 pb-20">
           <sx-animate type="fade-up" className="box" group>
             group

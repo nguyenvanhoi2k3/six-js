@@ -3,6 +3,7 @@ import CodeBlock from "@theme/CodeBlock";
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import LayoutProvider from "@theme/Layout/Provider";
+import { useSixJs } from "../../useSixJs";
 import "./style.css";
 
 const sliderHtml = `<sx-slider name="simple-slider">
@@ -34,6 +35,7 @@ sx-slider-slide {
 }`;
 
 export default function SxSliderDemoPage() {
+  useSixJs();
   return (
     <LayoutProvider>
       <div

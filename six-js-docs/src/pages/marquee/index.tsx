@@ -3,6 +3,7 @@ import LayoutProvider from "@theme/Layout/Provider";
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import CodeBlock from "@theme/CodeBlock";
+import { useSixJs } from "../../useSixJs";
 
 const marquee1 = `<sx-marquee>
   <sx-marquee-inner>
@@ -65,6 +66,7 @@ const marquee4 = `<sx-marquee pause-on-hover="false">
 </sx-marquee>`;
 
 export default function SxMarqueeDemoPage() {
+  useSixJs();
   return (
     <LayoutProvider>
       <>
