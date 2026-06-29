@@ -2,7 +2,7 @@
 import { ticker } from "../../core/ticker";
 import { observe, unobserve } from "../../core/observer";
 
-export type MarqueeDirection = "left" | "right";
+export type MarqueeDirection = "left" | "right" | "up" | "down";
 
 export class SxMarquee extends HTMLElement {
   private inner: HTMLElement | null = null;
@@ -32,10 +32,18 @@ export class SxMarquee extends HTMLElement {
   }
 
   get direction(): MarqueeDirection {
-    return this.getAttribute("direction") === "right" ? "right" : "left";
+    const dir = this.getAttribute("direction");
+    if (dir === "right" || dir === "up" || dir === "down") return dir;
+    return "left";
   }
   set direction(val: MarqueeDirection) {
     this.setAttribute("direction", val);
+  }
+
+  // Tiện ích kiểm tra nhanh xem có phải đang cuộn dọc hay không
+  private get isVertical(): boolean {
+    const dir = this.direction;
+    return dir === "up" || dir === "down";
   }
 
   get speed(): number {
@@ -134,7 +142,9 @@ export class SxMarquee extends HTMLElement {
   };
 
   private onMouseLeave = () => {
-    this.isHovered = false;
+    if (this.isHovered) {
+      this.isHovered = false;
+    }
   };
 
   private render() {
@@ -147,9 +157,19 @@ export class SxMarquee extends HTMLElement {
           width: 100%;
           --sx-marquee-gap: 16px;
         }
+        /* Khi cuộn dọc, sx-marquee cần có một chiều cao cố định kế thừa từ lớp cha */
+        :host([direction="up"]), :host([direction="down"]) {
+          height: 100%;
+        }
         .container {
           display: flex;
           overflow: hidden;
+          width: 100%;
+          height: 100%;
+        }
+        :host([direction="up"]) .container, 
+        :host([direction="down"]) .container {
+          flex-direction: column;
         }
         ::slotted(sx-marquee-inner) {
           display: flex !important;
@@ -157,6 +177,11 @@ export class SxMarquee extends HTMLElement {
           white-space: nowrap;
           gap: var(--sx-marquee-gap) !important;
           will-change: transform;
+        }
+        :host([direction="up"]) ::slotted(sx-marquee-inner), 
+        :host([direction="down"]) ::slotted(sx-marquee-inner) {
+          flex-direction: column !important;
+          white-space: normal;
         }
       </style>
       <div class="container"><slot></slot></div>
@@ -183,12 +208,14 @@ export class SxMarquee extends HTMLElement {
 
       this.inner.replaceChildren(...originals);
 
-      const containerW = this.offsetWidth;
-      const contentW = this.inner.offsetWidth;
+      const isVert = this.isVertical;
+      // Đo đạc kích thước linh hoạt dựa vào trục cuộn
+      const containerSize = isVert ? this.offsetHeight : this.offsetWidth;
+      const contentSize = isVert ? this.inner.offsetHeight : this.inner.offsetWidth;
 
-      if (this.clone && contentW > 0 && containerW > 0) {
+      if (this.clone && contentSize > 0 && containerSize > 0) {
         const clonesNeeded =
-          contentW < containerW ? Math.ceil((containerW * 2) / contentW) : 2;
+          contentSize < containerSize ? Math.ceil((containerSize * 2) / contentSize) : 2;
 
         const fragment = document.createDocumentFragment();
         for (let i = 1; i < clonesNeeded; i++) {
@@ -224,8 +251,10 @@ export class SxMarquee extends HTMLElement {
     }
 
     let total = 0;
+    const isVert = this.isVertical;
     for (let i = 0; i < originals.length; i++) {
-      total += originals[i].offsetWidth;
+      // Đổi hàm đo đạc kích thước theo trục dọc/ngang
+      total += isVert ? originals[i].offsetHeight : originals[i].offsetWidth;
     }
 
     const gap = parseFloat(getComputedStyle(this.inner).gap) || 0;
@@ -239,8 +268,13 @@ export class SxMarquee extends HTMLElement {
 
     const deltaSec = deltaMs / 1000;
     const dist = this.speed * deltaSec;
+    
+    const dir = this.direction;
+    const isVert = this.isVertical;
+    const containerSize = isVert ? this.offsetHeight : this.offsetWidth;
 
-    if (this.direction === "left") {
+    // Hướng "up" giảm offset giống hệt "left"
+    if (dir === "left" || dir === "up") {
       this.offset -= dist;
 
       if (this.clone) {
@@ -249,10 +283,12 @@ export class SxMarquee extends HTMLElement {
         }
       } else {
         if (this.offset <= -this.cachedResetBounds) {
-          this.offset = this.offsetWidth;
+          this.offset = containerSize;
         }
       }
-    } else {
+    } 
+    // Hướng "down" tăng offset giống hệt "right"
+    else {
       this.offset += dist;
 
       if (this.clone) {
@@ -260,7 +296,7 @@ export class SxMarquee extends HTMLElement {
           this.offset -= this.cachedResetBounds;
         }
       } else {
-        if (this.offset >= this.offsetWidth) {
+        if (this.offset >= containerSize) {
           this.offset = -this.cachedResetBounds;
         }
       }
@@ -269,9 +305,15 @@ export class SxMarquee extends HTMLElement {
     this.applyTransform(this.offset);
   };
 
-  private applyTransform(x: number) {
+  private applyTransform(val: number) {
     if (this.inner) {
-      this.inner.style.transform = `translate3d(${x}px,0,0)`;
+      if (this.isVertical) {
+        // Cuộn dọc: dùng trục Y
+        this.inner.style.transform = `translate3d(0,${val}px,0)`;
+      } else {
+        // Cuộn ngang: dùng trục X
+        this.inner.style.transform = `translate3d(${val}px,0,0)`;
+      }
     }
   }
 }
@@ -284,6 +326,7 @@ export class SxMarqueeItem extends HTMLElement {
   }
 }
 
+// Giữ nguyên khai báo Custom Elements...
 if (!customElements.get("sx-marquee")) {
   customElements.define("sx-marquee", SxMarquee);
 }

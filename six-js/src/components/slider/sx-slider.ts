@@ -191,11 +191,15 @@ export class SxSlider extends HTMLElement {
     }
 
     this.resizeObserver = new ResizeObserver(() => {
-      const currentSize = this.getBoundingClientRect()[this.sizeDim];
-      if (currentSize !== this.lastContainerSize) {
-        this.lastContainerSize = currentSize;
-        this.updateLayout();
-      }
+      window.requestAnimationFrame(() => {
+        if (!this.isConnected) return;
+
+        const currentSize = this.getBoundingClientRect()[this.sizeDim];
+        if (currentSize !== this.lastContainerSize) {
+          this.lastContainerSize = currentSize;
+          this.updateLayout();
+        }
+      });
     });
 
     this.resizeObserver.observe(this);
@@ -389,7 +393,7 @@ export class SxSlider extends HTMLElement {
     if (!this.track) return;
 
     this.style.setProperty("--sx-speed", `${this.options.speed}ms`);
-    
+
     const containerSize = this.getBoundingClientRect()[this.sizeDim];
     const slides = Array.from(this.track.children) as HTMLElement[];
     if (slides.length === 0) return;

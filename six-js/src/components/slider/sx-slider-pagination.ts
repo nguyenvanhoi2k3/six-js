@@ -58,6 +58,7 @@ export class SxSliderPagination extends HTMLElement {
     const isDynamic = effect === "dynamic";
     const isSnake = effect === "snake";
     const isNumber = effect === "number";
+    const isFraction = effect === "fraction"; // <-- Thêm khai báo fraction
 
     const signature = bulletIndexes.join(",") + `_effect:${effect}`;
     if (this.renderedSignature === signature) return;
@@ -66,34 +67,49 @@ export class SxSliderPagination extends HTMLElement {
     this.innerHTML = "";
     this.snakeBar = null;
 
-    // --- CASE 1: SNAKE EFFECT ---
-    if (isSnake) {
+    // --- CASE 1: FRACTION EFFECT ---
+    if (isFraction) {
       this.innerContainer = null;
       this.style.width = "";
 
-      // Đảm bảo container giữ relative để absolute bar chạy đúng tọa độ
+      const currentSpan = document.createElement("span");
+      currentSpan.className = "sx-slider-pagination-current";
+      currentSpan.textContent = "1";
+
+      const separator = document.createTextNode(" / ");
+
+      const totalSpan = document.createElement("span");
+      totalSpan.className = "sx-slider-pagination-total";
+      totalSpan.textContent = bulletIndexes.length.toString();
+
+      this.appendChild(currentSpan);
+      this.appendChild(separator);
+      this.appendChild(totalSpan);
+      return;
+    }
+
+    // --- CASE 2: SNAKE EFFECT ---
+    if (isSnake) {
+      this.innerContainer = null;
+      this.style.width = "";
       this.style.position = "relative";
 
-      // 1. Render toàn bộ các bullet TRƯỚC
       bulletIndexes.forEach((targetIndex, i) => {
         this.appendChild(this.createBulletDOM(targetIndex, i, false));
       });
 
-      // 2. Render snakeBar SAU CÙNG để nó có thứ tự DOM cao hơn, đè lên các bullet
       this.snakeBar = document.createElement("div");
       this.snakeBar.className = "sx-slider-pagination-bar";
-
-      // Khóa cứng các style hiển thị đè và chuyển động
       this.snakeBar.style.position = "absolute";
       this.snakeBar.style.zIndex = "10";
-      // Đồng bộ transition trùng với tốc độ setTimeout (150ms) ở hàm updateActive
       this.snakeBar.style.transition =
         "width 150ms ease-out, left 150ms ease-out";
 
       this.appendChild(this.snakeBar);
       return;
     }
-    // --- CASE 2: DYNAMIC EFFECT ---
+
+    // --- CASE 3: DYNAMIC EFFECT ---
     if (isDynamic) {
       this.innerContainer = document.createElement("div");
       this.innerContainer.className = "sx-slider-pagination-inner";
@@ -113,12 +129,11 @@ export class SxSliderPagination extends HTMLElement {
       return;
     }
 
-    // --- CASE 3 & 4: NUMBER EFFECT Hoặc DEFAULT ---
+    // --- CASE 4: NUMBER EFFECT Hoặc DEFAULT ---
     this.innerContainer = null;
     this.style.width = "";
 
     bulletIndexes.forEach((targetIndex, i) => {
-      // Nếu là hiệu ứng number thì truyền flag appendNumber = true vào để hiển thị số
       this.appendChild(this.createBulletDOM(targetIndex, i, isNumber));
     });
   }
@@ -144,6 +159,17 @@ export class SxSliderPagination extends HTMLElement {
 
   public updateActive(activeIndex: number) {
     const effect = this.getAttribute("effect");
+    const isFraction = effect === "fraction"; // <-- Thêm khai báo fraction
+
+    // Xử lý hiệu ứng FRACTION trước tiên vì nó không dùng DOM class `.sx-slider-pagination-bullet`
+    if (isFraction) {
+      const currentSpan = this.querySelector(".sx-slider-pagination-current");
+      if (currentSpan) {
+        currentSpan.textContent = (activeIndex + 1).toString();
+      }
+      return;
+    }
+
     const isDynamic = effect === "dynamic";
     const isSnake = effect === "snake";
 

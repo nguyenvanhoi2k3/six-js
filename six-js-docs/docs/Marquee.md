@@ -23,7 +23,7 @@ Hỗ trợ tạo hiệu ứng chữ hoặc nội dung chạy liên tục (vô t�
 <br />
 | Attribute      | Type             | Description                 | Default |
 | -------------- | ---------------- | ---------------------- | ------- |
-| direction      | string           | left \| right          | left    |
+| direction      | string           | left \| right \| up \| down. `up` và `down` cần set height cho marquee          | left    |
 | speed          | number           |                    | 50      |
 | pause-on-hover | boolean          |          | true    |
 | gap            | number \| string | Ví dụ: `"20"`, `"1rem"` | 16      |

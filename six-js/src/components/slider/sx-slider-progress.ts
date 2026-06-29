@@ -4,9 +4,16 @@ export class SxSliderProgress extends HTMLElement {
 
   constructor() {
     super();
+    // It's perfectly fine to create the element in memory here
     this.bar = document.createElement("div");
     this.bar.className = "sx-slider-progress-bar";
-    this.appendChild(this.bar);
+  }
+
+  // ✅ Add the element to the DOM only when the component connects
+  connectedCallback() {
+    if (!this.contains(this.bar)) {
+      this.appendChild(this.bar);
+    }
   }
 
   public update(ratio: number, direction: "horizontal" | "vertical", transition: string) {

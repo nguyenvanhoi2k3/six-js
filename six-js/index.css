@@ -290,6 +290,15 @@ sx-slider-progress[direction="vertical"] {
   will-change: transform;
 }
 
+/* pagination fraction */
+sx-slider-pagination[effect="fraction"] {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+  gap: 4px;
+}
+
 /* CSS cho Slider Thumbnail */
 sx-slider[name="slider-2-thumb"] sx-slider-slide {
   opacity: 0.4; /* Mặc định làm mờ tất cả */

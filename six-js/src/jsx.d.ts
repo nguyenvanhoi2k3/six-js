@@ -7,11 +7,12 @@ interface SxAnimateAttrs {
   duration?: number | string;
   delay?: number | string;
   group?: boolean | "";
+  replay?: boolean | "";
 }
 
 /* ---------- sx-marquee ---------- */
 interface SxMarqueeAttrs {
-  direction?: "left" | "right";
+  direction?: "left" | "right" | "up" | "down";
   speed?: number | string;
   "pause-on-hover"?: boolean | string;
   gap?: number | string;

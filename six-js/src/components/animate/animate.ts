@@ -1,5 +1,6 @@
 // six-js\src\components\animate\animate.ts
 import { EASINGS, type EasingType } from "../../easing/easing";
+import { observe, unobserve } from "../../core/observer";
 
 type AnimateType =
   | "fade"
@@ -34,41 +35,12 @@ export class SxAnimate extends HTMLElement {
   static groupQueue = new Set<SxAnimate>();
   static isProcessingGroup = false;
 
-  static observer = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        const visiblePixels =
-          entry.intersectionRect.width * entry.intersectionRect.height;
-
-        if (visiblePixels < 1) {
-          continue;
-        }
-
-        const el = entry.target as SxAnimate;
-
-        this.observer.unobserve(el);
-
-        if (el.isGroup) {
-          this.groupQueue.add(el);
-        } else {
-          el.play();
-        }
-      }
-
-      this.scheduleGroup();
-    },
-    {
-      threshold: [0],
-      rootMargin: "-1px 0px -1px 0px",
-    },
-  );
-
   private static scheduleGroup() {
     if (this.isProcessingGroup || !this.groupQueue.size) return;
 
     this.isProcessingGroup = true;
 
-    requestAnimationFrame(() => {
+    queueMicrotask(() => {
       this.handleGroup([...this.groupQueue]);
       this.groupQueue.clear();
       this.isProcessingGroup = false;
@@ -77,7 +49,6 @@ export class SxAnimate extends HTMLElement {
 
   static handleGroup(items: SxAnimate[]) {
     items.sort((a, b) => a.order - b.order);
-
     items.forEach((el, index) => {
       el.play(index * 120);
     });
@@ -97,13 +68,36 @@ export class SxAnimate extends HTMLElement {
     }
 
     this.setInitialState();
-    SxAnimate.observer.observe(this);
+
+    observe(this, {
+      enter: () => this.handleEnter(),
+      leave: () => this.handleLeave(),
+    });
   }
 
   disconnectedCallback() {
     this.animation?.cancel();
-    SxAnimate.observer.unobserve(this);
+    unobserve(this);
     SxAnimate.groupQueue.delete(this);
+  }
+
+  private handleEnter() {
+    if (!this.hasAttribute("replay")) {
+      unobserve(this);
+    }
+
+    if (this.isGroup) {
+      SxAnimate.groupQueue.add(this);
+      SxAnimate.scheduleGroup();
+    } else {
+      this.play();
+    }
+  }
+
+  private handleLeave() {
+    if (this.hasAttribute("replay")) {
+      this.reset();
+    }
   }
 
   private getOptions(): AnimateOptions {
@@ -118,9 +112,7 @@ export class SxAnimate extends HTMLElement {
     };
 
     const type = (this.getAttribute("type") as AnimateType) ?? "fade-up";
-
     const easing = this.getAttribute("easing") as EasingType | null;
-
     const [x, y] = offsets[type] ?? offsets["fade-up"];
 
     return {
@@ -134,10 +126,14 @@ export class SxAnimate extends HTMLElement {
   }
 
   private setInitialState() {
-    const { x, y } = this.options;
-
     this.style.opacity = "0";
-    this.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    this.style.transform = "none";
+  }
+
+  reset() {
+    this.animation?.cancel();
+    this.animation = undefined;
+    this.setInitialState();
   }
 
   play(extraDelay = 0) {
@@ -160,7 +156,7 @@ export class SxAnimate extends HTMLElement {
         duration,
         delay: delay + extraDelay,
         easing,
-        fill: "forwards",
+        fill: "both",
       },
     );
 

@@ -4,6 +4,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import CodeBlock from "@theme/CodeBlock";
 import { useSixJs } from "../../useSixJs";
+import "./style.css";
 
 const marquee1 = `<sx-marquee>
   <sx-marquee-inner>
@@ -65,12 +66,75 @@ const marquee4 = `<sx-marquee pause-on-hover="false">
   </sx-marquee-inner>
 </sx-marquee>`;
 
+const marqueeUp = `<sx-marquee
+  direction="up"
+  pause-on-hover="false"
+  speed="70"
+  style="height: 400px; border: 1px solid #ddd;">
+  <sx-marquee-inner>
+    <sx-marquee-item>
+      <div class="card">
+        <div class="card-header">
+          <img
+            class="card-avt"
+            src="https://i.pravatar.cc/150?img=32"
+            alt=""
+          />
+          <div class="card-name">Emily Johnson</div>
+        </div>
+        <div>
+          I'm thoroughly impressed with Marquee's performance and
+          ease of use. It made implementing complex scrolling texts
+          a breeze, and the support for TypeScript is top-notch.
+        </div>
+      </div>
+    </sx-marquee-item>
+    <sx-marquee-item>
+      <div class="card">
+        <div class="card-header">
+          <img
+            class="card-avt"
+            src="https://i.pravatar.cc/150?img=31"
+            alt=""
+          />
+          <div class="card-name">Dan Gale</div>
+        </div>
+        <div>
+          I'm thoroughly impressed with Marquee's performance and
+          ease of use. It made implementing complex scrolling texts
+          a breeze, and the support for TypeScript is top-notch.
+        </div>
+      </div>
+    </sx-marquee-item>
+  </sx-marquee-inner>
+</sx-marquee>`;
+
+const marqueeUpCss = `.card {
+  width: 400px;
+  background: #ccc;
+  padding: 2rem;
+  margin: 0 auto;
+}
+
+.card-header {
+  display: flex;
+  gap: 10px;
+  padding-bottom: 10px;
+}
+
+.card-avt {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+}
+`;
+
 export default function SxMarqueeDemoPage() {
   useSixJs();
   return (
     <LayoutProvider>
       <>
-        <h3 className="flex-center m-10">Marquee cơ bản</h3>
+        <h3 className="flex-center m-10">Default</h3>
         <Tabs>
           <TabItem value="demo" label="Demo" default>
             <sx-marquee>
@@ -82,7 +146,7 @@ export default function SxMarqueeDemoPage() {
             </sx-marquee>
           </TabItem>
           <TabItem value="html" label="Html">
-            <CodeBlock language="html">{marquee1}</CodeBlock>
+            <CodeBlock showLineNumbers language="html">{marquee1}</CodeBlock>
           </TabItem>
         </Tabs>
 
@@ -100,7 +164,7 @@ export default function SxMarqueeDemoPage() {
             </sx-marquee>
           </TabItem>
           <TabItem value="html" label="Html">
-            <CodeBlock language="html">{marquee2}</CodeBlock>
+            <CodeBlock showLineNumbers language="html">{marquee2}</CodeBlock>
           </TabItem>
         </Tabs>
 
@@ -118,7 +182,7 @@ export default function SxMarqueeDemoPage() {
             </sx-marquee>
           </TabItem>
           <TabItem value="html" label="Html">
-            <CodeBlock language="html">{marquee3}</CodeBlock>
+            <CodeBlock showLineNumbers language="html">{marquee3}</CodeBlock>
           </TabItem>
         </Tabs>
 
@@ -177,7 +241,68 @@ export default function SxMarqueeDemoPage() {
             </sx-marquee>
           </TabItem>
           <TabItem value="html" label="Html">
-            <CodeBlock language="html">{marquee4}</CodeBlock>
+            <CodeBlock showLineNumbers language="html">{marquee4}</CodeBlock>
+          </TabItem>
+        </Tabs>
+
+        <div className="h30"></div>
+
+        {/* ================= NEW DEMO: DIRECTION UP ================= */}
+        <h3 className="flex-center m-10">direction="up" (Cuộn từ dưới lên)</h3>
+        <Tabs>
+          <TabItem value="demo" label="Demo" default>
+            <sx-marquee
+              direction="up"
+              pause-on-hover="false"
+              speed="70"
+              style={{
+                height: "400px",
+                border: "1px solid #ddd",
+              }}
+            >
+              <sx-marquee-inner>
+                <sx-marquee-item>
+                  <div className="card">
+                    <div className="card-header">
+                      <img
+                        className="card-avt"
+                        src="https://i.pravatar.cc/150?img=32"
+                        alt=""
+                      />
+                      <div className="card-name">Emily Johnson</div>
+                    </div>
+                    <div>
+                      I'm thoroughly impressed with Marquee's performance and
+                      ease of use. It made implementing complex scrolling texts
+                      a breeze, and the support for TypeScript is top-notch.
+                    </div>
+                  </div>
+                </sx-marquee-item>
+                <sx-marquee-item>
+                  <div className="card">
+                    <div className="card-header">
+                      <img
+                        className="card-avt"
+                        src="https://i.pravatar.cc/150?img=31"
+                        alt=""
+                      />
+                      <div className="card-name">Dan Gale</div>
+                    </div>
+                    <div>
+                      I'm thoroughly impressed with Marquee's performance and
+                      ease of use. It made implementing complex scrolling texts
+                      a breeze, and the support for TypeScript is top-notch.
+                    </div>
+                  </div>
+                </sx-marquee-item>
+              </sx-marquee-inner>
+            </sx-marquee>
+          </TabItem>
+          <TabItem value="html" label="Html">
+            <CodeBlock showLineNumbers language="html">{marqueeUp}</CodeBlock>
+          </TabItem>
+          <TabItem value="css" label="Css">
+            <CodeBlock showLineNumbers language="css">{marqueeUpCss}</CodeBlock>
           </TabItem>
         </Tabs>
 

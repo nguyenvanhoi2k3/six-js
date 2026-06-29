@@ -1,0 +1,35 @@
+#demo-perview {
+  .slide {
+    width: 100%;
+    background: #e4e4e4;
+    height: 500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+  }
+  
+  sx-slider-pagination {
+    display: flex;
+    gap: 5px;
+  }
+
+  .sx-slider-pagination-bullet {
+    width: 10px;
+    height: 10px;
+    background: #e4e4e4;
+    border: 1px solid #000;
+    display: block;
+    border-radius: 50%;
+    transition: 0.3s;
+    cursor: pointer;
+  }
+
+  .sx-slider-pagination-bullet:hover {
+    background-color: #000;
+  }
+
+  .sx-slider-pagination-bullet[sx-bullet-active] {
+    background-color: #000;
+  }
+}

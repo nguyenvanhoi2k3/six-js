@@ -50,12 +50,11 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
     <sx-slider-prev>Prev</sx-slider-prev>
     <sx-slider-next>Next</sx-slider-next>
     <sx-slider-pagination>
-      <!-- các thẻ dot (tượng trưng cho từng slide) sẽ được render,
+      <!-- các thẻ dot (tượng trưng cho từng slide) sẽ được render, 
        dot được active sẽ có attr riêng để tự do css -->
     </sx-slider-pagination>
     <sx-slider-progress>
-      <!-- render thanh tiến trình cơ bản để tự do css,
-       thanh tiến trình này phải phục vụ cho cả chức năng draggable -->
+      <!-- render thanh tiến trình, thanh tiến trình này phục vụ cho cả chức năng draggable -->
     </sx-slider-progress>
   </sx-slider>
 ```
@@ -111,7 +110,7 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
 |Attribute|Type|Description|Default|
 |---|---|---|---|
 |name|string|Dùng trong trường hợp pagination nằm ngoài slider|null|
-|effect|string|Có 3 kiểu: dynamic \| snake \| number|Default sẽ render ra các thẻ span rỗng để css|
+|effect|string|Có 4 dạng: dynamic \| snake \| number \| fraction|Default sẽ render ra các thẻ span rỗng để css|
 <br />
 :::note
 effect hỗ trợ render html cần thiết, vẫn cần css để có hiệu ứng, xem 👉 **[Tại đây](/slider)**

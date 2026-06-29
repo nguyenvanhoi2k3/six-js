@@ -1,0 +1,15 @@
+#demo-vertical-slider {
+  .vertical-slider {
+    height: 500px;
+  }
+  
+  .slide {
+    width: 100%;
+    background: #e4e4e4;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+  }
+}

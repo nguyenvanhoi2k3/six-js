@@ -1,87 +1,119 @@
 import React from "react";
-import CodeBlock from "@theme/CodeBlock";
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import LayoutProvider from "@theme/Layout/Provider";
 import { useSixJs } from "../../useSixJs";
-import "./style.css";
 
-const sliderHtml = `<sx-slider name="simple-slider">
-  <sx-slider-track>
-    <sx-slider-slide>Slide 1</sx-slider-slide>
-    <sx-slider-slide>Slide 2</sx-slider-slide>
-    <sx-slider-slide>Slide 3</sx-slider-slide>
-    <sx-slider-slide>Slide 4</sx-slider-slide>
-  </sx-slider-track>
-</sx-slider>`;
-
-const sliderCss = `/* Cấu hình style cho Slider */
-sx-slider {
-  display: block;
-  width: 100%;
-  height: 250px;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-sx-slider-slide {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #3578e5;
-  color: white;
-  font-size: 1.5rem;
-  font-weight: bold;
-}`;
+import DefaultDemo from "./default";
+import PaginationDemo from "./pagination";
+import DynamicPaginationDemo from "./dynamic-pagination";
+import ProgressPaginationDemo from "./progress-pagination";
+import NumberPaginationDemo from "./number-pagination";
+import FractionPaginationDemo from "./fraction-pagination";
+import VerticalSliderDemo from "./vertical";
+import PerviewDemo from "./perview";
 
 export default function SxSliderDemoPage() {
   useSixJs();
+
   return (
     <LayoutProvider>
-      <div
-        style={{
-          padding: "3rem 2rem",
-          maxWidth: "900px",
-          margin: "0 auto",
-          minHeight: "100vh",
-          backgroundColor: "var(--ifm-background-color)",
-          color: "var(--ifm-font-color-base)",
-        }}
-      >
-        <Tabs>
-          <TabItem value="demo" label="🎮 Bản Demo" default>
-            <div
-              style={{
-                border: "1px solid var(--ifm-contents-border-color)",
-                borderRadius: "8px",
-                padding: "2.5rem",
-                background: "var(--ifm-background-color)",
-                marginTop: "1rem",
-              }}
-            >
-              <sx-slider name="simple-slider">
-                <sx-slider-track>
-                  <sx-slider-slide>Slide 1</sx-slider-slide>
-                  <sx-slider-slide>Slide 2</sx-slider-slide>
-                  <sx-slider-slide>Slide 3</sx-slider-slide>
-                  <sx-slider-slide>Slide 4</sx-slider-slide>
-                </sx-slider-track>
-              </sx-slider>
-            </div>
-          </TabItem>
+      <div style={{ display: "flex", alignItems: "flex-start" }}>
+        <aside
+          style={{
+            position: "sticky",
+            top: "0",
+            width: "250px",
+            padding: "1rem",
+            borderRight: "1px solid #d5d5d5",
+            height: "100vh",
+            overflowY: "auto",
+          }}
+        >
+          <h2 style={{ marginBottom: "1rem" }}>SLIDER</h2>
+          <ul
+            style={{
+              listStyle: "none",
+              padding: 0,
+              margin: 0,
+              fontSize: "15px",
+            }}
+          >
+            <li>
+              <a
+                href="#demo-default"
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                Default
+              </a>
+            </li>
+            <li>
+              <a
+                href="#demo-pagination"
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                Pagination
+              </a>
+            </li>
+            <li>
+              <a
+                href="#demo-dynamic-pagination"
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                Dynamic pagination
+              </a>
+            </li>
+            <li>
+              <a
+                href="#demo-progress-pagination"
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                Progress pagination
+              </a>
+            </li>
+            <li>
+              <a
+                href="#demo-number-pagination"
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                Number pagination
+              </a>
+            </li>
+            <li>
+              <a
+                href="#demo-fraction-pagination"
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                Fraction pagination
+              </a>
+            </li>
+            <li>
+              <a
+                href="#demo-vertical-slider"
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                Vertical slider
+              </a>
+            </li>
+            <li>
+              <a
+                href="#demo-perview"
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                Slide per view
+              </a>
+            </li>
+          </ul>
+        </aside>
 
-          <TabItem value="html" label="📄 Code HTML">
-            <div style={{ marginTop: "1rem" }}>
-              <CodeBlock language="html">{sliderHtml}</CodeBlock>
-            </div>
-          </TabItem>
-
-          <TabItem value="css" label="🎨 Code CSS">
-            <div style={{ marginTop: "1rem" }}>
-              <CodeBlock language="css">{sliderCss}</CodeBlock>
-            </div>
-          </TabItem>
-        </Tabs>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <DefaultDemo />
+          <PaginationDemo />
+          <DynamicPaginationDemo />
+          <ProgressPaginationDemo />
+          <NumberPaginationDemo />
+          <FractionPaginationDemo />
+          <VerticalSliderDemo />
+          <PerviewDemo />
+        </div>
       </div>
     </LayoutProvider>
   );
