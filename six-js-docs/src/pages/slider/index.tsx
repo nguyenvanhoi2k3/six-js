@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import LayoutProvider from "@theme/Layout/Provider";
 import { useSixJs } from "../../useSixJs";
 import "@six-js/core/style.css";
@@ -32,6 +32,39 @@ import ThumnailDemo from "../../components/slider-demos/thumbnail";
 export default function SxSliderDemoPage() {
   useSixJs();
 
+  useEffect(() => {
+    const sections = document.querySelectorAll('div[id^="demo-"]');
+    // Tìm tất cả các thẻ a trên sidebar
+    const navLinks = document.querySelectorAll('aside a[href^="#demo-"]');
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            navLinks.forEach((link) =>
+              link.classList.remove("active-sidebar-link"),
+            );
+
+            const activeLink = document.querySelector(
+              `aside a[href="#${entry.target.id}"]`,
+            );
+            if (activeLink) {
+              activeLink.classList.add("active-sidebar-link");
+            }
+          }
+        });
+      },
+      {
+        root: null,
+        rootMargin: "0px 0px -50% 0px",
+        threshold: 0.1,
+      },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+
+    return () => observer.disconnect();
+  }, []);
   return (
     <LayoutProvider>
       <ScrollControllerProvider>
@@ -58,6 +91,7 @@ export default function SxSliderDemoPage() {
             >
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-default"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -66,6 +100,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-pagination"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -74,6 +109,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-dynamic-pagination"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -82,6 +118,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-progress-pagination"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -90,6 +127,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-number-pagination"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -98,6 +136,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-fraction-pagination"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -106,6 +145,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-vertical-slider"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -114,6 +154,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-perview"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -122,6 +163,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-per-move"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -130,6 +172,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-auto-size"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -138,6 +181,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-centered-slider"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -146,6 +190,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-auto-centered"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -154,6 +199,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-center-if-short"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -162,6 +208,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-grab-cursor"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -170,6 +217,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-drag-free"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -178,6 +226,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-snap"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -186,6 +235,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-loop"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -194,6 +244,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-auto-play"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -202,6 +253,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-auto-height"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -210,6 +262,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-fade"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -218,6 +271,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-right-padding"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -226,6 +280,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-left-padding"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -234,6 +289,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-breakpoints"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
@@ -242,6 +298,7 @@ export default function SxSliderDemoPage() {
               </li>
               <li>
                 <a
+                  className="sidebar-link"
                   href="#demo-thumbnail"
                   style={{ textDecoration: "none", color: "inherit" }}
                 >

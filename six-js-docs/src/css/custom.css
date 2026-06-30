@@ -65,3 +65,25 @@ body {
 .tabs__item {
   padding: 5px 10px;
 }
+
+/* Style mặc định cho các link trên sidebar */
+.sidebar-link {
+  display: block;
+  padding: 2px 6px;
+  color: #666 !important;
+  border-left: 3px solid transparent; 
+  transition: all 0.2s ease-in-out;
+}
+
+.sidebar-link:hover {
+  color: #000 !important;
+  background-color: #f5f6f8;
+  border-radius: 0 4px 4px 0;
+}
+
+.active-sidebar-link {
+  color: #78A5EE !important;
+  font-weight: 600;
+  border-left: 3px solid #78A5EE;
+  border-radius: 0 4px 4px 0;
+}
