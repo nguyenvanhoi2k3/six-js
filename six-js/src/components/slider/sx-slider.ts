@@ -384,6 +384,17 @@ export class SxSlider extends HTMLElement {
     }
   }
 
+  private destroyLoopClones() {
+    if (!this.track) return;
+
+    // Tìm và xóa toàn bộ các slide giả (clone)
+    const existingClones = this.track.querySelectorAll("[data-clone]");
+    existingClones.forEach((clone) => clone.remove());
+
+    // Reset lại biến đếm
+    this.originalSlidesCount = 0;
+  }
+
   private formatUnit(val: any): string {
     if (val === null || val === undefined || val === "") return "0px";
     return isNaN(Number(val)) ? String(val) : `${val}px`;
@@ -395,7 +406,7 @@ export class SxSlider extends HTMLElement {
     this.style.setProperty("--sx-speed", `${this.options.speed}ms`);
 
     const containerSize = this.getBoundingClientRect()[this.sizeDim];
-    const slides = Array.from(this.track.children) as HTMLElement[];
+    let slides = Array.from(this.track.children) as HTMLElement[];
     if (slides.length === 0) return;
 
     if (!this.options.loop) {
@@ -435,6 +446,15 @@ export class SxSlider extends HTMLElement {
 
     if (this.options.loop && this.originalSlidesCount === 0) {
       this.initLoopClones();
+      slides = Array.from(this.track.children) as HTMLElement[];
+    } else if (!this.options.loop && this.originalSlidesCount > 0) {
+      this.destroyLoopClones();
+      slides = Array.from(this.track.children) as HTMLElement[];
+
+      this.currentIndex = Math.max(
+        0,
+        Math.min(this.currentIndex, slides.length - 1),
+      );
     }
 
     const cloneCount = this.track.querySelectorAll("[data-clone]").length;
@@ -742,14 +762,19 @@ export class SxSlider extends HTMLElement {
 
     this.updatePagination(bulletIndexes, activeBulletIndex);
 
-    if (
+   if (
       this.options.sync &&
       (this.isClickRouting || !this.options.lockActive)
     ) {
-      const linkedSlider = sliderRegistry.get(this.options.sync) as SxSlider;
-      if (linkedSlider) {
-        linkedSlider.syncFromController(targetActiveReal);
-      }
+      // Tách chuỗi sync bằng dấu phẩy và xóa khoảng trắng thừa
+      const syncTargets = this.options.sync.split(",").map(s => s.trim());
+      
+      syncTargets.forEach(targetName => {
+        const linkedSlider = sliderRegistry.get(targetName) as SxSlider;
+        if (linkedSlider) {
+          linkedSlider.syncFromController(targetActiveReal);
+        }
+      });
     }
 
     if (isInitial && tempStyle) {
@@ -818,13 +843,12 @@ export class SxSlider extends HTMLElement {
     if (!this.track) return;
 
     if (!this.options.autoHeight) {
-      this.style.height = "";
-      this.style.transition = "";
+      this.track.style.height = "";
       this.track.style.alignItems = "";
       return;
     }
 
-    this.track.style.alignItems = "center";
+    this.track.style.alignItems = "flex-start";
 
     const slides = Array.from(this.track.children) as HTMLElement[];
     if (slides.length === 0) return;
@@ -884,8 +908,7 @@ export class SxSlider extends HTMLElement {
     }
 
     if (maxHeight > 0) {
-      this.style.transition = `height ${this.options.speed}ms ease-out`;
-      this.style.height = `${maxHeight}px`;
+      this.track.style.height = `${maxHeight}px`;
     }
   }
 

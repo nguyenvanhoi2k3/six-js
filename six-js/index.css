@@ -300,18 +300,34 @@ sx-slider-pagination[effect="fraction"] {
 }
 
 /* CSS cho Slider Thumbnail */
-sx-slider[name="slider-2-thumb"] sx-slider-slide {
+sx-slider[name="slider-thumb-v"] sx-slider-slide {
   opacity: 0.4; /* Mặc định làm mờ tất cả */
   transition: opacity 0.3s ease; /* Hiệu ứng mờ/sáng mượt mà */
   cursor: pointer; /* Đổi trỏ chuột thành hình bàn tay để báo hiệu có thể click */
 }
 
 /* Slide nào được gắn data-active thì sẽ sáng lên 100% */
-sx-slider[name="slider-2-thumb"] sx-slider-slide[sx-slide-active] {
+sx-slider[name="slider-thumb-v"] sx-slider-slide[sx-slide-active] {
   opacity: 1;
 }
 
 /* Thêm hiệu ứng hover (tuỳ chọn): sáng lên một chút khi đưa chuột vào */
-sx-slider[name="slider-2-thumb"] sx-slider-slide:hover {
+sx-slider[name="slider-thumb-v"] sx-slider-slide:hover {
+  opacity: 0.8;
+}
+
+sx-slider[name="slider-thumb-h"] sx-slider-slide {
+  opacity: 0.4; /* Mặc định làm mờ tất cả */
+  transition: opacity 0.3s ease; /* Hiệu ứng mờ/sáng mượt mà */
+  cursor: pointer; /* Đổi trỏ chuột thành hình bàn tay để báo hiệu có thể click */
+}
+
+/* Slide nào được gắn data-active thì sẽ sáng lên 100% */
+sx-slider[name="slider-thumb-h"] sx-slider-slide[sx-slide-active] {
+  opacity: 1;
+}
+
+/* Thêm hiệu ứng hover (tuỳ chọn): sáng lên một chút khi đưa chuột vào */
+sx-slider[name="slider-thumb-h"] sx-slider-slide:hover {
   opacity: 0.8;
 }

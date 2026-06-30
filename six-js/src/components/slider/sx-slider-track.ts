@@ -298,7 +298,7 @@ export class SxSliderTrack extends HTMLElement {
 
     if (options.drag === "free") {
       this.prevTranslate = this.currentTranslate;
-      const flickPower = 600;
+      const flickPower = 400;
       let destination = this.currentTranslate + this.velocity * flickPower;
 
       if (options.snap) {
@@ -346,7 +346,7 @@ export class SxSliderTrack extends HTMLElement {
         this.startMomentumScroll(clampedDestination);
       }
     } else {
-      this.style.transition = `transform ${options.speed}ms ease-out`;
+      this.style.transition = `transform ${options.speed}ms ease-out, height ${options.speed}ms ease-out`;
 
       const movedBy = this.lastClientAxis - this.startX;
 
@@ -593,7 +593,7 @@ export class SxSliderTrack extends HTMLElement {
     if (instant) {
       this.style.transition = "none";
     } else {
-      this.style.transition = `transform ${options.speed}ms ease-out`;
+      this.style.transition = `transform ${options.speed}ms ease-out, height ${options.speed}ms ease-out`;
     }
 
     const startPaddingPx = parseFloat(this.sliderCha.startPadding) || 0;

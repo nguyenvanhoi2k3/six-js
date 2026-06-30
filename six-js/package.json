@@ -1,8 +1,9 @@
 {
   "name": "@six-js/core",
   "author": "Hội Nguyễn",
-  "version": "0.0.26",
+  "version": "0.0.28",
   "type": "module",
+  "sideEffects": true,
   "main": "./dist/six-js.umd.js",
   "keywords": [
     "javascript",

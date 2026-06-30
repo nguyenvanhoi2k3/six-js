@@ -40,12 +40,12 @@ function L(m, o) {
 function I(m) {
   E.delete(m), P.unobserve(m);
 }
-const C = class C extends HTMLElement {
+const v = class v extends HTMLElement {
   constructor() {
     super(...arguments);
     c(this, "animation");
     c(this, "options");
-    c(this, "order", C.counter++);
+    c(this, "order", v.counter++);
   }
   static get reduceMotion() {
     return this.mediaQuery.matches;
@@ -64,7 +64,7 @@ const C = class C extends HTMLElement {
     return this.hasAttribute("group");
   }
   connectedCallback() {
-    if (this.options = this.getOptions(), C.reduceMotion) {
+    if (this.options = this.getOptions(), v.reduceMotion) {
       this.style.opacity = "1", this.style.transform = "none";
       return;
     }
@@ -75,10 +75,10 @@ const C = class C extends HTMLElement {
   }
   disconnectedCallback() {
     var t;
-    (t = this.animation) == null || t.cancel(), I(this), C.groupQueue.delete(this);
+    (t = this.animation) == null || t.cancel(), I(this), v.groupQueue.delete(this);
   }
   handleEnter() {
-    this.hasAttribute("replay") || I(this), this.isGroup ? (C.groupQueue.add(this), C.scheduleGroup()) : this.play();
+    this.hasAttribute("replay") || I(this), this.isGroup ? (v.groupQueue.add(this), v.scheduleGroup()) : this.play();
   }
   handleLeave() {
     this.hasAttribute("replay") && this.reset();
@@ -132,10 +132,10 @@ const C = class C extends HTMLElement {
     };
   }
 };
-c(C, "counter", 0), c(C, "mediaQuery", window.matchMedia(
+c(v, "counter", 0), c(v, "mediaQuery", window.matchMedia(
   "(prefers-reduced-motion: reduce)"
-)), c(C, "groupQueue", /* @__PURE__ */ new Set()), c(C, "isProcessingGroup", !1);
-let M = C;
+)), c(v, "groupQueue", /* @__PURE__ */ new Set()), c(v, "isProcessingGroup", !1);
+let M = v;
 customElements.get("sx-animate") || customElements.define("sx-animate", M);
 class N {
   constructor() {
@@ -230,7 +230,7 @@ class N {
     return this._listeners.size;
   }
 }
-const y = new N();
+const A = new N();
 class q extends HTMLElement {
   constructor() {
     super();
@@ -305,16 +305,16 @@ class q extends HTMLElement {
       this.scheduleSetup();
     }), this.resizeObserver.observe(this), L(this, {
       enter: () => {
-        this.isVisible || (this.isVisible = !0, y.add(this.updateAnimation));
+        this.isVisible || (this.isVisible = !0, A.add(this.updateAnimation));
       },
       leave: () => {
-        this.isVisible && (this.isVisible = !1, y.remove(this.updateAnimation));
+        this.isVisible && (this.isVisible = !1, A.remove(this.updateAnimation));
       }
     });
   }
   disconnectedCallback() {
     var t;
-    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (t = this.resizeObserver) == null || t.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), I(this), y.remove(this.updateAnimation);
+    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (t = this.resizeObserver) == null || t.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), I(this), A.remove(this.updateAnimation);
   }
   attributeChangedCallback(t, e, s) {
     e !== s && (t === "gap" ? (this.updateGapVar(), setTimeout(() => this.scheduleSetup(), 50)) : (t === "direction" || t === "speed" || t === "clone") && this.scheduleSetup());
@@ -441,7 +441,7 @@ class $ {
     return this.sliders.get(o);
   }
 }
-const A = new $();
+const k = new $();
 class R {
   static parse(o) {
     if (!o) return null;
@@ -490,10 +490,10 @@ class H {
     this.velocity += o, this.isRunning || this.start();
   }
   stop() {
-    this.isRunning && (this.isRunning = !1, this.velocity = 0, y.remove(this.tickerCallback));
+    this.isRunning && (this.isRunning = !1, this.velocity = 0, A.remove(this.tickerCallback));
   }
   start() {
-    this.isRunning || (this.isRunning = !0, y.add(this.tickerCallback));
+    this.isRunning || (this.isRunning = !0, A.add(this.tickerCallback));
   }
   loop(o) {
     if (!this.isRunning) return;
@@ -635,7 +635,7 @@ class W extends HTMLElement {
       this.velocity = 0;
     if (t.drag === "free") {
       this.prevTranslate = this.currentTranslate;
-      let i = this.currentTranslate + this.velocity * 600;
+      let i = this.currentTranslate + this.velocity * 400;
       if (t.snap) {
         const n = parseFloat(this.sliderCha.startPadding) || 0;
         this.sliderCha.alignIndexToFreeTranslation(i);
@@ -661,7 +661,7 @@ class W extends HTMLElement {
         this.startMomentumScroll(a);
       }
     } else {
-      this.style.transition = `transform ${t.speed}ms ease-out`;
+      this.style.transition = `transform ${t.speed}ms ease-out, height ${t.speed}ms ease-out`;
       const s = this.lastClientAxis - this.startX;
       if (t.perMove === "auto") {
         const i = this.sliderCha.getCurrentIndex();
@@ -679,7 +679,7 @@ class W extends HTMLElement {
       this.currentTranslate = t, this.setTransform(this.currentTranslate), this.prevTranslate = this.currentTranslate, (h = this.sliderCha) != null && h.options.loop && this.checkLoopBoundsInstant(), s && s();
       return;
     }
-    this.scrollStartTime = performance.now(), this.isScrollAnimating = !0, y.add(this.scrollTickerCallback);
+    this.scrollStartTime = performance.now(), this.isScrollAnimating = !0, A.add(this.scrollTickerCallback);
   }
   runScrollLoop() {
     if (!this.isScrollAnimating || !this.sliderCha) return;
@@ -713,10 +713,10 @@ class W extends HTMLElement {
         }
       }
     }
-    s >= 1 && Math.abs(h) < 0.5 && (this.isScrollAnimating = !1, this.prevTranslate = this.currentTranslate, y.remove(this.scrollTickerCallback), this.sliderCha.alignIndexToFreeTranslation(this.currentTranslate), this.sliderCha.startAutoplay());
+    s >= 1 && Math.abs(h) < 0.5 && (this.isScrollAnimating = !1, this.prevTranslate = this.currentTranslate, A.remove(this.scrollTickerCallback), this.sliderCha.alignIndexToFreeTranslation(this.currentTranslate), this.sliderCha.startAutoplay());
   }
   cancelMomentumScroll() {
-    this.isScrollAnimating = !1, y.remove(this.scrollTickerCallback);
+    this.isScrollAnimating = !1, A.remove(this.scrollTickerCallback);
   }
   checkLoopBoundsInstant() {
     if (!this.sliderCha || !this.sliderCha.options.loop) return;
@@ -753,7 +753,7 @@ class W extends HTMLElement {
     if (!this.sliderCha || this.isResetting) return;
     this.cancelMomentumScroll();
     const e = this.sliderCha.options;
-    t ? this.style.transition = "none" : this.style.transition = `transform ${e.speed}ms ease-out`;
+    t ? this.style.transition = "none" : this.style.transition = `transform ${e.speed}ms ease-out, height ${e.speed}ms ease-out`;
     const s = parseFloat(this.sliderCha.startPadding) || 0, i = this.sliderCha.getCurrentIndex();
     let n = s, h = 0, a = 0;
     if (e.autoSize) {
@@ -801,7 +801,7 @@ class X extends HTMLElement {
     if (this.hasAttribute("sx-disabled")) return;
     const o = this.getAttribute("name");
     if (o) {
-      const t = A.get(o);
+      const t = k.get(o);
       t && t.prev();
     } else {
       const t = this.closest("sx-slider");
@@ -823,7 +823,7 @@ class U extends HTMLElement {
     if (this.hasAttribute("sx-disabled")) return;
     const o = this.getAttribute("name");
     if (o) {
-      const t = A.get(o);
+      const t = k.get(o);
       t && t.next();
     } else {
       const t = this.closest("sx-slider");
@@ -861,7 +861,7 @@ class Y extends HTMLElement {
   goToSlide(t) {
     const e = this.getAttribute("name");
     let s = null;
-    e ? s = A.get(e) : s = this.closest("sx-slider"), s && typeof s.goTo == "function" && s.goTo(t);
+    e ? s = k.get(e) : s = this.closest("sx-slider"), s && typeof s.goTo == "function" && s.goTo(t);
   }
   renderBullets(t) {
     const e = this.getAttribute("effect"), s = e === "dynamic", i = e === "snake", n = e === "number", h = e === "fraction", a = t.join(",") + `_effect:${e}`;
@@ -916,13 +916,13 @@ class Y extends HTMLElement {
       if (a[t]) {
         const S = t * 20, g = this.lastActiveIndex * 20;
         if (t > this.lastActiveIndex) {
-          const v = S - g + 10;
-          this.snakeBar.style.left = `${g}px`, this.snakeBar.style.width = `${v}px`, setTimeout(() => {
+          const C = S - g + 10;
+          this.snakeBar.style.left = `${g}px`, this.snakeBar.style.width = `${C}px`, setTimeout(() => {
             this.getAttribute("effect") === "snake" && (this.snakeBar.style.left = `${S}px`, this.snakeBar.style.width = "10px");
           }, 150);
         } else if (t < this.lastActiveIndex) {
-          const v = g - S + 10;
-          this.snakeBar.style.left = `${S}px`, this.snakeBar.style.width = `${v}px`, setTimeout(() => {
+          const C = g - S + 10;
+          this.snakeBar.style.left = `${S}px`, this.snakeBar.style.width = `${C}px`, setTimeout(() => {
             this.getAttribute("effect") === "snake" && (this.snakeBar.style.width = "10px");
           }, 150);
         } else
@@ -1084,7 +1084,7 @@ class J extends HTMLElement {
     ];
   }
   connectedCallback() {
-    if (this.track = this.querySelector("sx-slider-track"), this.options.name && A.register(this.options.name, this), this.resizeObserver = new ResizeObserver(() => {
+    if (this.track = this.querySelector("sx-slider-track"), this.options.name && k.register(this.options.name, this), this.resizeObserver = new ResizeObserver(() => {
       window.requestAnimationFrame(() => {
         if (!this.isConnected) return;
         const t = this.getBoundingClientRect()[this.sizeDim];
@@ -1115,7 +1115,7 @@ class J extends HTMLElement {
     document.addEventListener("visibilitychange", this.handleVisibilityChange), this.startAutoplay();
   }
   disconnectedCallback() {
-    this.options.name && A.unregister(this.options.name), this.resizeObserver.disconnect(), this.stopAutoplay(), document.removeEventListener(
+    this.options.name && k.unregister(this.options.name), this.resizeObserver.disconnect(), this.stopAutoplay(), document.removeEventListener(
       "visibilitychange",
       this.handleVisibilityChange
     );
@@ -1190,13 +1190,18 @@ class J extends HTMLElement {
       h.setAttribute("data-clone", "next"), this.track.appendChild(h);
     }
   }
+  destroyLoopClones() {
+    if (!this.track) return;
+    this.track.querySelectorAll("[data-clone]").forEach((e) => e.remove()), this.originalSlidesCount = 0;
+  }
   formatUnit(t) {
     return t == null || t === "" ? "0px" : isNaN(Number(t)) ? String(t) : `${t}px`;
   }
   updateLayout() {
     if (!this.track) return;
     this.style.setProperty("--sx-speed", `${this.options.speed}ms`);
-    const t = this.getBoundingClientRect()[this.sizeDim], e = Array.from(this.track.children);
+    const t = this.getBoundingClientRect()[this.sizeDim];
+    let e = Array.from(this.track.children);
     if (e.length === 0) return;
     if (this.options.loop || e.forEach((d, p) => {
       d.setAttribute("data-real-index", p.toString());
@@ -1209,7 +1214,10 @@ class J extends HTMLElement {
       const d = (p) => p == null || p === "" ? "0px" : isNaN(Number(p)) ? String(p) : `${p}px`;
       this.options.gap = d(this.options.gap), this.options.leftPadding = d(this.options.leftPadding), this.options.rightPadding = d(this.options.rightPadding);
     }
-    this.options.effect === "fade" ? this.setAttribute("data-active-effect", "fade") : this.removeAttribute("data-active-effect"), this.options.grabCursor && this.options.drag !== "false" ? this.track.setAttribute("grab-cursor", "") : this.track.removeAttribute("grab-cursor"), this.options.loop && this.originalSlidesCount === 0 && this.initLoopClones();
+    this.options.effect === "fade" ? this.setAttribute("data-active-effect", "fade") : this.removeAttribute("data-active-effect"), this.options.grabCursor && this.options.drag !== "false" ? this.track.setAttribute("grab-cursor", "") : this.track.removeAttribute("grab-cursor"), this.options.loop && this.originalSlidesCount === 0 ? (this.initLoopClones(), e = Array.from(this.track.children)) : !this.options.loop && this.originalSlidesCount > 0 && (this.destroyLoopClones(), e = Array.from(this.track.children), this.currentIndex = Math.max(
+      0,
+      Math.min(this.currentIndex, e.length - 1)
+    ));
     const s = this.track.querySelectorAll("[data-clone]").length, i = e.length - s;
     if (this.isFirstInit && i > 0) {
       const d = Math.max(
@@ -1311,15 +1319,15 @@ class J extends HTMLElement {
     if (s === 0) return;
     const i = e ? this.options.autoSize ? this.originalSlidesCount : this.options.perView : 0, n = (g) => {
       if (!e) return g;
-      let v = (g - i) % s;
-      return v < 0 && (v += s), v;
+      let C = (g - i) % s;
+      return C < 0 && (C += s), C;
     }, h = this.options.centered ? 0 : Math.floor(this.options.perView / 2), a = n(this.currentIndex), r = n(this.currentIndex - 1), l = n(this.currentIndex + 1), u = n(this.currentIndex + h), f = this.isFirstHeightMeasure;
     f && (this.isFirstHeightMeasure = !1);
     let d = null;
-    f && (d = document.createElement("style"), d.innerHTML = "sx-slider-slide, sx-slider-slide * { transition: none !important; }", this.appendChild(d), this.offsetHeight), this.options.lockActive && !this.isClickRouting && !f || t.forEach((g, v) => {
+    f && (d = document.createElement("style"), d.innerHTML = "sx-slider-slide, sx-slider-slide * { transition: none !important; }", this.appendChild(d), this.offsetHeight), this.options.lockActive && !this.isClickRouting && !f || t.forEach((g, C) => {
       g.removeAttribute("sx-slide-active"), g.removeAttribute("sx-slide-prev"), g.removeAttribute("sx-slide-next"), g.removeAttribute("sx-slide-center");
-      let k = n(v);
-      g.setAttribute("aria-label", `${k + 1}/${s}`), k === a && g.setAttribute("sx-slide-active", ""), k === r && g.setAttribute("sx-slide-prev", ""), k === l && g.setAttribute("sx-slide-next", ""), k === u && g.setAttribute("sx-slide-center", "");
+      let y = n(C);
+      g.setAttribute("aria-label", `${y + 1}/${s}`), y === a && g.setAttribute("sx-slide-active", ""), y === r && g.setAttribute("sx-slide-prev", ""), y === l && g.setAttribute("sx-slide-next", ""), y === u && g.setAttribute("sx-slide-center", "");
     }), this.updateAutoHeight(), this.updateNavigation();
     const p = e ? s - 1 : this.getRealMaxIndex(), b = this.getResolvedPerMove();
     let x = [];
@@ -1339,11 +1347,10 @@ class J extends HTMLElement {
           break;
         }
     }
-    if (this.updatePagination(x, S), this.options.sync && (this.isClickRouting || !this.options.lockActive)) {
-      const g = A.get(this.options.sync);
-      g && g.syncFromController(a);
-    }
-    f && d && requestAnimationFrame(() => {
+    this.updatePagination(x, S), this.options.sync && (this.isClickRouting || !this.options.lockActive) && this.options.sync.split(",").map((C) => C.trim()).forEach((C) => {
+      const y = k.get(C);
+      y && y.syncFromController(a);
+    }), f && d && requestAnimationFrame(() => {
       d == null || d.remove();
     });
   }
@@ -1373,10 +1380,10 @@ class J extends HTMLElement {
   updateAutoHeight() {
     if (!this.track) return;
     if (!this.options.autoHeight) {
-      this.style.height = "", this.style.transition = "", this.track.style.alignItems = "";
+      this.track.style.height = "", this.track.style.alignItems = "";
       return;
     }
-    this.track.style.alignItems = "center";
+    this.track.style.alignItems = "flex-start";
     const t = Array.from(this.track.children);
     if (t.length === 0) return;
     let e = 0;
@@ -1396,7 +1403,7 @@ class J extends HTMLElement {
         f > e && (e = f), this.track.removeChild(l);
       }
     }
-    e > 0 && (this.style.transition = `height ${this.options.speed}ms ease-out`, this.style.height = `${e}px`);
+    e > 0 && (this.track.style.height = `${e}px`);
   }
   getCurrentIndex() {
     return this.currentIndex;
@@ -1533,7 +1540,7 @@ class J extends HTMLElement {
   }
 }
 customElements.get("sx-slider") || customElements.define("sx-slider", J);
-const j = "0.0.26";
+const j = "0.0.28";
 console.log(`@six-js/core v${j}`);
 export {
   M as SxAnimate,
