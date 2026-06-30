@@ -4,6 +4,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import CodeBlock from "@theme/CodeBlock";
 import { useSixJs } from "../../useSixJs";
+import "@six-js/core/style.css";
 import "./style.css";
 
 const marquee1 = `<sx-marquee>
@@ -146,7 +147,9 @@ export default function SxMarqueeDemoPage() {
             </sx-marquee>
           </TabItem>
           <TabItem value="html" label="Html">
-            <CodeBlock showLineNumbers language="html">{marquee1}</CodeBlock>
+            <CodeBlock showLineNumbers language="html">
+              {marquee1}
+            </CodeBlock>
           </TabItem>
         </Tabs>
 
@@ -164,7 +167,9 @@ export default function SxMarqueeDemoPage() {
             </sx-marquee>
           </TabItem>
           <TabItem value="html" label="Html">
-            <CodeBlock showLineNumbers language="html">{marquee2}</CodeBlock>
+            <CodeBlock showLineNumbers language="html">
+              {marquee2}
+            </CodeBlock>
           </TabItem>
         </Tabs>
 
@@ -182,7 +187,9 @@ export default function SxMarqueeDemoPage() {
             </sx-marquee>
           </TabItem>
           <TabItem value="html" label="Html">
-            <CodeBlock showLineNumbers language="html">{marquee3}</CodeBlock>
+            <CodeBlock showLineNumbers language="html">
+              {marquee3}
+            </CodeBlock>
           </TabItem>
         </Tabs>
 
@@ -241,7 +248,9 @@ export default function SxMarqueeDemoPage() {
             </sx-marquee>
           </TabItem>
           <TabItem value="html" label="Html">
-            <CodeBlock showLineNumbers language="html">{marquee4}</CodeBlock>
+            <CodeBlock showLineNumbers language="html">
+              {marquee4}
+            </CodeBlock>
           </TabItem>
         </Tabs>
 
@@ -299,10 +308,14 @@ export default function SxMarqueeDemoPage() {
             </sx-marquee>
           </TabItem>
           <TabItem value="html" label="Html">
-            <CodeBlock showLineNumbers language="html">{marqueeUp}</CodeBlock>
+            <CodeBlock showLineNumbers language="html">
+              {marqueeUp}
+            </CodeBlock>
           </TabItem>
           <TabItem value="css" label="Css">
-            <CodeBlock showLineNumbers language="css">{marqueeUpCss}</CodeBlock>
+            <CodeBlock showLineNumbers language="css">
+              {marqueeUpCss}
+            </CodeBlock>
           </TabItem>
         </Tabs>
 

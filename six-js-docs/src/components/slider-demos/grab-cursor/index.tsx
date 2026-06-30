@@ -4,36 +4,27 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import "./style.scss";
 
-const html = `
-// Nếu slide không có height thì phải set height cho sx-slider
-<sx-slider direction="vertical" className="vertical-slider">
-    <sx-slider-track>
-        <sx-slider-slide>
-            <div className="slide">Slide 1</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-            <div className="slide">Slide 2</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-            <div className="slide">Slide 3</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-            <div className="slide">Slide 4</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-            <div className="slide">Slide 5</div>
-        </sx-slider-slide>
-    </sx-slider-track>
+const html = `<sx-slider grab-cursor gap="10">
+  <sx-slider-track>
+    <sx-slider-slide>
+      <div class="slide">Slide 1</div>
+    </sx-slider-slide>
+    <sx-slider-slide>
+      <div class="slide">Slide 2</div>
+    </sx-slider-slide>
+    <sx-slider-slide>
+      <div class="slide">Slide 3</div>
+    </sx-slider-slide>
+    <sx-slider-slide>
+      <div class="slide">Slide 3</div>
+    </sx-slider-slide>
+  </sx-slider-track>
 </sx-slider>`;
 
-const css = `.vertical-slider {
-    height: 500px;
-  }
-  
-  .slide {
+const css = `.slide {
     width: 100%;
     background: #e4e4e4;
-    height: 100%;
+    height: 500px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -41,16 +32,13 @@ const css = `.vertical-slider {
   }
 `;
 
-export default function VerticalSliderDemo() {
+export default function GrabCursorDemo() {
   return (
-    <div
-      id="demo-vertical-slider"
-      style={{ marginBottom: "30vh", paddingTop: "2rem" }}
-    >
-      <h3 className="flex-center m-10">Vertical slider</h3>
+    <div id="demo-grab-cursor" style={{ marginBottom: "30vh", paddingTop: "2rem" }}>
+      <h3 className="flex-center m-10">Grab cursor</h3>
       <Tabs>
         <TabItem value="demo" label="Demo" default>
-          <sx-slider direction="vertical" className="vertical-slider">
+          <sx-slider grab-cursor gap="10">
             <sx-slider-track>
               <sx-slider-slide>
                 <div className="slide">Slide 1</div>
@@ -62,10 +50,7 @@ export default function VerticalSliderDemo() {
                 <div className="slide">Slide 3</div>
               </sx-slider-slide>
               <sx-slider-slide>
-                <div className="slide">Slide 4</div>
-              </sx-slider-slide>
-              <sx-slider-slide>
-                <div className="slide">Slide 5</div>
+                <div className="slide">Slide 3</div>
               </sx-slider-slide>
             </sx-slider-track>
           </sx-slider>

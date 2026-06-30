@@ -1,0 +1,46 @@
+#demo-breakpoints {
+  .resizable-badge {
+    font-size: 14px;
+    margin-bottom: 12px;
+    color: #666;
+    padding-left: 2px;
+    span {
+      font-weight: bold;
+      color: #bd5919;
+      background: #fff3ed;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid #ffd8c4;
+    }
+  }
+
+  .resizable-frame {
+    width: 100%;
+    min-width: 320px;
+    max-width: 100%;
+    height: auto;
+    border: 2px dashed #ccc;
+    background: #fafafa;
+    border-radius: 8px;
+
+    resize: horizontal;
+    overflow: auto;
+    position: relative;
+
+    &::-webkit-resizer {
+      border-style: solid;
+      border-width: 10px;
+      border-color: transparent #bd5919 #bd5919 transparent;
+    }
+  }
+
+  .slide {
+    width: 100%;
+    background: #e4e4e4;
+    height: 500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+  }
+}

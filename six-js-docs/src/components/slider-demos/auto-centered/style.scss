@@ -1,0 +1,22 @@
+#demo-auto-centered {
+  .line-vertical-center {
+    height: 100%;
+    width: 2px;
+    background: #3578e5;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+  }
+
+  .slide {
+    background: #e4e4e4;
+    height: 500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+  }
+}

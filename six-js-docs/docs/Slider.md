@@ -75,17 +75,18 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
 |direction|string|horizontal \| vertical|horizontal|
 |start-index|number|Slide bắt đầu khi khởi tạo|0|
 |auto-size|boolean|Tự động chia per-view theo width của slide content (hoặc theo height nếu là direction `vertical`), `per-vew` khi này sẽ disable|false|
-|auto-height|boolean|Height slider sẽ tự động khớp theo height content của từng slide trong viewport|false|
-|effect|string|slide \| fade|false|
+|auto-height|boolean|Height slider tổng sẽ tự động ăn theo height slide trong viewport|false|
+|effect|string|slide \| fade, `fade` chỉ hoạt động ở per-view="1"|false|
 |gap|number \| string|Ví dụ: `"20"`, `"1rem"`|0|
 |centered|boolean|Slide active luôn nằm giữa viewport|false|
 |auto-centered|boolean|Slide active luôn nằm giữa viewport nhưng xóa khoảng trắng ở 2 bên|false|
 |center-if-short|boolean|Khi tổng số slide không đủ để lấp đầy viewport. `false`: slide căn trái, `true`: slide căn giữa|false|
 |grab-cursor|boolean|Bật tắt grab cursor|false|
-|drag|boolean \| free|`true`: cho phép drag \| `false`: chặn drag \| `free`: cho phép drag và slide trượt theo quán tính |true|
+|drag|boolean \| free|`true`: cho phép drag \| `false`: chặn drag \| `free`: slide trượt có quán tính |true|
 |vertical-scroll|boolean|Khi `direction="vertical"`, có thể cuộn slide bằng con lăn|false|
 |snap|boolean|Tự động về vị trí slide gần nhất ở chế độ `drag="free"`|false|
-|lock-active|boolean|Sự kiện drag hoặc sự kiện next, prev sẽ cho phép trượt slide để xem các slide khác mà vẫn giữ nguyên slide đang active|false|
+|sync|string|Thuộc tính `sync` cho phép liên kết hai hoặc nhiều slider với nhau. Khi người dùng thao tác (chuyển slide) trên một slider, các slider được liên kết sẽ tự động chuyển đổi tương ứng. Phục vụ làm thumbnails|null|
+|lock-active|boolean|Khi `true`: Sự kiện drag, next, prev sẽ cho phép trượt slide để xem các slide khác mà vẫn giữ nguyên slide đang active. Phục vụ trong việc xem thumbnail|false|
 |breakpoints|json|Hỗ trợ responsive mọi thuộc tính trừ `direction`|undefined|
 
 <br />

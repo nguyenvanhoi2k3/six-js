@@ -1,6 +1,7 @@
 import React from "react";
 import LayoutProvider from "@theme/Layout/Provider";
 import { useSixJs } from "../../useSixJs";
+import "@six-js/core/style.css";
 
 export default function SxAnimateDemoPage() {
   useSixJs();
