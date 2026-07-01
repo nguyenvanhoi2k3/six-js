@@ -187,6 +187,8 @@ export class SxSliderTrack extends HTMLElement {
         }
         this.lastWheelTime = now;
       }
+
+      this.sliderCha.startAutoplay();
     }
   }
 
@@ -311,10 +313,13 @@ export class SxSliderTrack extends HTMLElement {
           ? this.sliderCha.getOffsetForIndex(targetIdx)
           : targetIdx * this.sliderCha.getSlideSizeWithGap();
 
+        const targetSlide = this.children[targetIdx] as
+          | HTMLElement
+          | undefined;
         let currentSlideSize = options.autoSize
-          ? this.children[targetIdx].getBoundingClientRect()[
-              this.sliderCha.sizeDim
-            ] + this.sliderCha.convertToPx(options.gap)
+          ? (targetSlide
+              ? targetSlide.getBoundingClientRect()[this.sliderCha.sizeDim]
+              : 0) + this.sliderCha.convertToPx(options.gap)
           : this.sliderCha.getSlideSizeWithGap();
 
         if (options.centered) {
@@ -640,8 +645,8 @@ export class SxSliderTrack extends HTMLElement {
     }
 
     if (options.loop) {
-      const cloneCount = options.perView;
       const originalCount = this.sliderCha.originalSlidesCount;
+      const cloneCount = options.autoSize ? originalCount : options.perView;
 
       if (
         currentIndex >= cloneCount + originalCount ||

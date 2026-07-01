@@ -9,6 +9,8 @@ export class SxSliderPagination extends HTMLElement {
   private maxVisibleBullets = 5;
   private bulletWidthWithGap = 16;
   private lastActiveIndex = 0;
+  private cachedBullets: HTMLElement[] = [];
+  private snakeTimeout: number | null = null;
 
   constructor() {
     super();
@@ -57,8 +59,7 @@ export class SxSliderPagination extends HTMLElement {
     const effect = this.getAttribute("effect");
     const isDynamic = effect === "dynamic";
     const isSnake = effect === "snake";
-    const isNumber = effect === "number";
-    const isFraction = effect === "fraction"; // <-- Thêm khai báo fraction
+    const isFraction = effect === "fraction";
 
     const signature = bulletIndexes.join(",") + `_effect:${effect}`;
     if (this.renderedSignature === signature) return;
@@ -66,8 +67,8 @@ export class SxSliderPagination extends HTMLElement {
 
     this.innerHTML = "";
     this.snakeBar = null;
+    this.cachedBullets = [];
 
-    // --- CASE 1: FRACTION EFFECT ---
     if (isFraction) {
       this.innerContainer = null;
       this.style.width = "";
@@ -82,20 +83,25 @@ export class SxSliderPagination extends HTMLElement {
       totalSpan.className = "sx-slider-pagination-total";
       totalSpan.textContent = bulletIndexes.length.toString();
 
-      this.appendChild(currentSpan);
-      this.appendChild(separator);
-      this.appendChild(totalSpan);
+      const fragment = document.createDocumentFragment();
+      fragment.appendChild(currentSpan);
+      fragment.appendChild(separator);
+      fragment.appendChild(totalSpan);
+      this.appendChild(fragment);
       return;
     }
 
-    // --- CASE 2: SNAKE EFFECT ---
+    const fragment = document.createDocumentFragment();
+
     if (isSnake) {
       this.innerContainer = null;
       this.style.width = "";
       this.style.position = "relative";
 
       bulletIndexes.forEach((targetIndex, i) => {
-        this.appendChild(this.createBulletDOM(targetIndex, i, false));
+        const bullet = this.createBulletDOM(targetIndex, i, false);
+        this.cachedBullets.push(bullet);
+        fragment.appendChild(bullet);
       });
 
       this.snakeBar = document.createElement("div");
@@ -105,20 +111,20 @@ export class SxSliderPagination extends HTMLElement {
       this.snakeBar.style.transition =
         "width 150ms ease-out, left 150ms ease-out";
 
-      this.appendChild(this.snakeBar);
+      fragment.appendChild(this.snakeBar);
+      this.appendChild(fragment);
       return;
     }
 
-    // --- CASE 3: DYNAMIC EFFECT ---
     if (isDynamic) {
       this.innerContainer = document.createElement("div");
       this.innerContainer.className = "sx-slider-pagination-inner";
-      this.appendChild(this.innerContainer);
+      fragment.appendChild(this.innerContainer);
 
       bulletIndexes.forEach((targetIndex, i) => {
-        this.innerContainer!.appendChild(
-          this.createBulletDOM(targetIndex, i, false),
-        );
+        const bullet = this.createBulletDOM(targetIndex, i, false);
+        this.cachedBullets.push(bullet);
+        this.innerContainer!.appendChild(bullet);
       });
 
       if (bulletIndexes.length > this.maxVisibleBullets) {
@@ -126,16 +132,21 @@ export class SxSliderPagination extends HTMLElement {
       } else {
         this.style.width = "auto";
       }
+      
+      this.appendChild(fragment);
       return;
     }
 
-    // --- CASE 4: NUMBER EFFECT Hoặc DEFAULT ---
     this.innerContainer = null;
     this.style.width = "";
 
     bulletIndexes.forEach((targetIndex, i) => {
-      this.appendChild(this.createBulletDOM(targetIndex, i, isNumber));
+      const bullet = this.createBulletDOM(targetIndex, i, effect === "number");
+      this.cachedBullets.push(bullet);
+      fragment.appendChild(bullet);
     });
+    
+    this.appendChild(fragment);
   }
 
   private createBulletDOM(
@@ -159,10 +170,8 @@ export class SxSliderPagination extends HTMLElement {
 
   public updateActive(activeIndex: number) {
     const effect = this.getAttribute("effect");
-    const isFraction = effect === "fraction"; // <-- Thêm khai báo fraction
 
-    // Xử lý hiệu ứng FRACTION trước tiên vì nó không dùng DOM class `.sx-slider-pagination-bullet`
-    if (isFraction) {
+    if (effect === "fraction") {
       const currentSpan = this.querySelector(".sx-slider-pagination-current");
       if (currentSpan) {
         currentSpan.textContent = (activeIndex + 1).toString();
@@ -173,16 +182,10 @@ export class SxSliderPagination extends HTMLElement {
     const isDynamic = effect === "dynamic";
     const isSnake = effect === "snake";
 
-    const targetContainer = isDynamic ? this.innerContainer : this;
-    if (!targetContainer) return;
-
-    const bullets = Array.from(
-      targetContainer.querySelectorAll(".sx-slider-pagination-bullet"),
-    ) as HTMLElement[];
+    const bullets = this.cachedBullets;
     const total = bullets.length;
     if (total === 0) return;
 
-    // 1. Đồng bộ thuộc tính active cho toàn bộ bullet
     bullets.forEach((b, i) => {
       if (isDynamic) b.className = "sx-slider-pagination-bullet";
 
@@ -195,8 +198,12 @@ export class SxSliderPagination extends HTMLElement {
       }
     });
 
-    // 2. Xử lý hiệu ứng SNAKE
     if (isSnake && this.snakeBar) {
+      if (this.snakeTimeout !== null) {
+        clearTimeout(this.snakeTimeout);
+        this.snakeTimeout = null;
+      }
+
       const activeBullet = bullets[activeIndex];
       if (activeBullet) {
         const bulletSize = 10;
@@ -211,10 +218,10 @@ export class SxSliderPagination extends HTMLElement {
           this.snakeBar.style.left = `${previousLeft}px`;
           this.snakeBar.style.width = `${widthSpan}px`;
 
-          setTimeout(() => {
-            if (this.getAttribute("effect") === "snake") {
-              this.snakeBar!.style.left = `${currentLeft}px`;
-              this.snakeBar!.style.width = `${bulletSize}px`;
+          this.snakeTimeout = window.setTimeout(() => {
+            if (this.getAttribute("effect") === "snake" && this.snakeBar) {
+              this.snakeBar.style.left = `${currentLeft}px`;
+              this.snakeBar.style.width = `${bulletSize}px`;
             }
           }, 150);
         } else if (activeIndex < this.lastActiveIndex) {
@@ -222,9 +229,9 @@ export class SxSliderPagination extends HTMLElement {
           this.snakeBar.style.left = `${currentLeft}px`;
           this.snakeBar.style.width = `${widthSpan}px`;
 
-          setTimeout(() => {
-            if (this.getAttribute("effect") === "snake") {
-              this.snakeBar!.style.width = `${bulletSize}px`;
+          this.snakeTimeout = window.setTimeout(() => {
+            if (this.getAttribute("effect") === "snake" && this.snakeBar) {
+              this.snakeBar.style.width = `${bulletSize}px`;
             }
           }, 150);
         } else {
@@ -236,17 +243,15 @@ export class SxSliderPagination extends HTMLElement {
       return;
     }
 
-    // 3. Xử lý hiệu ứng DYNAMIC
     if (!isDynamic || total <= this.maxVisibleBullets || !this.innerContainer) {
-      if (this.innerContainer)
+      if (this.innerContainer) {
         this.innerContainer.style.transform = "translateX(0px)";
+      }
       return;
     }
 
-    let startIdx = activeIndex - Math.floor(this.maxVisibleBullets / 2);
-    if (startIdx < 0) startIdx = 0;
-    if (startIdx > total - this.maxVisibleBullets)
-      startIdx = total - this.maxVisibleBullets;
+    let startIdx = Math.max(0, activeIndex - Math.floor(this.maxVisibleBullets / 2));
+    startIdx = Math.min(startIdx, total - this.maxVisibleBullets);
 
     const endIdx = startIdx + this.maxVisibleBullets - 1;
 

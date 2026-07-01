@@ -122,7 +122,7 @@ export class SxSlider extends HTMLElement {
           `sx-slider-progress[name="${this.options.name}"]`,
         ),
       );
-      progresses = Array.from(new Set([...progresses, ...ext]));
+      progresses = [...new Set([...progresses, ...ext])];
     }
 
     progresses.forEach((p) => {
@@ -387,11 +387,8 @@ export class SxSlider extends HTMLElement {
   private destroyLoopClones() {
     if (!this.track) return;
 
-    // Tìm và xóa toàn bộ các slide giả (clone)
     const existingClones = this.track.querySelectorAll("[data-clone]");
     existingClones.forEach((clone) => clone.remove());
-
-    // Reset lại biến đếm
     this.originalSlidesCount = 0;
   }
 
@@ -563,6 +560,10 @@ export class SxSlider extends HTMLElement {
   }
 
   public convertToPx(value: string): number {
+    if (!value || value === "0px" || value === "0") return 0;
+    if (value.endsWith("px")) {
+      return parseFloat(value);
+    }
     const ctx = document.createElement("div");
     ctx.style.display = "none";
     ctx.style.width = value;
@@ -762,11 +763,10 @@ export class SxSlider extends HTMLElement {
 
     this.updatePagination(bulletIndexes, activeBulletIndex);
 
-   if (
+    if (
       this.options.sync &&
       (this.isClickRouting || !this.options.lockActive)
     ) {
-      // Tách chuỗi sync bằng dấu phẩy và xóa khoảng trắng thừa
       const syncTargets = this.options.sync.split(",").map(s => s.trim());
       
       syncTargets.forEach(targetName => {
@@ -853,17 +853,17 @@ export class SxSlider extends HTMLElement {
     const slides = Array.from(this.track.children) as HTMLElement[];
     if (slides.length === 0) return;
 
-    let maxHeight = 0;
     const visibleCount = this.options.perView;
-
     const centerOffset = this.options.centered
       ? Math.floor(visibleCount / 2)
       : 0;
+    
     let startScanIndex = this.currentIndex - centerOffset;
-
     if (!this.options.loop) {
       startScanIndex = Math.max(0, startScanIndex);
     }
+
+    const clonesToMeasure: HTMLElement[] = [];
 
     for (let i = 0; i < visibleCount; i++) {
       let slideIndex = startScanIndex + i;
@@ -877,16 +877,13 @@ export class SxSlider extends HTMLElement {
       }
 
       const slide = slides[slideIndex];
-
       if (slide) {
         const clone = slide.cloneNode(true) as HTMLElement;
         clone.style.position = "absolute";
         clone.style.visibility = "hidden";
         clone.style.pointerEvents = "none";
         clone.style.transition = "none";
-
-        clone.style[this.sizeDim] =
-          `${slide.getBoundingClientRect()[this.sizeDim]}px`;
+        clone.style[this.sizeDim] = `${slide.getBoundingClientRect()[this.sizeDim]}px`;
 
         const cloneChild = clone.firstElementChild as HTMLElement;
         if (cloneChild) {
@@ -894,18 +891,24 @@ export class SxSlider extends HTMLElement {
         }
 
         this.track.appendChild(clone);
-
-        const height = cloneChild
-          ? cloneChild.getBoundingClientRect().height
-          : clone.getBoundingClientRect().height;
-
-        if (height > maxHeight) {
-          maxHeight = height;
-        }
-
-        this.track.removeChild(clone);
+        clonesToMeasure.push(clone);
       }
     }
+
+    let maxHeight = 0;
+    clonesToMeasure.forEach(clone => {
+      const cloneChild = clone.firstElementChild as HTMLElement;
+      const height = cloneChild
+        ? cloneChild.getBoundingClientRect().height
+        : clone.getBoundingClientRect().height;
+      if (height > maxHeight) {
+        maxHeight = height;
+      }
+    });
+
+    clonesToMeasure.forEach(clone => {
+      this.track?.removeChild(clone);
+    });
 
     if (maxHeight > 0) {
       this.track.style.height = `${maxHeight}px`;
@@ -1140,12 +1143,8 @@ export class SxSlider extends HTMLElement {
           `sx-slider-next[name="${this.options.name}"]`,
         ),
       );
-      prevBtns = Array.from(
-        new Set([...prevBtns, ...extPrev]),
-      ) as HTMLElement[];
-      nextBtns = Array.from(
-        new Set([...nextBtns, ...extNext]),
-      ) as HTMLElement[];
+      prevBtns = [...new Set([...prevBtns, ...extPrev])] as HTMLElement[];
+      nextBtns = [...new Set([...nextBtns, ...extNext])] as HTMLElement[];
     }
 
     if (this.options.loop || this.options.rewind) {
@@ -1179,7 +1178,7 @@ export class SxSlider extends HTMLElement {
           `sx-slider-pagination[name="${this.options.name}"]`,
         ),
       );
-      paginations = Array.from(new Set([...paginations, ...ext]));
+      paginations = [...new Set([...paginations, ...ext])];
     }
 
     paginations.forEach((p) => {
