@@ -52,13 +52,7 @@ export default function CenteredDemo() {
       id="demo-centered-slider"
       style={{ marginBottom: "30vh", paddingTop: "2rem" }}
     >
-      <h3 className="flex-center">Centered</h3>
-      <div
-        className="m-10"
-        style={{ width: "fit-content", margin: "auto", fontSize: "14px" }}
-      >
-        Centered nhưng xóa khoảng trống 2 bên
-      </div>
+      <h3 className="flex-center m-10">Centered</h3>
       <Tabs>
         <TabItem value="demo" label="Demo" default>
           <sx-slider auto-size centered gap="10">

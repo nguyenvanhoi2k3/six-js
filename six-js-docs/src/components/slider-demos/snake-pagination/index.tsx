@@ -4,26 +4,29 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import "./style.scss";
 
-const html = `<sx-slider>
+const html = `<sx-slider name="snake-pagination">
   <sx-slider-track>
     <sx-slider-slide>
-      <div class="slide">Slide 1</div>
+      <div className="slide">Slide 1</div>
     </sx-slider-slide>
     <sx-slider-slide>
-      <div class="slide">Slide 2</div>
+      <div className="slide">Slide 2</div>
     </sx-slider-slide>
     <sx-slider-slide>
-      <div class="slide">Slide 3</div>
+      <div className="slide">Slide 3</div>
     </sx-slider-slide>
     <sx-slider-slide>
-      <div class="slide">Slide 4</div>
+      <div className="slide">Slide 4</div>
     </sx-slider-slide>
     <sx-slider-slide>
-      <div class="slide">Slide 5</div>
+      <div className="slide">Slide 5</div>
     </sx-slider-slide>
   </sx-slider-track>
-  <sx-slider-pagination effect="number"></sx-slider-pagination>
-</sx-slider>`;
+</sx-slider>
+<sx-slider-pagination
+  name="snake-pagination"
+  effect="snake"
+></sx-slider-pagination>`;
 
 const css = `.slide {
     width: 100%;
@@ -35,32 +38,41 @@ const css = `.slide {
     user-select: none;
   }
 
-  sx-slider-pagination[effect="number"] {
+  sx-slider-pagination[effect="snake"] .sx-slider-pagination-bullet {
+    width: 10px;
+    height: 10px;
+    background: #7d7d7d;
+    display: block;
+    border-radius: 50%;
+    transition: 0.3s;
+    cursor: pointer;
+  }
+
+  sx-slider-pagination[effect="snake"] {
+    position: relative;
     display: flex;
-    gap: 4px;
-    align-items: center;
+    gap: 10px;
   }
 
-  sx-slider-pagination[effect="number"] .sx-slider-pagination-bullet {
-    width: 24px;
-    height: 24px;
-    border-radius: 4px;
-    background: #f0f0f0;
-    border: 1px solid #ccc;
-    color: #333;
-    font-size: 12px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: 0.2s;
-  }
-
-  sx-slider-pagination[effect="number"]
-    .sx-slider-pagination-bullet[sx-bullet-active] {
+  sx-slider-pagination[effect="snake"] .sx-slider-pagination-bar {
+    position: absolute;
+    height: 10px;
     background-color: #000;
-    border-color: #000;
-    color: #fff;
+    border-radius: 5px;
+    top: 0;
+    left: 0;
+    width: 10px;
+    transition:
+      left 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+      width 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  sx-slider-pagination[effect="snake"]
+    .sx-slider-pagination-bullet[sx-bullet-active] {
+    background: #000;
+    z-index: 1000;
   }
 `;
 

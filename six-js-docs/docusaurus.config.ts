@@ -7,8 +7,6 @@ import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
   title: "Six-JS Library",
-  tagline:
-    "A powerful JavaScript library for building interactive web applications.",
   favicon: "img/favicon.ico",
 
   stylesheets: [
@@ -46,10 +44,10 @@ const config: Config = {
   },
 
   // dùng local
-  clientModules: [
-    require.resolve("../six-js/dist/six-js.es.js"),
-    require.resolve("../six-js/dist/style.css"),
-  ],
+  // clientModules: [
+  //   require.resolve("../six-js/dist/six-js.es.js"),
+  //   require.resolve("../six-js/dist/style.css"),
+  // ],
 
   presets: [
     [
@@ -115,49 +113,6 @@ const config: Config = {
     },
     footer: {
       style: "dark",
-      links: [
-        {
-          title: "Docs",
-          items: [
-            {
-              // ĐÃ SỬA: Đổi từ "Tutorial" trỏ về "/docs/intro" (bị gãy)
-              // sang "Components" trỏ về một trang thực tế tồn tại
-              label: "Components",
-              to: "/docs/Animate",
-            },
-          ],
-        },
-        {
-          title: "Community",
-          items: [
-            {
-              label: "Stack Overflow",
-              href: "https://stackoverflow.com/questions/tagged/docusaurus",
-            },
-            {
-              label: "Discord",
-              href: "https://discordapp.com/invite/docusaurus",
-            },
-            {
-              label: "X",
-              href: "https://x.com/docusaurus",
-            },
-          ],
-        },
-        {
-          title: "More",
-          items: [
-            {
-              label: "Blog",
-              to: "/blog",
-            },
-            {
-              label: "GitHub",
-              href: "https://github.com/facebook/docusaurus",
-            },
-          ],
-        },
-      ],
       copyright: `Copyright © ${new Date().getFullYear()} six-js, Inc. Built with Docusaurus.`,
     },
     prism: {

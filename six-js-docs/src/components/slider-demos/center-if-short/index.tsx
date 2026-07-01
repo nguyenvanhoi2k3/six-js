@@ -48,7 +48,7 @@ export default function CenterIfShortDemo() {
         className="m-10"
         style={{ width: "fit-content", margin: "auto", fontSize: "14px" }}
       >
-        Nếu không thì slide sẽ căn trái
+        Nếu false thì slide sẽ căn trái
       </div>
       <Tabs>
         <TabItem value="demo" label="Demo" default>

@@ -1,22 +1,14 @@
 // C:\Users\nguye\OneDrive\Máy tính\six-js-librari\six-js-docs\src\pages\index.tsx
 import type { ReactNode } from "react";
-import clsx from "clsx";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
-import Heading from "@theme/Heading";
-import type {} from "@six-js/core";
-import styles from "./index.module.css";
+
+import GettingStartedContent from "../../docs/_Getting-Started.md";
 
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
   return (
-    <header className={clsx("hero hero--primary", styles.heroBanner)}>
-      <div className="container">
-        <Heading as="h1" className="hero__title">
-          {siteConfig.title}
-        </Heading>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
-      </div>
+    <header>
     </header>
   );
 }
@@ -29,7 +21,15 @@ export default function Home(): ReactNode {
       description="Description will go into a meta tag in <head />"
     >
       <HomepageHeader />
-      <main></main>
+      <main>
+        <div className="container margin-vert--lg markdown">
+          <div className="row">
+            <div className="col col--8 col--offset-2">
+              <GettingStartedContent />
+            </div>
+          </div>
+        </div>
+      </main>
     </Layout>
   );
 }
