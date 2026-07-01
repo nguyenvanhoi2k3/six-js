@@ -1546,7 +1546,7 @@ class J extends HTMLElement {
   }
 }
 customElements.get("sx-slider") || customElements.define("sx-slider", J);
-const j = "0.0.28";
+const j = "0.0.29";
 console.log(`@six-js/core v${j}`);
 export {
   I as SxAnimate,
