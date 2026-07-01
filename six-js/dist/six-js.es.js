@@ -956,7 +956,6 @@ class Q extends HTMLElement {
     c(this, "bar");
     this.bar = document.createElement("div"), this.bar.className = "sx-slider-progress-bar";
   }
-  // ✅ Add the element to the DOM only when the component connects
   connectedCallback() {
     this.contains(this.bar) || this.appendChild(this.bar);
   }

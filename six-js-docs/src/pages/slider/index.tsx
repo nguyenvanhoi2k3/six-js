@@ -9,6 +9,7 @@ import PaginationDemo from "../../components/slider-demos/pagination";
 import DynamicPaginationDemo from "../../components/slider-demos/dynamic-pagination";
 import ProgressPaginationDemo from "../../components/slider-demos/progress-pagination";
 import NumberPaginationDemo from "../../components/slider-demos/number-pagination";
+import SnakePaginationDemo from "../../components/slider-demos/snake-pagination";
 import FractionPaginationDemo from "../../components/slider-demos/fraction-pagination";
 import VerticalSliderDemo from "../../components/slider-demos/vertical";
 import PerviewDemo from "../../components/slider-demos/perview";
@@ -30,11 +31,10 @@ import BreakpointsDemo from "../../components/slider-demos/breakpoints";
 import ThumnailDemo from "../../components/slider-demos/thumbnail";
 
 export default function SxSliderDemoPage() {
-  useSixJs();
+  // useSixJs();
 
   useEffect(() => {
     const sections = document.querySelectorAll('div[id^="demo-"]');
-    // Tìm tất cả các thẻ a trên sidebar
     const navLinks = document.querySelectorAll('aside a[href^="#demo-"]');
 
     const observer = new IntersectionObserver(
@@ -80,7 +80,7 @@ export default function SxSliderDemoPage() {
               overflowY: "auto",
             }}
           >
-            <h2 style={{ marginBottom: "1rem" }}>SLIDER</h2>
+            <h2>SLIDER</h2>
             <ul
               style={{
                 listStyle: "none",
@@ -123,6 +123,15 @@ export default function SxSliderDemoPage() {
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
                   Progress pagination
+                </a>
+              </li>
+              <li>
+                <a
+                  className="sidebar-link"
+                  href="#demo-snake-pagination"
+                  style={{ textDecoration: "none", color: "inherit" }}
+                >
+                  Snake pagination
                 </a>
               </li>
               <li>
@@ -333,6 +342,7 @@ export default function SxSliderDemoPage() {
             <LeftPaddingDemo />
             <BreakpointsDemo />
             <ThumnailDemo />
+            <SnakePaginationDemo />
           </div>
         </div>
       </ScrollControllerProvider>

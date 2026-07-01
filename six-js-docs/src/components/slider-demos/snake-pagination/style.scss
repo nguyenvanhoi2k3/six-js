@@ -1,0 +1,48 @@
+#demo-snake-pagination {
+  .slide {
+    width: 100%;
+    background: #e4e4e4;
+    height: 500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+  }
+
+  sx-slider-pagination[effect="snake"] .sx-slider-pagination-bullet {
+    width: 10px;
+    height: 10px;
+    background: #7d7d7d;
+    display: block;
+    border-radius: 50%;
+    transition: 0.3s;
+    cursor: pointer;
+  }
+
+  sx-slider-pagination[effect="snake"] {
+    position: relative;
+    display: flex;
+    gap: 10px;
+  }
+
+  sx-slider-pagination[effect="snake"] .sx-slider-pagination-bar {
+    position: absolute;
+    height: 10px;
+    background-color: #000;
+    border-radius: 5px;
+    top: 0;
+    left: 0;
+    width: 10px;
+    transition:
+      left 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+      width 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  sx-slider-pagination[effect="snake"]
+    .sx-slider-pagination-bullet[sx-bullet-active] {
+    background: #000;
+    z-index: 1000;
+  }
+}
