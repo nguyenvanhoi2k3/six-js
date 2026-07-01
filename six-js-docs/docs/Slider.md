@@ -64,8 +64,8 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
 |name|string|Tên duy nhất của slider|null|
 |per-view|number|Số lượng slide trong viewport|1|
 |per-move|number\|string|`auto`: 1 hoặc dừng lại ở slide gần nhất khi thả|auto|
-|right-padding|number|Lộ một phần slide tiếp theo nếu có|0|
-|left-padding|number|Lộ một phần slide trước đó nếu có|0|
+|right-padding|number\|string|Lộ một phần slide tiếp theo nếu có|0|
+|left-padding|number\|string|Lộ một phần slide trước đó nếu có|0|
 |speed|number|Tốc độ trượt slide|300|
 |edge-resistance|number|Khoảng cách cản khi kéo ở mép đầu/cuối.|100|
 |loop|boolean||false|
