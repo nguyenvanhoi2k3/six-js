@@ -322,6 +322,7 @@ export default function SxSliderDemoPage() {
             <PaginationDemo />
             <DynamicPaginationDemo />
             <ProgressPaginationDemo />
+            <SnakePaginationDemo />
             <NumberPaginationDemo />
             <FractionPaginationDemo />
             <VerticalSliderDemo />
@@ -342,7 +343,6 @@ export default function SxSliderDemoPage() {
             <LeftPaddingDemo />
             <BreakpointsDemo />
             <ThumnailDemo />
-            <SnakePaginationDemo />
           </div>
         </div>
       </ScrollControllerProvider>
