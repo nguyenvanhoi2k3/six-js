@@ -16,33 +16,39 @@ const html = `<sx-slider>
       <div class="slide">Slide 3</div>
     </sx-slider-slide>
   </sx-slider-track>
-  <sx-slider-prev class="prev">Prev</sx-slider-prev>
-  <sx-slider-next class="next">Next</sx-slider-next>
+  <sx-slider-prev class="nav prev">Prev</sx-slider-prev>
+  <sx-slider-next class="nav next">Next</sx-slider-next>
 </sx-slider>`;
 
 const css = `.slide {
-  width: 100%;
-  background: #e4e4e4;
-  height: 500px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  user-select: none;
-}
+    width: 100%;
+    background: #e4e4e4;
+    height: 500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+  }
 
-.prev {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  left: 0;
-}
+  .prev {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
+  }
 
-.next {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  right: 0;
-}
+  .next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 0;
+  }
+
+  .nav[sx-disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
 `;
 
 export default function DefaultDemo() {
@@ -63,8 +69,8 @@ export default function DefaultDemo() {
                 <div className="slide">Slide 3</div>
               </sx-slider-slide>
             </sx-slider-track>
-            <sx-slider-prev className="prev">Prev</sx-slider-prev>
-            <sx-slider-next className="next">Next</sx-slider-next>
+            <sx-slider-prev className="nav prev">Prev</sx-slider-prev>
+            <sx-slider-next className="nav next">Next</sx-slider-next>
           </sx-slider>
         </TabItem>
         <TabItem value="html" label="Html">

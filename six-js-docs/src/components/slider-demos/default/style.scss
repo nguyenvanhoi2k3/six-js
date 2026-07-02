@@ -22,4 +22,10 @@
     transform: translateY(-50%);
     right: 0;
   }
+
+  .nav[sx-disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
 }
