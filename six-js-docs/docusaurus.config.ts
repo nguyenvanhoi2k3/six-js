@@ -84,7 +84,7 @@ const config: Config = {
 
   // --- THÊM MỤC PLUGINS VÀO ĐÂY ---
   plugins: [
-    'docusaurus-plugin-sass',
+    "docusaurus-plugin-sass",
     [
       require.resolve("@cmfcmf/docusaurus-search-local"),
       {
@@ -97,7 +97,9 @@ const config: Config = {
     // Replace with your project's social card
     image: "img/docusaurus-social-card.jpg",
     colorMode: {
-      respectPrefersColorScheme: true,
+      defaultMode: "light",
+      disableSwitch: true,
+      respectPrefersColorScheme: false,
     },
     navbar: {
       title: "Six-JS Library",
