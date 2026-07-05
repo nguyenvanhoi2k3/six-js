@@ -1,6 +1,6 @@
-var F = Object.defineProperty;
-var D = (g, a, t) => a in g ? F(g, a, { enumerable: !0, configurable: !0, writable: !0, value: t }) : g[a] = t;
-var h = (g, a, t) => D(g, typeof a != "symbol" ? a + "" : a, t);
+var D = Object.defineProperty;
+var _ = (g, a, t) => a in g ? D(g, a, { enumerable: !0, configurable: !0, writable: !0, value: t }) : g[a] = t;
+var h = (g, a, t) => _(g, typeof a != "symbol" ? a + "" : a, t);
 const T = {
   "ease-in": "cubic-bezier(0.42, 0, 1, 1)",
   "ease-out": "cubic-bezier(0, 0, 0.58, 1)",
@@ -12,33 +12,38 @@ const T = {
   "back-in": "cubic-bezier(0.36, 0, 0.66, -0.56)",
   "back-out": "cubic-bezier(0.34, 1.56, 0.64, 1)",
   "back-in-out": "cubic-bezier(0.68, -0.6, 0.32, 1.6)"
-}, B = /* @__PURE__ */ new WeakMap();
-let z = [], w = null;
-function E(g, a) {
-  z.push({ instance: g, type: a }), w === null && (w = requestAnimationFrame(_));
+}, E = /* @__PURE__ */ new WeakMap();
+let w = [], M = null;
+function R(g, a) {
+  w.push({ instance: g, type: a }), M === null && (M = requestAnimationFrame(N));
 }
-function _() {
-  const g = z.slice();
-  z.length = 0, w = null;
+function N() {
+  const g = w.slice();
+  w.length = 0, M = null;
   for (let a = 0; a < g.length; a++) {
     const { instance: t, type: e } = g[a];
     e === "enter" ? t.enter() : t.leave && t.leave();
   }
 }
-const P = new IntersectionObserver(
-  (g) => {
-    for (let a = 0; a < g.length; a++) {
-      const t = g[a], e = B.get(t.target);
-      e && (t.isIntersecting ? E(e, "enter") : E(e, "leave"));
-    }
-  },
-  { threshold: 0.05 }
-);
-function L(g, a) {
-  B.set(g, a), P.observe(g);
+let z = null;
+function L() {
+  return typeof window > "u" ? null : (z || (z = new IntersectionObserver(
+    (g) => {
+      for (let a = 0; a < g.length; a++) {
+        const t = g[a], e = E.get(t.target);
+        e && (t.isIntersecting ? R(e, "enter") : R(e, "leave"));
+      }
+    },
+    { threshold: 0.05 }
+  )), z);
 }
-function M(g) {
-  B.delete(g), P.unobserve(g);
+function F(g, a) {
+  var t;
+  E.set(g, a), (t = L()) == null || t.observe(g);
+}
+function I(g) {
+  var a;
+  E.delete(g), (a = L()) == null || a.unobserve(g);
 }
 const C = class C extends HTMLElement {
   constructor() {
@@ -68,17 +73,17 @@ const C = class C extends HTMLElement {
       this.style.opacity = "1", this.style.transform = "none";
       return;
     }
-    this.setInitialState(), L(this, {
+    this.setInitialState(), F(this, {
       enter: () => this.handleEnter(),
       leave: () => this.handleLeave()
     });
   }
   disconnectedCallback() {
     var t;
-    (t = this.animation) == null || t.cancel(), M(this), C.groupQueue.delete(this);
+    (t = this.animation) == null || t.cancel(), I(this), C.groupQueue.delete(this);
   }
   handleEnter() {
-    this.hasAttribute("replay") || M(this), this.isGroup ? (C.groupQueue.add(this), C.scheduleGroup()) : this.play();
+    this.hasAttribute("replay") || I(this), this.isGroup ? (C.groupQueue.add(this), C.scheduleGroup()) : this.play();
   }
   handleLeave() {
     this.hasAttribute("replay") && this.reset();
@@ -135,9 +140,9 @@ const C = class C extends HTMLElement {
 h(C, "counter", 0), h(C, "mediaQuery", window.matchMedia(
   "(prefers-reduced-motion: reduce)"
 )), h(C, "groupQueue", /* @__PURE__ */ new Set()), h(C, "isProcessingGroup", !1);
-let I = C;
-customElements.get("sx-animate") || customElements.define("sx-animate", I);
-class N {
+let B = C;
+customElements.get("sx-animate") || customElements.define("sx-animate", B);
+class O {
   constructor() {
     h(this, "_listeners", /* @__PURE__ */ new Set());
     h(this, "_time", 0);
@@ -230,7 +235,7 @@ class N {
     return this._listeners.size;
   }
 }
-const A = new N();
+const A = new O();
 class q extends HTMLElement {
   constructor() {
     super();
@@ -303,7 +308,7 @@ class q extends HTMLElement {
     }
     this.addEventListener("mouseenter", this.onMouseEnter), this.addEventListener("mouseleave", this.onMouseLeave), this.resizeObserver = new ResizeObserver(() => {
       this.scheduleSetup();
-    }), this.resizeObserver.observe(this), L(this, {
+    }), this.resizeObserver.observe(this), F(this, {
       enter: () => {
         this.isVisible || (this.isVisible = !0, A.add(this.updateAnimation));
       },
@@ -314,7 +319,7 @@ class q extends HTMLElement {
   }
   disconnectedCallback() {
     var t;
-    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (t = this.resizeObserver) == null || t.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), M(this), A.remove(this.updateAnimation);
+    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (t = this.resizeObserver) == null || t.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), I(this), A.remove(this.updateAnimation);
   }
   attributeChangedCallback(t, e, s) {
     e !== s && (t === "gap" ? (this.updateGapVar(), setTimeout(() => this.scheduleSetup(), 50)) : (t === "direction" || t === "speed" || t === "clone") && this.scheduleSetup());
@@ -417,17 +422,17 @@ class q extends HTMLElement {
     this.inner && (this.isVertical ? this.inner.style.transform = `translate3d(0,${t}px,0)` : this.inner.style.transform = `translate3d(${t}px,0,0)`);
   }
 }
-class O extends HTMLElement {
-}
 class V extends HTMLElement {
+}
+class $ extends HTMLElement {
   connectedCallback() {
     this.style.cssText = "display:inline-block;flex-shrink:0;";
   }
 }
 customElements.get("sx-marquee") || customElements.define("sx-marquee", q);
-customElements.get("sx-marquee-inner") || customElements.define("sx-marquee-inner", O);
-customElements.get("sx-marquee-item") || customElements.define("sx-marquee-item", V);
-class $ {
+customElements.get("sx-marquee-inner") || customElements.define("sx-marquee-inner", V);
+customElements.get("sx-marquee-item") || customElements.define("sx-marquee-item", $);
+class H {
   constructor() {
     h(this, "sliders", /* @__PURE__ */ new Map());
   }
@@ -441,8 +446,8 @@ class $ {
     return this.sliders.get(a);
   }
 }
-const k = new $();
-class R {
+const k = new H();
+class P {
   static parse(a) {
     if (!a) return null;
     try {
@@ -473,7 +478,7 @@ class R {
     return t;
   }
 }
-class H {
+class W {
   constructor(a, t, e = 0.92) {
     h(this, "velocity", 0);
     h(this, "friction");
@@ -505,7 +510,7 @@ class H {
     this.onUpdate(this.velocity * t), this.velocity *= e;
   }
 }
-class W extends HTMLElement {
+class G extends HTMLElement {
   constructor() {
     super();
     h(this, "sliderCha", null);
@@ -544,7 +549,7 @@ class W extends HTMLElement {
       }
       this.sliderCha.startAutoplay();
     });
-    h(this, "wheelInertia", new H(
+    h(this, "wheelInertia", new W(
       (t) => {
         if (this.sliderCha) {
           if (this.currentTranslate += t, this.sliderCha.options.loop)
@@ -783,14 +788,14 @@ class W extends HTMLElement {
     }
   }
 }
-customElements.get("sx-slider-track") || customElements.define("sx-slider-track", W);
-class G extends HTMLElement {
+customElements.get("sx-slider-track") || customElements.define("sx-slider-track", G);
+class X extends HTMLElement {
   constructor() {
     super();
   }
 }
-customElements.get("sx-slider-slide") || customElements.define("sx-slider-slide", G);
-class X extends HTMLElement {
+customElements.get("sx-slider-slide") || customElements.define("sx-slider-slide", X);
+class U extends HTMLElement {
   constructor() {
     super(), this.addEventListener("click", () => this.handleAction()), this.addEventListener("keydown", (a) => {
       (a.key === "Enter" || a.key === " ") && (a.preventDefault(), this.handleAction());
@@ -811,8 +816,8 @@ class X extends HTMLElement {
     }
   }
 }
-customElements.get("sx-slider-prev") || customElements.define("sx-slider-prev", X);
-class U extends HTMLElement {
+customElements.get("sx-slider-prev") || customElements.define("sx-slider-prev", U);
+class Y extends HTMLElement {
   constructor() {
     super(), this.addEventListener("click", () => this.handleAction()), this.addEventListener("keydown", (a) => {
       (a.key === "Enter" || a.key === " ") && (a.preventDefault(), this.handleAction());
@@ -833,8 +838,8 @@ class U extends HTMLElement {
     }
   }
 }
-customElements.get("sx-slider-next") || customElements.define("sx-slider-next", U);
-class Y extends HTMLElement {
+customElements.get("sx-slider-next") || customElements.define("sx-slider-next", Y);
+class Q extends HTMLElement {
   constructor() {
     super();
     h(this, "renderedSignature", "");
@@ -952,8 +957,8 @@ class Y extends HTMLElement {
     this.innerContainer.style.transform = `translateX(${d}px)`;
   }
 }
-customElements.get("sx-slider-pagination") || customElements.define("sx-slider-pagination", Y);
-class Q extends HTMLElement {
+customElements.get("sx-slider-pagination") || customElements.define("sx-slider-pagination", Q);
+class J extends HTMLElement {
   constructor() {
     super();
     h(this, "bar");
@@ -967,8 +972,8 @@ class Q extends HTMLElement {
     this.bar.style.transition = s || "none", e === "vertical" ? (this.bar.style.transformOrigin = "top center", this.bar.style.transform = `scaleY(${i})`) : (this.bar.style.transformOrigin = "left center", this.bar.style.transform = `scaleX(${i})`);
   }
 }
-customElements.get("sx-slider-progress") || customElements.define("sx-slider-progress", Q);
-class J extends HTMLElement {
+customElements.get("sx-slider-progress") || customElements.define("sx-slider-progress", J);
+class j extends HTMLElement {
   constructor() {
     super();
     h(this, "options");
@@ -1162,7 +1167,7 @@ class J extends HTMLElement {
       effect: p,
       sync: this.getAttribute("sync"),
       lockActive: this.hasAttribute("lock-active")
-    }, this.originalOptions = { ...this.options }, this.breakpointsConfig = R.parse(
+    }, this.originalOptions = { ...this.options }, this.breakpointsConfig = P.parse(
       this.getAttribute("breakpoints")
     );
   }
@@ -1208,7 +1213,7 @@ class J extends HTMLElement {
     if (this.options.loop || e.forEach((u, f) => {
       u.setAttribute("data-real-index", f.toString());
     }), this.breakpointsConfig && this.originalOptions) {
-      this.options = R.getMatch(
+      this.options = P.getMatch(
         t,
         JSON.parse(JSON.stringify(this.originalOptions)),
         this.breakpointsConfig
@@ -1545,13 +1550,13 @@ class J extends HTMLElement {
     });
   }
 }
-customElements.get("sx-slider") || customElements.define("sx-slider", J);
-const j = "0.0.29";
-console.log(`@six-js/core v${j}`);
+customElements.get("sx-slider") || customElements.define("sx-slider", j);
+const K = "0.0.30";
+console.log(`@six-js/core v${K}`);
 export {
-  I as SxAnimate,
+  B as SxAnimate,
   q as SxMarquee,
-  O as SxMarqueeInner,
-  V as SxMarqueeItem,
-  j as VERSION
+  V as SxMarqueeInner,
+  $ as SxMarqueeItem,
+  K as VERSION
 };

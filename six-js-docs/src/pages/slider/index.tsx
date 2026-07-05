@@ -31,7 +31,7 @@ import BreakpointsDemo from "../../components/slider-demos/breakpoints";
 import ThumnailDemo from "../../components/slider-demos/thumbnail";
 
 export default function SxSliderDemoPage() {
-  // useSixJs();
+  useSixJs();
 
   useEffect(() => {
     const sections = document.querySelectorAll('div[id^="demo-"]');

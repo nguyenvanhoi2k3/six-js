@@ -1,0 +1,24 @@
+<sx-modal-trigger name="modal1">Open Modal</sx-modal-trigger>
+<sx-modal name="modal1">
+    <sx-modal-trigger name="modal1">Close Modal</sx-modal-trigger>
+  <p>This is the content of the modal.</p>
+  <div>
+    Lorem ipsum dolor sit amet consectetur adipisicing elit. Nihil, aperiam.
+  </div>
+</sx-modal>
+
+attrs of sx-modal-trigger:
+- name (required): tên để định danh modal, phải trùng với name của sx-modal
+
+attrs of sx-modal:
+- name (required): tên để định danh modal, phải trùng với name của sx-modal-trigger
+- duration (number): thời gian đóng mở modal, mặc định là 300ms
+- close-on-outside-click (boolean): nếu true thì đong modal khi click ra ngoài modal và ngược lại, mặc định là true
+- close-on-esc-key (boolean): Cho phép đóng modal bằng esc key, mặc định là true
+- scrollable (boolean): nếu true thì modal có thể scroll, mặc định là false (lưu ý nếu tắt scroll thì phải giữ nguyên width viewport không được để co giật width thanh scrollbar trình duyệt bị disable)
+- overlay (boolean): nếu true thì modal có overlay, mặc định là true
+- overlay-style (string): style của overlay, mặc định là background-color: rgba(0, 0, 0, 0.5); (ví dụ: overlay-style="backdrop-filter: blur(10px);")
+
+
+tương lai phát triển sau, chưa làm vội:
+breakpoints 
