@@ -1,4 +1,4 @@
-// six-js\src\components\slider\sx-slider-slide.ts
+// six-js\src\components\slider\slider-slide.ts
 export class SxSliderSlide extends HTMLElement {
   constructor() {
     super();

@@ -1,5 +1,5 @@
-// six-js\src\components\slider\sx-slider-track.ts
-import { SxSlider } from "./sx-slider";
+// six-js\src\components\slider\slider-track.ts
+import { SxSlider } from "./slider";
 import { InertiaPhysics } from "../../core/inertia-physics";
 import { ticker, TickerCallback } from "../../core/ticker";
 

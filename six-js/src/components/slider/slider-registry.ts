@@ -1,4 +1,4 @@
-import { SxSlider } from './sx-slider';
+import { SxSlider } from './slider';
 
 class SliderRegistry {
   private sliders = new Map<string, SxSlider>();

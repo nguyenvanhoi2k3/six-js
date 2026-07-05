@@ -1,7 +1,7 @@
-// six-js\src\components\slider\sx-slider-prev.ts
+// six-js\src\components\slider\slider-next.ts
 import { sliderRegistry } from './slider-registry';
 
-export class SxSliderPrev extends HTMLElement {
+export class SxSliderNext extends HTMLElement {
   constructor() {
     super();
     this.addEventListener('click', () => this.handleAction());
@@ -22,7 +22,7 @@ export class SxSliderPrev extends HTMLElement {
       this.setAttribute('tabindex', '0');
     }
     if (!this.hasAttribute('aria-label')) {
-      this.setAttribute('aria-label', 'Previous slide');
+      this.setAttribute('aria-label', 'Next slide');
     }
   }
 
@@ -32,14 +32,14 @@ export class SxSliderPrev extends HTMLElement {
     const name = this.getAttribute('name');
     if (name) {
       const targetSlider = sliderRegistry.get(name);
-      if (targetSlider) targetSlider.prev();
+      if (targetSlider) targetSlider.next();
     } else {
       const parentSlider = this.closest('sx-slider');
-      if (parentSlider) (parentSlider as any).prev();
+      if (parentSlider) (parentSlider as any).next();
     }
   }
 }
 
-if (!customElements.get('sx-slider-prev')) {
-  customElements.define('sx-slider-prev', SxSliderPrev);
+if (!customElements.get('sx-slider-next')) {
+  customElements.define('sx-slider-next', SxSliderNext);
 }

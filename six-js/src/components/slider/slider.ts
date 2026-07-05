@@ -1,15 +1,15 @@
-// six-js\src\components\slider\sx-slider.ts
+// six-js\src\components\slider\slider.ts
 import { SliderOptions } from "./slider-types";
-import { SxSliderTrack } from "./sx-slider-track";
+import { SxSliderTrack } from "./slider-track";
 import { sliderRegistry } from "./slider-registry";
 import { Breakpoints } from "../../core/breakpoints";
 
-import "./sx-slider-track";
-import "./sx-slider-slide";
-import "./sx-slider-prev";
-import "./sx-slider-next";
-import "./sx-slider-pagination";
-import "./sx-slider-progress";
+import "./slider-track";
+import "./slider-slide";
+import "./slider-prev";
+import "./slider-next";
+import "./slider-pagination";
+import "./slider-progress";
 
 export class SxSlider extends HTMLElement {
   public options!: SliderOptions;
