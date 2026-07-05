@@ -1,7 +1,7 @@
-var D = Object.defineProperty;
-var O = (g, a, t) => a in g ? D(g, a, { enumerable: !0, configurable: !0, writable: !0, value: t }) : g[a] = t;
-var l = (g, a, t) => O(g, typeof a != "symbol" ? a + "" : a, t);
-const T = {
+var O = Object.defineProperty;
+var _ = (g, a, t) => a in g ? O(g, a, { enumerable: !0, configurable: !0, writable: !0, value: t }) : g[a] = t;
+var l = (g, a, t) => _(g, typeof a != "symbol" ? a + "" : a, t);
+const w = {
   "ease-in": "cubic-bezier(0.42, 0, 1, 1)",
   "ease-out": "cubic-bezier(0, 0, 0.58, 1)",
   "ease-in-out": "cubic-bezier(0.42, 0, 0.58, 1)",
@@ -12,45 +12,45 @@ const T = {
   "back-in": "cubic-bezier(0.36, 0, 0.66, -0.56)",
   "back-out": "cubic-bezier(0.34, 1.56, 0.64, 1)",
   "back-in-out": "cubic-bezier(0.68, -0.6, 0.32, 1.6)"
-}, B = /* @__PURE__ */ new WeakMap();
-let E = [], z = null;
-function R(g, a) {
-  E.push({ instance: g, type: a }), z === null && (z = requestAnimationFrame(_));
+}, R = /* @__PURE__ */ new WeakMap();
+let z = [], M = null;
+function P(g, a) {
+  z.push({ instance: g, type: a }), M === null && (M = requestAnimationFrame(q));
 }
-function _() {
-  const g = E.slice();
-  E.length = 0, z = null;
+function q() {
+  const g = z.slice();
+  z.length = 0, M = null;
   for (let a = 0; a < g.length; a++) {
     const { instance: t, type: e } = g[a];
     e === "enter" ? t.enter() : t.leave && t.leave();
   }
 }
-let w = null;
-function L() {
-  return typeof window > "u" ? null : (w || (w = new IntersectionObserver(
+let E = null;
+function D() {
+  return typeof window > "u" ? null : (E || (E = new IntersectionObserver(
     (g) => {
       for (let a = 0; a < g.length; a++) {
-        const t = g[a], e = B.get(t.target);
-        e && (t.isIntersecting ? R(e, "enter") : R(e, "leave"));
+        const t = g[a], e = R.get(t.target);
+        e && (t.isIntersecting ? P(e, "enter") : P(e, "leave"));
       }
     },
     { threshold: 0.05 }
-  )), w);
+  )), E);
 }
 function F(g, a) {
   var t;
-  B.set(g, a), (t = L()) == null || t.observe(g);
+  R.set(g, a), (t = D()) == null || t.observe(g);
 }
-function M(g) {
+function I(g) {
   var a;
-  B.delete(g), (a = L()) == null || a.unobserve(g);
+  R.delete(g), (a = D()) == null || a.unobserve(g);
 }
-const v = class v extends HTMLElement {
+const S = class S extends HTMLElement {
   constructor() {
     super(...arguments);
     l(this, "animation");
     l(this, "options");
-    l(this, "order", v.counter++);
+    l(this, "order", S.counter++);
   }
   static get reduceMotion() {
     return this.mediaQuery.matches;
@@ -69,7 +69,7 @@ const v = class v extends HTMLElement {
     return this.hasAttribute("group");
   }
   connectedCallback() {
-    if (this.options = this.getOptions(), v.reduceMotion) {
+    if (this.options = this.getOptions(), S.reduceMotion) {
       this.style.opacity = "1", this.style.transform = "none";
       return;
     }
@@ -80,10 +80,10 @@ const v = class v extends HTMLElement {
   }
   disconnectedCallback() {
     var t;
-    (t = this.animation) == null || t.cancel(), M(this), v.groupQueue.delete(this);
+    (t = this.animation) == null || t.cancel(), I(this), S.groupQueue.delete(this);
   }
   handleEnter() {
-    this.hasAttribute("replay") || M(this), this.isGroup ? (v.groupQueue.add(this), v.scheduleGroup()) : this.play();
+    this.hasAttribute("replay") || I(this), this.isGroup ? (S.groupQueue.add(this), S.scheduleGroup()) : this.play();
   }
   handleLeave() {
     this.hasAttribute("replay") && this.reset();
@@ -99,7 +99,7 @@ const v = class v extends HTMLElement {
     return {
       x: n,
       y: h,
-      easing: i && i in T ? T[i] : T["ease-in-out"],
+      easing: i && i in w ? w[i] : w["ease-in-out"],
       duration: Number(this.getAttribute("duration")) || 400,
       delay: Number(this.getAttribute("delay")) || 0
     };
@@ -137,12 +137,12 @@ const v = class v extends HTMLElement {
     };
   }
 };
-l(v, "counter", 0), l(v, "mediaQuery", window.matchMedia(
+l(S, "counter", 0), l(S, "mediaQuery", window.matchMedia(
   "(prefers-reduced-motion: reduce)"
-)), l(v, "groupQueue", /* @__PURE__ */ new Set()), l(v, "isProcessingGroup", !1);
-let I = v;
-customElements.get("sx-animate") || customElements.define("sx-animate", I);
-class q {
+)), l(S, "groupQueue", /* @__PURE__ */ new Set()), l(S, "isProcessingGroup", !1);
+let B = S;
+customElements.get("sx-animate") || customElements.define("sx-animate", B);
+class N {
   constructor() {
     l(this, "_listeners", /* @__PURE__ */ new Set());
     l(this, "_time", 0);
@@ -235,8 +235,8 @@ class q {
     return this._listeners.size;
   }
 }
-const k = new q();
-class N extends HTMLElement {
+const k = new N();
+class V extends HTMLElement {
   constructor() {
     super();
     l(this, "inner", null);
@@ -319,7 +319,7 @@ class N extends HTMLElement {
   }
   disconnectedCallback() {
     var t;
-    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (t = this.resizeObserver) == null || t.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), M(this), k.remove(this.updateAnimation);
+    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (t = this.resizeObserver) == null || t.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), I(this), k.remove(this.updateAnimation);
   }
   attributeChangedCallback(t, e, s) {
     e !== s && (t === "gap" ? (this.updateGapVar(), setTimeout(() => this.scheduleSetup(), 50)) : (t === "direction" || t === "speed" || t === "clone") && this.scheduleSetup());
@@ -424,15 +424,15 @@ class N extends HTMLElement {
 }
 class $ extends HTMLElement {
 }
-class V extends HTMLElement {
+class H extends HTMLElement {
   connectedCallback() {
     this.style.cssText = "display:inline-block;flex-shrink:0;";
   }
 }
-customElements.get("sx-marquee") || customElements.define("sx-marquee", N);
+customElements.get("sx-marquee") || customElements.define("sx-marquee", V);
 customElements.get("sx-marquee-inner") || customElements.define("sx-marquee-inner", $);
-customElements.get("sx-marquee-item") || customElements.define("sx-marquee-item", V);
-class H {
+customElements.get("sx-marquee-item") || customElements.define("sx-marquee-item", H);
+class W {
   constructor() {
     l(this, "sliders", /* @__PURE__ */ new Map());
   }
@@ -446,8 +446,8 @@ class H {
     return this.sliders.get(a);
   }
 }
-const A = new H();
-class P {
+const T = new W();
+class L {
   static parse(a) {
     if (!a) return null;
     try {
@@ -478,7 +478,7 @@ class P {
     return t;
   }
 }
-class W {
+class G {
   constructor(a, t, e = 0.92) {
     l(this, "velocity", 0);
     l(this, "friction");
@@ -510,7 +510,7 @@ class W {
     this.onUpdate(this.velocity * t), this.velocity *= e;
   }
 }
-class G extends HTMLElement {
+class X extends HTMLElement {
   constructor() {
     super();
     l(this, "sliderCha", null);
@@ -549,7 +549,7 @@ class G extends HTMLElement {
       }
       this.sliderCha.startAutoplay();
     });
-    l(this, "wheelInertia", new W(
+    l(this, "wheelInertia", new G(
       (t) => {
         if (this.sliderCha) {
           if (this.currentTranslate += t, this.sliderCha.options.loop)
@@ -740,8 +740,8 @@ class G extends HTMLElement {
       const x = this.sliderCha.getBoundingClientRect()[this.sliderCha.sizeDim];
       let b = 0;
       if (this.sliderCha.options.autoSize) {
-        const S = this.sliderCha.convertToPx(this.sliderCha.options.gap), m = this.children[e];
-        b = m ? m.getBoundingClientRect()[this.sliderCha.sizeDim] + S : 0;
+        const v = this.sliderCha.convertToPx(this.sliderCha.options.gap), m = this.children[e];
+        b = m ? m.getBoundingClientRect()[this.sliderCha.sizeDim] + v : 0;
       } else
         b = this.sliderCha.getSlideSizeWithGap();
       h = x / 2 - b / 2;
@@ -788,14 +788,14 @@ class G extends HTMLElement {
     }
   }
 }
-customElements.get("sx-slider-track") || customElements.define("sx-slider-track", G);
-class X extends HTMLElement {
+customElements.get("sx-slider-track") || customElements.define("sx-slider-track", X);
+class Y extends HTMLElement {
   constructor() {
     super();
   }
 }
-customElements.get("sx-slider-slide") || customElements.define("sx-slider-slide", X);
-class Y extends HTMLElement {
+customElements.get("sx-slider-slide") || customElements.define("sx-slider-slide", Y);
+class K extends HTMLElement {
   constructor() {
     super(), this.addEventListener("click", () => this.handleAction()), this.addEventListener("keydown", (a) => {
       (a.key === "Enter" || a.key === " ") && (a.preventDefault(), this.handleAction());
@@ -808,7 +808,7 @@ class Y extends HTMLElement {
     if (this.hasAttribute("sx-disabled")) return;
     const a = this.getAttribute("name");
     if (a) {
-      const t = A.get(a);
+      const t = T.get(a);
       t && t.prev();
     } else {
       const t = this.closest("sx-slider");
@@ -816,7 +816,7 @@ class Y extends HTMLElement {
     }
   }
 }
-customElements.get("sx-slider-prev") || customElements.define("sx-slider-prev", Y);
+customElements.get("sx-slider-prev") || customElements.define("sx-slider-prev", K);
 class U extends HTMLElement {
   constructor() {
     super(), this.addEventListener("click", () => this.handleAction()), this.addEventListener("keydown", (a) => {
@@ -830,7 +830,7 @@ class U extends HTMLElement {
     if (this.hasAttribute("sx-disabled")) return;
     const a = this.getAttribute("name");
     if (a) {
-      const t = A.get(a);
+      const t = T.get(a);
       t && t.next();
     } else {
       const t = this.closest("sx-slider");
@@ -839,7 +839,7 @@ class U extends HTMLElement {
   }
 }
 customElements.get("sx-slider-next") || customElements.define("sx-slider-next", U);
-class K extends HTMLElement {
+class Q extends HTMLElement {
   constructor() {
     super();
     l(this, "renderedSignature", "");
@@ -870,7 +870,7 @@ class K extends HTMLElement {
   goToSlide(t) {
     const e = this.getAttribute("name");
     let s = null;
-    e ? s = A.get(e) : s = this.closest("sx-slider"), s && typeof s.goTo == "function" && s.goTo(t);
+    e ? s = T.get(e) : s = this.closest("sx-slider"), s && typeof s.goTo == "function" && s.goTo(t);
   }
   renderBullets(t) {
     const e = this.getAttribute("effect"), s = e === "dynamic", i = e === "snake", n = e === "fraction", h = t.join(",") + `_effect:${e}`;
@@ -924,13 +924,13 @@ class K extends HTMLElement {
       if (this.snakeTimeout !== null && (clearTimeout(this.snakeTimeout), this.snakeTimeout = null), n[t]) {
         const x = t * 20, b = this.lastActiveIndex * 20;
         if (t > this.lastActiveIndex) {
-          const S = x - b + 10;
-          this.snakeBar.style.left = `${b}px`, this.snakeBar.style.width = `${S}px`, this.snakeTimeout = window.setTimeout(() => {
+          const v = x - b + 10;
+          this.snakeBar.style.left = `${b}px`, this.snakeBar.style.width = `${v}px`, this.snakeTimeout = window.setTimeout(() => {
             this.getAttribute("effect") === "snake" && this.snakeBar && (this.snakeBar.style.left = `${x}px`, this.snakeBar.style.width = "10px");
           }, 150);
         } else if (t < this.lastActiveIndex) {
-          const S = b - x + 10;
-          this.snakeBar.style.left = `${x}px`, this.snakeBar.style.width = `${S}px`, this.snakeTimeout = window.setTimeout(() => {
+          const v = b - x + 10;
+          this.snakeBar.style.left = `${x}px`, this.snakeBar.style.width = `${v}px`, this.snakeTimeout = window.setTimeout(() => {
             this.getAttribute("effect") === "snake" && this.snakeBar && (this.snakeBar.style.width = "10px");
           }, 150);
         } else
@@ -957,8 +957,8 @@ class K extends HTMLElement {
     this.innerContainer.style.transform = `translateX(${d}px)`;
   }
 }
-customElements.get("sx-slider-pagination") || customElements.define("sx-slider-pagination", K);
-class Q extends HTMLElement {
+customElements.get("sx-slider-pagination") || customElements.define("sx-slider-pagination", Q);
+class j extends HTMLElement {
   constructor() {
     super();
     l(this, "bar");
@@ -972,14 +972,15 @@ class Q extends HTMLElement {
     this.bar.style.transition = s || "none", e === "vertical" ? (this.bar.style.transformOrigin = "top center", this.bar.style.transform = `scaleY(${i})`) : (this.bar.style.transformOrigin = "left center", this.bar.style.transform = `scaleX(${i})`);
   }
 }
-customElements.get("sx-slider-progress") || customElements.define("sx-slider-progress", Q);
-class j extends HTMLElement {
+customElements.get("sx-slider-progress") || customElements.define("sx-slider-progress", j);
+class J extends HTMLElement {
   constructor() {
     super();
     l(this, "options");
     l(this, "originalOptions");
     l(this, "breakpointsConfig", null);
     l(this, "currentIndex", 0);
+    l(this, "lastFiredIndex", -1);
     l(this, "track", null);
     l(this, "resizeObserver");
     l(this, "originalSlidesCount", 0);
@@ -1026,10 +1027,10 @@ class j extends HTMLElement {
           i = n / u;
           let f = 0;
           if (this.options.centered) {
-            let S = this.options.autoSize ? this.getRectSize(
+            let v = this.options.autoSize ? this.getRectSize(
               this.track.children[d]
             ) + this.convertToPx(this.options.gap) : this.getSlideSizeWithGap();
-            f = n / 2 - S / 2;
+            f = n / 2 - v / 2;
           }
           s = (-p + c + f - t) / u, s = (s % 1 + 1) % 1;
         } else
@@ -1091,7 +1092,7 @@ class j extends HTMLElement {
     ];
   }
   connectedCallback() {
-    if (this.track = this.querySelector("sx-slider-track"), this.options.name && A.register(this.options.name, this), this.resizeObserver = new ResizeObserver(() => {
+    if (this.track = this.querySelector("sx-slider-track"), this.options.name && T.register(this.options.name, this), this.resizeObserver = new ResizeObserver(() => {
       window.requestAnimationFrame(() => {
         if (!this.isConnected) return;
         const t = this.getBoundingClientRect()[this.sizeDim];
@@ -1119,10 +1120,22 @@ class j extends HTMLElement {
         }
       }), this.initLoopClones();
     }
-    document.addEventListener("visibilitychange", this.handleVisibilityChange), this.startAutoplay();
+    document.addEventListener("visibilitychange", this.handleVisibilityChange), this.startAutoplay(), this.dispatchEvent(
+      new CustomEvent("sx-slider-init", {
+        bubbles: !0,
+        composed: !0,
+        detail: { name: this.options.name }
+      })
+    );
   }
   disconnectedCallback() {
-    this.options.name && A.unregister(this.options.name), this.resizeObserver.disconnect(), this.stopAutoplay(), document.removeEventListener(
+    this.dispatchEvent(
+      new CustomEvent("sx-slider-destroy", {
+        bubbles: !0,
+        composed: !0,
+        detail: { name: this.options.name }
+      })
+    ), this.options.name && T.unregister(this.options.name), this.resizeObserver.disconnect(), this.stopAutoplay(), document.removeEventListener(
       "visibilitychange",
       this.handleVisibilityChange
     );
@@ -1167,7 +1180,7 @@ class j extends HTMLElement {
       effect: p,
       sync: this.getAttribute("sync"),
       lockActive: this.hasAttribute("lock-active")
-    }, this.originalOptions = { ...this.options }, this.breakpointsConfig = P.parse(
+    }, this.originalOptions = { ...this.options }, this.breakpointsConfig = L.parse(
       this.getAttribute("breakpoints")
     );
   }
@@ -1213,7 +1226,7 @@ class j extends HTMLElement {
     if (this.options.loop || e.forEach((u, f) => {
       u.setAttribute("data-real-index", f.toString());
     }), this.breakpointsConfig && this.originalOptions) {
-      this.options = P.getMatch(
+      this.options = L.getMatch(
         t,
         JSON.parse(JSON.stringify(this.originalOptions)),
         this.breakpointsConfig
@@ -1331,7 +1344,13 @@ class j extends HTMLElement {
       if (!e) return m;
       let y = (m - i) % s;
       return y < 0 && (y += s), y;
-    }, h = this.options.centered ? 0 : Math.floor(this.options.perView / 2), o = n(this.currentIndex), r = n(this.currentIndex - 1), d = n(this.currentIndex + 1), c = n(this.currentIndex + h), p = this.isFirstHeightMeasure;
+    }, h = this.options.centered ? 0 : Math.floor(this.options.perView / 2), o = n(this.currentIndex);
+    this.lastFiredIndex !== o && (this.lastFiredIndex = o, this.dispatchEvent(
+      new CustomEvent("sx-change", {
+        detail: { activeIndex: o }
+      })
+    ));
+    const r = n(this.currentIndex - 1), d = n(this.currentIndex + 1), c = n(this.currentIndex + h), p = this.isFirstHeightMeasure;
     p && (this.isFirstHeightMeasure = !1);
     let u = null;
     p && (u = document.createElement("style"), u.innerHTML = "sx-slider-slide, sx-slider-slide * { transition: none !important; }", this.appendChild(u), this.offsetHeight), this.options.lockActive && !this.isClickRouting && !p || t.forEach((m, y) => {
@@ -1349,16 +1368,16 @@ class j extends HTMLElement {
     } else
       for (let m = 0; m <= f; m++)
         b.push(m);
-    let S = b.indexOf(o);
-    if (S === -1) {
+    let v = b.indexOf(o);
+    if (v === -1) {
       for (let m = b.length - 1; m >= 0; m--)
         if (o >= b[m]) {
-          S = m;
+          v = m;
           break;
         }
     }
-    this.updatePagination(b, S), this.options.sync && (this.isClickRouting || !this.options.lockActive) && this.options.sync.split(",").map((y) => y.trim()).forEach((y) => {
-      const C = A.get(y);
+    this.updatePagination(b, v), this.options.sync && (this.isClickRouting || !this.options.lockActive) && this.options.sync.split(",").map((y) => y.trim()).forEach((y) => {
+      const C = T.get(y);
       C && C.syncFromController(o);
     }), p && u && requestAnimationFrame(() => {
       u == null || u.remove();
@@ -1421,14 +1440,15 @@ class j extends HTMLElement {
     }), h > 0 && (this.track.style.height = `${h}px`);
   }
   getCurrentIndex() {
-    return this.currentIndex;
+    if (!this.track) return 0;
+    const t = this.options.loop, e = Array.from(this.track.children), s = t ? this.originalSlidesCount : e.length;
+    if (s === 0) return 0;
+    const i = t ? this.options.autoSize ? this.originalSlidesCount : this.options.perView : 0;
+    let n = t ? (this.currentIndex - i) % s : this.currentIndex;
+    return n < 0 && (n += s), n;
   }
   setCurrentIndex(t) {
-    this.currentIndex = t, this.updateSlideAttributes(), this.dispatchEvent(
-      new CustomEvent("sx-change", {
-        detail: { activeIndex: this.currentIndex }
-      })
-    );
+    this.currentIndex = t, this.updateSlideAttributes();
   }
   getRealMaxIndex() {
     if (!this.track || this.track.children.length === 0) return 0;
@@ -1550,31 +1570,39 @@ class j extends HTMLElement {
     });
   }
 }
-customElements.get("sx-slider") || customElements.define("sx-slider", j);
-class J extends HTMLElement {
+customElements.get("sx-slider") || customElements.define("sx-slider", J);
+class Z extends HTMLElement {
   constructor() {
     super(...arguments);
     l(this, "handleKeyDown", (t) => {
-      (t.key === "Enter" || t.key === " ") && (t.preventDefault(), this.toggleModal());
+      (t.key === "Enter" || t.key === " ") && (t.preventDefault(), this.toggleDialog());
     });
-    l(this, "toggleModal", () => {
+    l(this, "toggleDialog", () => {
       const t = this.getAttribute("name");
       t && window.dispatchEvent(
-        new CustomEvent("sx-modal-toggle", {
+        new CustomEvent("sx-dialog-toggle", {
           detail: { name: t }
         })
       );
     });
   }
   connectedCallback() {
-    this.hasAttribute("role") || this.setAttribute("role", "button"), this.hasAttribute("tabindex") || this.setAttribute("tabindex", "0"), this.addEventListener("click", this.toggleModal), this.addEventListener("keydown", this.handleKeyDown);
+    this.hasAttribute("role") || this.setAttribute("role", "button"), this.hasAttribute("tabindex") || this.setAttribute("tabindex", "0"), this.addEventListener("click", this.toggleDialog), this.addEventListener("keydown", this.handleKeyDown);
   }
   disconnectedCallback() {
-    this.removeEventListener("click", this.toggleModal), this.removeEventListener("keydown", this.handleKeyDown);
+    this.removeEventListener("click", this.toggleDialog), this.removeEventListener("keydown", this.handleKeyDown);
   }
 }
-customElements.get("sx-modal-trigger") || customElements.define("sx-modal-trigger", J);
-class Z extends HTMLElement {
+customElements.get("sx-dialog-trigger") || customElements.define("sx-dialog-trigger", Z);
+const A = {
+  duration: 300,
+  closeOnOutsideClick: !0,
+  closeOnEscKey: !0,
+  scrollable: !1,
+  overlay: !0,
+  overlayStyle: "background-color: rgba(0, 0, 0, 0.5);"
+};
+class tt extends HTMLElement {
   constructor() {
     super();
     l(this, "isOpen", !1);
@@ -1600,38 +1628,56 @@ class Z extends HTMLElement {
   static get observedAttributes() {
     return ["sx-open", "duration", "scrollable", "overlay", "overlay-style"];
   }
+  // --- Map Attributes về chuẩn DialogOptions ---
   get name() {
     return this.getAttribute("name");
   }
   get duration() {
-    return Number(this.getAttribute("duration")) || 300;
+    const t = this.getAttribute("duration");
+    return t ? Number(t) : A.duration;
   }
   get closeOnOutsideClick() {
-    return this.getAttribute("close-on-outside-click") !== "false";
+    const t = this.getAttribute("close-on-outside-click");
+    return t !== null ? t !== "false" : A.closeOnOutsideClick;
   }
   get closeOnEscKey() {
-    return this.getAttribute("close-on-esc-key") !== "false";
+    const t = this.getAttribute("close-on-esc-key");
+    return t !== null ? t !== "false" : A.closeOnEscKey;
   }
   get scrollable() {
-    return this.getAttribute("scrollable") === "true";
+    return this.getAttribute("scrollable") === "true" || A.scrollable;
   }
   get overlay() {
-    return this.getAttribute("overlay") !== "false";
+    const t = this.getAttribute("overlay");
+    return t !== null ? t !== "false" : A.overlay;
   }
   get overlayStyle() {
-    return this.getAttribute("overlay-style") || "background-color: rgba(0, 0, 0, 0.5);";
+    return this.getAttribute("overlay-style") || A.overlayStyle;
   }
   connectedCallback() {
-    this.render(), window.addEventListener("sx-modal-toggle", this.handleToggleEvent), this.addEventListener("keydown", this.handleKeyDown);
+    this.render(), window.addEventListener("sx-dialog-toggle", this.handleToggleEvent), this.addEventListener("keydown", this.handleKeyDown);
   }
   disconnectedCallback() {
-    window.removeEventListener("sx-modal-toggle", this.handleToggleEvent), this.removeEventListener("keydown", this.handleKeyDown);
+    window.removeEventListener("sx-dialog-toggle", this.handleToggleEvent), this.removeEventListener("keydown", this.handleKeyDown);
+  }
+  // --- Dispatch Custom Event phục vụ Lifecycle (Mở rộng cho Developer bên ngoài dùng) ---
+  dispatchLifecycleEvent(t) {
+    this.dispatchEvent(new CustomEvent(t, {
+      bubbles: !0,
+      composed: !0,
+      // Cho phép lọt qua Shadow DOM boundary
+      detail: { name: this.name }
+    }));
   }
   open() {
-    this.isOpen || (this.isOpen = !0, this.setAttribute("sx-open", ""), this.previousActiveElement = document.activeElement, this.lockScroll(), requestAnimationFrame(() => this.focusFirstElement()));
+    this.isOpen || (this.dispatchLifecycleEvent("sx-dialog-before-open"), this.isOpen = !0, this.setAttribute("sx-open", ""), this.previousActiveElement = document.activeElement, this.lockScroll(), requestAnimationFrame(() => {
+      this.focusFirstElement(), this.dispatchLifecycleEvent("sx-dialog-after-open");
+    }));
   }
   close() {
-    this.isOpen && (this.isOpen = !1, this.removeAttribute("sx-open"), this.unlockScroll(), this.previousActiveElement && this.previousActiveElement.focus());
+    this.isOpen && (this.dispatchLifecycleEvent("sx-dialog-before-close"), this.isOpen = !1, this.removeAttribute("sx-open"), this.unlockScroll(), this.previousActiveElement && this.previousActiveElement.focus(), setTimeout(() => {
+      this.dispatchLifecycleEvent("sx-dialog-after-close");
+    }, this.duration));
   }
   lockScroll() {
     if (document.body.style.overflow === "hidden") return;
@@ -1640,7 +1686,7 @@ class Z extends HTMLElement {
   }
   unlockScroll() {
     setTimeout(() => {
-      document.querySelectorAll("sx-modal[sx-open]").length === 0 && (document.body.style.paddingRight = "", document.body.style.overflow = "", document.body.style.removeProperty("--sx-scrollbar-width"));
+      document.querySelectorAll("sx-dialog[sx-open]").length === 0 && (document.body.style.paddingRight = "", document.body.style.overflow = "", document.body.style.removeProperty("--sx-scrollbar-width"));
     }, this.duration);
   }
   getFocusableElements() {
@@ -1691,7 +1737,7 @@ class Z extends HTMLElement {
         position: relative;
         z-index: 1;
         width: 100%;
-        max-width: var(--sx-modal-max-width, 90vw);
+        max-width: var(--sx-dialog-max-width, 90vw);
         max-height: calc(100vh - 4rem);
         background: transparent;
         opacity: 0;
@@ -1710,9 +1756,9 @@ class Z extends HTMLElement {
       }
 
       .dialog-content {
-         background: var(--sx-modal-bg-color, #ffffff);
-         border-radius: var(--sx-modal-border-radius, 8px);
-         box-shadow: var(--sx-modal-shadow);
+         background: var(--sx-dialog-bg-color, #ffffff);
+         border-radius: var(--sx-dialog-border-radius, 8px);
+         box-shadow: var(--sx-dialog-shadow);
          width: 100%;
       }
 
@@ -1733,15 +1779,15 @@ class Z extends HTMLElement {
     e && e.addEventListener("click", this.handleBackdropClick);
   }
 }
-customElements.get("sx-modal") || customElements.define("sx-modal", Z);
-const tt = "0.0.30";
-console.log(`@six-js/core v${tt}`);
+customElements.get("sx-dialog") || customElements.define("sx-dialog", tt);
+const et = "0.0.30";
+console.log(`@six-js/core v${et}`);
 export {
-  I as SxAnimate,
-  N as SxMarquee,
+  B as SxAnimate,
+  tt as SxDialog,
+  Z as SxDialogTrigger,
+  V as SxMarquee,
   $ as SxMarqueeInner,
-  V as SxMarqueeItem,
-  Z as SxModal,
-  J as SxModalTrigger,
-  tt as VERSION
+  H as SxMarqueeItem,
+  et as VERSION
 };

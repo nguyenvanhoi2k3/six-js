@@ -15,12 +15,12 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
 ## sx-slider
 
 ```html
-  <sx-slider
-    name="slider-1"
-    per-view="1"
-    gap="0"
-    speed="400"
-    breakpoints="{
+<sx-slider
+  name="slider-1"
+  per-view="1"
+  gap="0"
+  speed="400"
+  breakpoints="{
       360: {
         per-view: 2,
         gap: 20,
@@ -35,29 +35,30 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
         gap: 40
       }
     }"
-  >
-    <sx-slider-track>
-      <sx-slider-slide>
-        <div class="slide">Slide 1</div>
-      </sx-slider-slide>
-      <sx-slider-slide>
-        <div class="slide">Slide 2</div>
-      </sx-slider-slide>
-      <sx-slider-slide>
-        <div class="slide">Slide 3</div>
-      </sx-slider-slide>
-    </sx-slider-track>
-    <sx-slider-prev>Prev</sx-slider-prev>
-    <sx-slider-next>Next</sx-slider-next>
-    <sx-slider-pagination>
-      <!-- các thẻ dot (tượng trưng cho từng slide) sẽ được render, 
+>
+  <sx-slider-track>
+    <sx-slider-slide>
+      <div class="slide">Slide 1</div>
+    </sx-slider-slide>
+    <sx-slider-slide>
+      <div class="slide">Slide 2</div>
+    </sx-slider-slide>
+    <sx-slider-slide>
+      <div class="slide">Slide 3</div>
+    </sx-slider-slide>
+  </sx-slider-track>
+  <sx-slider-prev>Prev</sx-slider-prev>
+  <sx-slider-next>Next</sx-slider-next>
+  <sx-slider-pagination>
+    <!-- các thẻ dot (tượng trưng cho từng slide) sẽ được render, 
        dot được active sẽ có attr riêng để tự do css -->
-    </sx-slider-pagination>
-    <sx-slider-progress>
-      <!-- render thanh tiến trình, thanh tiến trình này phục vụ cho cả chức năng draggable -->
-    </sx-slider-progress>
-  </sx-slider>
+  </sx-slider-pagination>
+  <sx-slider-progress>
+    <!-- render thanh tiến trình, thanh tiến trình này phục vụ cho cả chức năng draggable -->
+  </sx-slider-progress>
+</sx-slider>
 ```
+
 <br />
 |Attribute|Type|Description|Default|
 |---|---|---|---|
@@ -92,10 +93,12 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
 <br />
 
 ## sx-slider-prev, sx-slider-next
+
 ```html
-  <sx-slider-prev name="slider-1">Prev</sx-slider-prev>
-  <sx-slider-next name="slider-1">Next</sx-slider-next>
+<sx-slider-prev name="slider-1">Prev</sx-slider-prev>
+<sx-slider-next name="slider-1">Next</sx-slider-next>
 ```
+
 <br />
 |Attribute|Type|Description|Default|
 |---|---|---|---|
@@ -103,8 +106,9 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
 <br />
 
 ## sx-slider-pagination
+
 ```html
-  <sx-slider-pagination name="slider-1" effect="dynamic"></sx-slider-pagination>
+<sx-slider-pagination name="slider-1" effect="dynamic"></sx-slider-pagination>
 ```
 
 <br />
@@ -128,5 +132,19 @@ Thanh tiến trình slider
 |name|string|Dùng trong trường hợp progress nằm ngoài slider|null|
 <br />
 
+## Method
+```js
+const slider = document.querySelector('sx-slider[name="my-slider"]');
+
+slider.next();
+
+slider.prev();
+
+slider.goTo(2);
+
+// Lấy index hiện tại để xử lý logic riêng
+const currentIndex = slider.getCurrentIndex();
+console.log("Slide hiện tại là:", currentIndex);
+```
+
 👉 **[DEMO](/slider)**
-<br />

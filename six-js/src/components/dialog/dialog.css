@@ -1,0 +1,19 @@
+/* six-js\src\components\modal\modal.css */
+:root {
+  --sx-dialog-max-width: 90vw;
+  --sx-dialog-bg-color: #ffffff;
+  --sx-dialog-border-radius: 8px;
+  --sx-dialog-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --sx-dialog-max-width: 500px;
+  }
+}
+
+sx-dialog-trigger {
+  display: inline-block;
+  cursor: pointer;
+}

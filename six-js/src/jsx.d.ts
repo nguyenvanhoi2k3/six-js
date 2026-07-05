@@ -85,6 +85,10 @@ declare global {
       "sx-slider-pagination": JSX.IntrinsicElements["div"] &
         SxSliderPaginationAttrs;
       "sx-slider-progress": JSX.IntrinsicElements["div"];
+
+      // dialog
+      "sx-dialog": JSX.IntrinsicElements["div"] & SxDialogAttrs;
+      "sx-dialog-trigger": JSX.IntrinsicElements["div"] & SxDialogTriggerAttrs;
     }
   }
 
@@ -112,6 +116,21 @@ declare global {
       }
     }
   }
+}
+
+/* ---------- sx-dialog ---------- */
+interface SxDialogAttrs {
+  name: string;
+  duration?: number | string;
+  "close-on-outside-click"?: boolean | "true" | "false";
+  "close-on-esc-key"?: boolean | "true" | "false";
+  scrollable?: boolean | "true" | "false";
+  overlay?: boolean | "true" | "false";
+  "overlay-style"?: string;
+}
+
+interface SxDialogTriggerAttrs {
+  name: string;
 }
 
 export {};

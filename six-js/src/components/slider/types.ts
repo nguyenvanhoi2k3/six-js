@@ -27,3 +27,9 @@ export interface SliderOptions {
   sync?: string | null;
   lockActive?: boolean;
 }
+
+export interface SxSliderEventMap {
+  "sx-change": CustomEvent<{ activeIndex: number }>;
+  "sx-slider-init": CustomEvent<{ name: string | null }>;
+  "sx-slider-destroy": CustomEvent<{ name: string | null }>;
+}

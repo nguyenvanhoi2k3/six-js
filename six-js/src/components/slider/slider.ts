@@ -1,5 +1,5 @@
 // six-js\src\components\slider\slider.ts
-import { SliderOptions } from "./slider-types";
+import { SliderOptions } from "./types";
 import { SxSliderTrack } from "./slider-track";
 import { sliderRegistry } from "./slider-registry";
 import { Breakpoints } from "../../core/breakpoints";
@@ -16,6 +16,7 @@ export class SxSlider extends HTMLElement {
   private originalOptions!: SliderOptions;
   private breakpointsConfig: Record<number, any> | null = null;
   private currentIndex: number = 0;
+  private lastFiredIndex: number = -1;
   private track: SxSliderTrack | null = null;
   private resizeObserver!: ResizeObserver;
   public originalSlidesCount: number = 0;
@@ -245,9 +246,25 @@ export class SxSlider extends HTMLElement {
 
     document.addEventListener("visibilitychange", this.handleVisibilityChange);
     this.startAutoplay();
+
+    this.dispatchEvent(
+      new CustomEvent("sx-slider-init", {
+        bubbles: true,
+        composed: true,
+        detail: { name: this.options.name },
+      }),
+    );
   }
 
   disconnectedCallback() {
+    this.dispatchEvent(
+      new CustomEvent("sx-slider-destroy", {
+        bubbles: true,
+        composed: true,
+        detail: { name: this.options.name },
+      }),
+    );
+
     if (this.options.name) {
       sliderRegistry.unregister(this.options.name);
     }
@@ -689,6 +706,14 @@ export class SxSlider extends HTMLElement {
       : Math.floor(this.options.perView / 2);
 
     const targetActiveReal = getRealIdx(this.currentIndex);
+    if (this.lastFiredIndex !== targetActiveReal) {
+      this.lastFiredIndex = targetActiveReal;
+      this.dispatchEvent(
+        new CustomEvent("sx-change", {
+          detail: { activeIndex: targetActiveReal },
+        }),
+      );
+    }
     const targetPrevReal = getRealIdx(this.currentIndex - 1);
     const targetNextReal = getRealIdx(this.currentIndex + 1);
     const targetCenterReal = getRealIdx(this.currentIndex + centerOffset);
@@ -767,9 +792,9 @@ export class SxSlider extends HTMLElement {
       this.options.sync &&
       (this.isClickRouting || !this.options.lockActive)
     ) {
-      const syncTargets = this.options.sync.split(",").map(s => s.trim());
-      
-      syncTargets.forEach(targetName => {
+      const syncTargets = this.options.sync.split(",").map((s) => s.trim());
+
+      syncTargets.forEach((targetName) => {
         const linkedSlider = sliderRegistry.get(targetName) as SxSlider;
         if (linkedSlider) {
           linkedSlider.syncFromController(targetActiveReal);
@@ -857,7 +882,7 @@ export class SxSlider extends HTMLElement {
     const centerOffset = this.options.centered
       ? Math.floor(visibleCount / 2)
       : 0;
-    
+
     let startScanIndex = this.currentIndex - centerOffset;
     if (!this.options.loop) {
       startScanIndex = Math.max(0, startScanIndex);
@@ -883,7 +908,8 @@ export class SxSlider extends HTMLElement {
         clone.style.visibility = "hidden";
         clone.style.pointerEvents = "none";
         clone.style.transition = "none";
-        clone.style[this.sizeDim] = `${slide.getBoundingClientRect()[this.sizeDim]}px`;
+        clone.style[this.sizeDim] =
+          `${slide.getBoundingClientRect()[this.sizeDim]}px`;
 
         const cloneChild = clone.firstElementChild as HTMLElement;
         if (cloneChild) {
@@ -896,7 +922,7 @@ export class SxSlider extends HTMLElement {
     }
 
     let maxHeight = 0;
-    clonesToMeasure.forEach(clone => {
+    clonesToMeasure.forEach((clone) => {
       const cloneChild = clone.firstElementChild as HTMLElement;
       const height = cloneChild
         ? cloneChild.getBoundingClientRect().height
@@ -906,7 +932,7 @@ export class SxSlider extends HTMLElement {
       }
     });
 
-    clonesToMeasure.forEach(clone => {
+    clonesToMeasure.forEach((clone) => {
       this.track?.removeChild(clone);
     });
 
@@ -915,19 +941,31 @@ export class SxSlider extends HTMLElement {
     }
   }
 
-  public getCurrentIndex() {
-    return this.currentIndex;
+  public getCurrentIndex(): number {
+    if (!this.track) return 0;
+
+    const isLoop = this.options.loop;
+    const slides = Array.from(this.track.children);
+    const realSlideCount = isLoop ? this.originalSlidesCount : slides.length;
+    if (realSlideCount === 0) return 0;
+
+    const cloneCount = isLoop
+      ? this.options.autoSize
+        ? this.originalSlidesCount
+        : this.options.perView
+      : 0;
+
+    let realIdx = isLoop
+      ? (this.currentIndex - cloneCount) % realSlideCount
+      : this.currentIndex;
+    if (realIdx < 0) realIdx += realSlideCount;
+
+    return realIdx;
   }
 
   public setCurrentIndex(val: number) {
     this.currentIndex = val;
     this.updateSlideAttributes();
-
-    this.dispatchEvent(
-      new CustomEvent("sx-change", {
-        detail: { activeIndex: this.currentIndex },
-      }),
-    );
   }
 
   public getRealMaxIndex(): number {
@@ -1194,4 +1232,10 @@ export class SxSlider extends HTMLElement {
 
 if (!customElements.get("sx-slider")) {
   customElements.define("sx-slider", SxSlider);
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    "sx-slider": SxSlider;
+  }
 }

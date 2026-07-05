@@ -1,8 +1,18 @@
-// six-js\src\components\modal\modal.ts
+/* C:\Users\nguye\OneDrive\Máy tính\six-js-librari\six-js\src\components\dialog\dialog.ts */
 
-import type { ModalToggleDetail } from './modal-trigger';
+import type { DialogOptions, DialogToggleDetail } from './types';
 
-export class SxModal extends HTMLElement {
+// Khởi tạo giá trị mặc định chuẩn theo interface DialogOptions
+const DEFAULT_OPTIONS: Omit<DialogOptions, 'name'> = {
+  duration: 300,
+  closeOnOutsideClick: true,
+  closeOnEscKey: true,
+  scrollable: false,
+  overlay: true,
+  overlayStyle: 'background-color: rgba(0, 0, 0, 0.5);',
+};
+
+export class SxDialog extends HTMLElement {
   private isOpen = false;
   private previousActiveElement: HTMLElement | null = null;
   private focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex]:not([tabindex="-1"]), [contenteditable]';
@@ -16,48 +26,97 @@ export class SxModal extends HTMLElement {
     return ['sx-open', 'duration', 'scrollable', 'overlay', 'overlay-style'];
   }
 
-  get name() { return this.getAttribute('name'); }
-  get duration() { return Number(this.getAttribute('duration')) || 300; }
-  get closeOnOutsideClick() { return this.getAttribute('close-on-outside-click') !== 'false'; }
-  get closeOnEscKey() { return this.getAttribute('close-on-esc-key') !== 'false'; }
-  get scrollable() { return this.getAttribute('scrollable') === 'true'; }
-  get overlay() { return this.getAttribute('overlay') !== 'false'; }
-  get overlayStyle() { return this.getAttribute('overlay-style') || 'background-color: rgba(0, 0, 0, 0.5);'; }
+  // --- Map Attributes về chuẩn DialogOptions ---
+  get name(): DialogOptions['name'] { 
+    return this.getAttribute('name'); 
+  }
+  
+  get duration(): DialogOptions['duration'] { 
+    const attr = this.getAttribute('duration');
+    return attr ? Number(attr) : DEFAULT_OPTIONS.duration; 
+  }
+  
+  get closeOnOutsideClick(): DialogOptions['closeOnOutsideClick'] { 
+    const attr = this.getAttribute('close-on-outside-click');
+    return attr !== null ? attr !== 'false' : DEFAULT_OPTIONS.closeOnOutsideClick; 
+  }
+  
+  get closeOnEscKey(): DialogOptions['closeOnEscKey'] { 
+    const attr = this.getAttribute('close-on-esc-key');
+    return attr !== null ? attr !== 'false' : DEFAULT_OPTIONS.closeOnEscKey; 
+  }
+  
+  get scrollable(): DialogOptions['scrollable'] { 
+    return this.getAttribute('scrollable') === 'true' || DEFAULT_OPTIONS.scrollable; 
+  }
+  
+  get overlay(): DialogOptions['overlay'] { 
+    const attr = this.getAttribute('overlay');
+    return attr !== null ? attr !== 'false' : DEFAULT_OPTIONS.overlay; 
+  }
+  
+  get overlayStyle(): DialogOptions['overlayStyle'] { 
+    return this.getAttribute('overlay-style') || DEFAULT_OPTIONS.overlayStyle; 
+  }
 
   connectedCallback() {
     this.render();
-    window.addEventListener('sx-modal-toggle', this.handleToggleEvent as EventListener);
+    window.addEventListener('sx-dialog-toggle', this.handleToggleEvent as EventListener);
     this.addEventListener('keydown', this.handleKeyDown);
   }
 
   disconnectedCallback() {
-    window.removeEventListener('sx-modal-toggle', this.handleToggleEvent as EventListener);
+    window.removeEventListener('sx-dialog-toggle', this.handleToggleEvent as EventListener);
     this.removeEventListener('keydown', this.handleKeyDown);
   }
 
-  private handleToggleEvent = (e: CustomEvent<ModalToggleDetail>) => {
+  private handleToggleEvent = (e: CustomEvent<DialogToggleDetail>) => {
     if (e.detail.name === this.name) {
       this.isOpen ? this.close() : this.open();
     }
   };
 
+  // --- Dispatch Custom Event phục vụ Lifecycle (Mở rộng cho Developer bên ngoài dùng) ---
+  private dispatchLifecycleEvent(eventName: 'sx-dialog-before-open' | 'sx-dialog-after-open' | 'sx-dialog-before-close' | 'sx-dialog-after-close') {
+    this.dispatchEvent(new CustomEvent(eventName, {
+      bubbles: true,
+      composed: true, // Cho phép lọt qua Shadow DOM boundary
+      detail: { name: this.name }
+    }));
+  }
+
   public open() {
     if (this.isOpen) return;
+    
+    this.dispatchLifecycleEvent('sx-dialog-before-open');
+    
     this.isOpen = true;
     this.setAttribute('sx-open', '');
     this.previousActiveElement = document.activeElement as HTMLElement;
     this.lockScroll();
-    requestAnimationFrame(() => this.focusFirstElement());
+    
+    requestAnimationFrame(() => {
+      this.focusFirstElement();
+      this.dispatchLifecycleEvent('sx-dialog-after-open');
+    });
   }
 
   public close() {
     if (!this.isOpen) return;
+    
+    this.dispatchLifecycleEvent('sx-dialog-before-close');
+    
     this.isOpen = false;
     this.removeAttribute('sx-open');
     this.unlockScroll();
+    
     if (this.previousActiveElement) {
       this.previousActiveElement.focus();
     }
+
+    setTimeout(() => {
+      this.dispatchLifecycleEvent('sx-dialog-after-close');
+    }, this.duration);
   }
 
   private lockScroll() {
@@ -70,8 +129,8 @@ export class SxModal extends HTMLElement {
 
   private unlockScroll() {
     setTimeout(() => {
-      const openModals = document.querySelectorAll('sx-modal[sx-open]');
-      if (openModals.length === 0) {
+      const openDialogs = document.querySelectorAll('sx-dialog[sx-open]');
+      if (openDialogs.length === 0) {
         document.body.style.paddingRight = '';
         document.body.style.overflow = '';
         document.body.style.removeProperty('--sx-scrollbar-width');
@@ -160,7 +219,7 @@ export class SxModal extends HTMLElement {
         position: relative;
         z-index: 1;
         width: 100%;
-        max-width: var(--sx-modal-max-width, 90vw);
+        max-width: var(--sx-dialog-max-width, 90vw);
         max-height: calc(100vh - 4rem);
         background: transparent;
         opacity: 0;
@@ -179,9 +238,9 @@ export class SxModal extends HTMLElement {
       }
 
       .dialog-content {
-         background: var(--sx-modal-bg-color, #ffffff);
-         border-radius: var(--sx-modal-border-radius, 8px);
-         box-shadow: var(--sx-modal-shadow);
+         background: var(--sx-dialog-bg-color, #ffffff);
+         border-radius: var(--sx-dialog-border-radius, 8px);
+         box-shadow: var(--sx-dialog-shadow);
          width: 100%;
       }
 
@@ -207,6 +266,6 @@ export class SxModal extends HTMLElement {
   }
 }
 
-if (!customElements.get('sx-modal')) {
-  customElements.define('sx-modal', SxModal);
+if (!customElements.get('sx-dialog')) {
+  customElements.define('sx-dialog', SxDialog);
 }

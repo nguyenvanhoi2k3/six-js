@@ -1,11 +1,11 @@
 ---
 sidebar_position: 3
-title: Modal
+title: Dialog
 ---
 <br />
 Hỗ trợ tạo các hiệu ứng xuất hiện mượt mà khi phần tử đi vào viewport.
 
-👉 **[DEMO](/modal)**
+👉 **[DEMO](/dialog)**
 
 ---
 <br />
@@ -13,7 +13,7 @@ Hỗ trợ tạo các hiệu ứng xuất hiện mượt mà khi phần tử đi
 ## Usage
 
 ```html
-sx-modal-trigger
+sx-dialog-trigger
 ```
 <br />
 |Attribute|Type|Description|Default|
@@ -28,6 +28,6 @@ sx-modal-trigger
 
 <br />
 
-👉 **[DEMO](/modal)**
+👉 **[DEMO](/dialog)**
 
 <br />
