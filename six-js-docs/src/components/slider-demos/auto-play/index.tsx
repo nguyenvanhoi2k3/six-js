@@ -4,7 +4,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import "./style.scss";
 
-const html = `<sx-slider per-view="3" loop autoplay interval="2000" gap="10">
+const html = `<sx-slider per-view="3" loop autoplay interval="2" gap="10">
   <sx-slider-track>
     <sx-slider-slide>
       <div class="slide">Slide 1</div>
@@ -44,7 +44,7 @@ export default function AutoPlayDemo() {
       <h3 className="flex-center m-10">Auto play</h3>
       <Tabs>
         <TabItem value="demo" label="Demo" default>
-          <sx-slider per-view="3" loop autoplay interval="2000" gap="10">
+          <sx-slider per-view="3" loop autoplay interval="2" gap="10">
             <sx-slider-track>
               <sx-slider-slide>
                 <div className="slide">Slide 1</div>

@@ -21,7 +21,7 @@ Hỗ trợ tạo các hiệu ứng xuất hiện mượt mà khi phần tử đi
 |Attribute|Type|Description|Default|
 |---|---|---|---|
 |type|string|fade \| fade-up \| fade-down \| fade-left \| fade-right|fade-up|
-|duration|number||400|
+|duration|number||0.4|
 |delay|number||0|
 |strength|number|Độ mạnh của hiệu ứng|30|
 |easing|string|ease-in \| ease-out \| ease-in-out \| expo-in \| expo-out \| expo-in-out \| back-in \| back-out \| back-in-out \| linear|ease-in-out|

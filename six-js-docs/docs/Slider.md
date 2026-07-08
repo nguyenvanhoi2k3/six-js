@@ -67,11 +67,11 @@ Hỗ trợ tạo trình chiếu nội dung (carousel/slider), cho phép người
 |per-move|number\|string|`auto`: 1 hoặc dừng lại ở slide gần nhất khi thả|auto|
 |right-padding|number\|string|Lộ một phần slide tiếp theo nếu có|0|
 |left-padding|number\|string|Lộ một phần slide trước đó nếu có|0|
-|speed|number|Tốc độ trượt slide|300|
+|speed|number|Tốc độ trượt slide|0.3|
 |edge-resistance|number|Khoảng cách cản khi kéo ở mép đầu/cuối.|100|
 |loop|boolean||false|
 |autoplay|boolean||false|
-|interval|number|Thời gian chờ trước khi chuyển slide tiếp theo ở `autoplay mode`|3000|
+|interval|number|Thời gian chờ trước khi chuyển slide tiếp theo ở `autoplay mode`|3|
 |rewind|boolean|Tua lại khi đến slide cuối|false|
 |direction|string|horizontal \| vertical|horizontal|
 |start-index|number|Slide bắt đầu khi khởi tạo|0|

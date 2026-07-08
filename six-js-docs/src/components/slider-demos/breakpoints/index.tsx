@@ -7,7 +7,7 @@ import "./style.scss";
 const html = `<sx-slider
     per-view="1"
     gap="0"
-    speed="400"
+    speed="0.4"
     breakpoints='{
     "360": {
         "perView": 1,
@@ -118,7 +118,7 @@ export default function BreakpointsDemo() {
             <sx-slider
               per-view="1"
               gap="0"
-              speed="400"
+              speed="0.4"
               breakpoints='{
                 "360": {
                     "perView": 1,

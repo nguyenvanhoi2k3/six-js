@@ -8,23 +8,23 @@ export default function SxAnimateDemoPage() {
   return (
     <LayoutProvider>
       <>
-        <sx-animate type="fade" duration={800}>
+        <sx-animate type="fade" duration="0.8">
           <h2 style={{ height: "100vh" }} className="flex-center">
             Scroll down to see the animation
           </h2>
         </sx-animate>
 
         <div className="flex-center gp-20 pb-20">
-          <sx-animate type="fade" duration={800} className="box">
+          <sx-animate type="fade" duration="0.8" className="box">
             fade
           </sx-animate>
-          <sx-animate type="fade" duration={800} className="box">
+          <sx-animate type="fade" duration="0.8" className="box">
             fade
           </sx-animate>
-          <sx-animate type="fade" duration={800} className="box">
+          <sx-animate type="fade" duration="0.8" className="box">
             fade
           </sx-animate>
-          <sx-animate type="fade" duration={800} className="box">
+          <sx-animate type="fade" duration="0.8" className="box">
             fade
           </sx-animate>
         </div>
