@@ -10,59 +10,31 @@
   </head>
 
   <body>
-<sx-slider
-  name="slider-1"
-  per-view="1"
-  gap="0"
-  speed="0.3"
-  breakpoints="{
-      360: {
-        per-view: 2,
-        gap: 20,
-        effect: fade,
-      },
-      768: {
-        per-view: 3,
-        gap: 0
-      },
-      1080: {
-        per-view: 4,
-        gap: 40
-      }
-    }"
->
-  <sx-slider-track>
-    <sx-slider-slide>
-      <div class="slide">Slide 1</div>
-    </sx-slider-slide>
-    <sx-slider-slide>
-      <div class="slide">Slide 2</div>
-    </sx-slider-slide>
-    <sx-slider-slide>
-      <div class="slide">Slide 3</div>
-    </sx-slider-slide>
-  </sx-slider-track>
-  <sx-slider-prev>Prev</sx-slider-prev>
-  <sx-slider-next>Next</sx-slider-next>
-  <sx-slider-pagination>
-    <!-- các thẻ dot (tượng trưng cho từng slide) sẽ được render, 
-       dot được active sẽ có attr riêng để tự do css -->
-  </sx-slider-pagination>
-  <sx-slider-progress>
-    <!-- render thanh tiến trình, thanh tiến trình này phục vụ cho cả chức năng draggable -->
-  </sx-slider-progress>
-</sx-slider>
-      <div class="box">BOX</div>
-    <div class="box2">BOX</div>
+    <div class="box">BOX</div>
 
     <script type="module">
       import { six } from "./dist/six-js.es.js";
-      six.initElement();
+      six.to(".box", {
+        x: 200,
+        duration: 2,
+        ease: "quint-in-out",
+        onscroll: {
+          target: ".box", //chạy animate ngay khi enter viewport
+        },
+      });
 
-      const anim1 = six.to(".box", {
-        duration: 1.3,
-        translateX: "20rem",
-        ease: "cubic-in-out",
+      six.to(".box", {
+        x: 200,
+        duration: 2,
+        ease: "quint-in-out",
+        onscroll: {
+          target: ".box",
+          start: "top top", // when the top of the trigger hits the top of the viewport
+          end: "+=500", // end after scrolling 500px beyond the start
+          smooth: 1, //true: animation sẽ chạy ngay lập tức theo từng pixel cuộn.
+          //Number: càng cao animate chạy theo càng chậm,
+          //false: Khi thanh cuộn vừa chạm đến điểm start, animation sẽ tự động kích hoạt và chạy một mạch từ đầu đến cuối với tốc độ (duration) cố định đã thiết lập trong timeline, bất kể sau đó người dùng có cuộn tiếp, cuộn chậm lại hay dừng cuộn.
+        },
       });
     </script>
 

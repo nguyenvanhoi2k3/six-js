@@ -4,6 +4,7 @@ import { Animatable } from "./animatable";
 import {
   getPropertyHandler,
   resolveNumericValue,
+  parseNumericValue,
   ParsedValue,
   NumericPropertyHandler,
   ColorPropertyHandler,
@@ -14,12 +15,15 @@ import { validateComplexPair, interpolateComplexString } from "../properties/com
 import { setStoredTransform, buildTransformString } from "../properties/transform-state";
 import { convertToPx } from "../properties/unit-convert";
 import { resolveDynamicValue } from "../properties/dynamic-value";
+import { getDefaults } from "./defaults";
 
 export interface TweenVars {
   duration?: number;
   ease?: EasingType;
-  [key: string]: any; // x, y, rotation, opacity, backgroundColor, boxShadow, display, ...
+  [key: string]: any;
 }
+
+export type TweenMode = "to" | "from" | "fromTo";
 
 interface NumericPropState {
   kind: "numeric";
@@ -30,7 +34,6 @@ interface NumericPropState {
   transformFn?: string;
   transformStoreKey?: string;
   apply: NumericPropertyHandler["apply"];
-  /** Chuỗi gốc (vd "50%") — áp lại ở frame cuối để giữ tính responsive, không "đóng băng" thành px */
   snapEnd?: string;
 }
 
@@ -53,6 +56,11 @@ type PropState = NumericPropState | ColorPropState | ComplexPropState;
 /**
  * SxTween chỉ biết "vẽ" theo localTime, KHÔNG tự chạy theo ticker.
  * Việc play/pause/seek là trách nhiệm của Playable (xem playable.ts).
+ *
+ * mode quyết định bên nào đọc DOM, bên nào lấy giá trị tường minh:
+ * - "to":     start = đọc DOM hiện tại,  end = vars (tường minh)
+ * - "from":   start = vars (tường minh), end = đọc DOM hiện tại
+ * - "fromTo": start = fromVars (tường minh), end = vars (tường minh), không đọc DOM
  */
 export class SxTween implements Animatable {
   readonly duration: number;
@@ -62,7 +70,12 @@ export class SxTween implements Animatable {
   private propStates: { key: string; state: PropState }[][] = [];
   private hasTransform: boolean[] = [];
 
-  constructor(target: string | HTMLElement | HTMLElement[], vars: TweenVars) {
+  constructor(
+    target: string | HTMLElement | HTMLElement[],
+    vars: TweenVars,
+    mode: TweenMode = "to",
+    fromVars?: Record<string, any>,
+  ) {
     if (typeof target === "string") {
       this.targets = Array.from(document.querySelectorAll(target));
     } else {
@@ -73,14 +86,16 @@ export class SxTween implements Animatable {
       console.warn(`[six-js] No elements matched: "${target}"`);
     }
 
-    this.duration = vars.duration ?? 0.5;
+    const defaults = getDefaults();
+
+    this.duration = vars.duration ?? defaults.duration ?? 0.5;
 
     if (this.duration < 0) {
       console.warn(`[six-js] Negative duration (${this.duration}), using 0 instead`);
       this.duration = 0;
     }
 
-    const easeKey = vars.ease ?? "linear";
+    const easeKey = vars.ease ?? defaults.ease ?? "linear";
 
     if (!EASINGS[easeKey]) {
       console.warn(`[six-js] Unknown ease "${easeKey}", falling back to linear`);
@@ -88,36 +103,52 @@ export class SxTween implements Animatable {
 
     this.easeFn = EASINGS[easeKey] || EASINGS.linear;
 
-    this.setupProps(vars);
+    this.setupProps(vars, mode, fromVars);
   }
 
-  private setupProps(vars: TweenVars): void {
+  private setupProps(vars: TweenVars, mode: TweenMode, fromVars?: Record<string, any>): void {
+    const keys = new Set<string>();
+    for (const k in vars) keys.add(k);
+    if (fromVars) for (const k in fromVars) keys.add(k);
+    keys.delete("duration");
+    keys.delete("ease");
+
     this.targets.forEach((target, index) => {
       const states: { key: string; state: PropState }[] = [];
       let transformTouched = false;
 
-      for (const key in vars) {
-        if (key === "duration" || key === "ease") continue;
+      for (const key of keys) {
+        // Xác định rawStart/rawEnd tường minh theo mode; undefined nghĩa là "đọc DOM"
+        let rawStart: any;
+        let rawEnd: any;
 
-        const rawValue = resolveDynamicValue(vars[key], index, target);
-        const handler = getPropertyHandler(key, rawValue);
+        if (mode === "to") {
+          rawEnd = resolveDynamicValue(vars[key], index, target);
+        } else if (mode === "from") {
+          rawStart = resolveDynamicValue(vars[key], index, target);
+        } else {
+          if (key in vars) rawEnd = resolveDynamicValue(vars[key], index, target);
+          if (fromVars && key in fromVars) rawStart = resolveDynamicValue(fromVars[key], index, target);
+        }
+
+        const handler = getPropertyHandler(key, rawEnd ?? rawStart);
 
         if (handler.type === "discrete") {
-          handler.apply(target, String(rawValue));
+          handler.apply(target, String(rawEnd ?? rawStart));
           continue;
         }
 
         if (handler.type === "color") {
-          const start = handler.getCurrent(target);
-          const end = parseColor(String(rawValue));
+          const start = rawStart !== undefined ? parseColor(String(rawStart)) : handler.getCurrent(target);
+          const end = rawEnd !== undefined ? parseColor(String(rawEnd)) : handler.getCurrent(target);
 
           states.push({ key, state: { kind: "color", start, end, apply: handler.apply } });
           continue;
         }
 
         if (handler.type === "complex") {
-          const startStr = handler.getCurrent(target);
-          const endStr = String(rawValue);
+          const startStr = rawStart !== undefined ? String(rawStart) : handler.getCurrent(target);
+          const endStr = rawEnd !== undefined ? String(rawEnd) : handler.getCurrent(target);
 
           validateComplexPair(startStr, endStr, key);
 
@@ -125,19 +156,19 @@ export class SxTween implements Animatable {
           continue;
         }
 
-        const startParsed: ParsedValue = handler.getCurrent(target, key);
-        let endParsed: ParsedValue = resolveNumericValue(
-          rawValue,
-          startParsed.num,
-          startParsed.unit,
-          handler.defaultUnit,
-        );
+        // numeric
+        const startParsed: ParsedValue =
+          rawStart !== undefined
+            ? parseNumericValue(rawStart, handler.defaultUnit)
+            : handler.getCurrent(target, key);
+
+        let endParsed: ParsedValue =
+          rawEnd !== undefined
+            ? resolveNumericValue(rawEnd, startParsed.num, startParsed.unit, handler.defaultUnit)
+            : handler.getCurrent(target, key);
 
         let snapEnd: string | undefined;
 
-        // start (luôn px từ getComputedStyle) và end (vd "%") khác đơn vị -> không thể
-        // nội suy trực tiếp (200px lerp 50% là vô nghĩa). Quy đổi end sang px để nội suy
-        // đúng, rồi ở frame cuối áp lại chuỗi gốc để giữ responsive (vd % theo % cha).
         if (
           !handler.isTransform &&
           endParsed.unit &&
