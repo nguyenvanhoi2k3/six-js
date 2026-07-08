@@ -3,6 +3,7 @@ import { SliderOptions } from "./types";
 import { SxSliderTrack } from "./slider-track";
 import { sliderRegistry } from "./slider-registry";
 import { Breakpoints } from "../../core/breakpoints";
+import { parseTimeValue } from "../../core/time";
 
 export class SxSlider extends HTMLElement {
   public options!: SliderOptions;
@@ -286,7 +287,7 @@ export class SxSlider extends HTMLElement {
     const defaultResistance = edgeAttr !== null ? Number(edgeAttr) : 100;
 
     const intervalAttr = this.getAttribute("interval");
-    const parsedInterval = intervalAttr !== null ? Number(intervalAttr) : 4000;
+    const parsedInterval = parseTimeValue(intervalAttr, 4000);
 
     const startAttr = this.getAttribute("start-index");
     const parsedStartIndex = startAttr !== null ? Number(startAttr) : 0;
@@ -313,7 +314,7 @@ export class SxSlider extends HTMLElement {
       perView: Number(this.getAttribute("per-view")) || 1,
       gap: formatUnit(this.getAttribute("gap")),
       drag: (this.getAttribute("drag") as any) || "true",
-      speed: Number(this.getAttribute("speed")) || 300,
+      speed: parseTimeValue(this.getAttribute("speed"), 300),
       rightPadding: formatUnit(this.getAttribute("right-padding")),
       leftPadding: formatUnit(this.getAttribute("left-padding")),
       rewind: this.hasAttribute("rewind"),

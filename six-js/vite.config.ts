@@ -2,7 +2,6 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
 import { readFileSync, writeFileSync } from "fs";
-import minifyHTML from "rollup-plugin-minify-html-literals";
 import dts from "vite-plugin-dts";
 
 export default defineConfig({
@@ -14,9 +13,6 @@ export default defineConfig({
       name: "SixJS",
       formats: ["es", "umd"],
       fileName: (format) => `six-js.${format}.js`,
-    },
-    rollupOptions: {
-      plugins: [((minifyHTML as any).default || minifyHTML)()],
     },
   },
   plugins: [

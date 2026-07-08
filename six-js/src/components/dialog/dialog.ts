@@ -1,5 +1,6 @@
 /* C:\Users\nguye\OneDrive\Máy tính\six-js-librari\six-js\src\components\dialog\dialog.ts */
 
+import { parseTimeValue } from '../../core/time';
 import type { DialogOptions, DialogToggleDetail } from './types';
 
 const DEFAULT_OPTIONS: Omit<DialogOptions, 'name'> = {
@@ -31,7 +32,7 @@ export class SxDialog extends HTMLElement {
   get name(): DialogOptions['name'] { return this.getAttribute('name'); }
   get duration(): DialogOptions['duration'] { 
     const attr = this.getAttribute('duration');
-    return attr ? Number(attr) : DEFAULT_OPTIONS.duration; 
+    return parseTimeValue(attr, DEFAULT_OPTIONS.duration);
   }
   get closeOnOutsideClick(): DialogOptions['closeOnOutsideClick'] { 
     const attr = this.getAttribute('close-on-outside-click');

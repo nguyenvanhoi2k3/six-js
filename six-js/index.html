@@ -10,9 +10,49 @@
   </head>
 
   <body>
-    <sx-animate>
+<sx-slider
+  name="slider-1"
+  per-view="1"
+  gap="0"
+  speed="0.3"
+  breakpoints="{
+      360: {
+        per-view: 2,
+        gap: 20,
+        effect: fade,
+      },
+      768: {
+        per-view: 3,
+        gap: 0
+      },
+      1080: {
+        per-view: 4,
+        gap: 40
+      }
+    }"
+>
+  <sx-slider-track>
+    <sx-slider-slide>
+      <div class="slide">Slide 1</div>
+    </sx-slider-slide>
+    <sx-slider-slide>
+      <div class="slide">Slide 2</div>
+    </sx-slider-slide>
+    <sx-slider-slide>
+      <div class="slide">Slide 3</div>
+    </sx-slider-slide>
+  </sx-slider-track>
+  <sx-slider-prev>Prev</sx-slider-prev>
+  <sx-slider-next>Next</sx-slider-next>
+  <sx-slider-pagination>
+    <!-- các thẻ dot (tượng trưng cho từng slide) sẽ được render, 
+       dot được active sẽ có attr riêng để tự do css -->
+  </sx-slider-pagination>
+  <sx-slider-progress>
+    <!-- render thanh tiến trình, thanh tiến trình này phục vụ cho cả chức năng draggable -->
+  </sx-slider-progress>
+</sx-slider>
       <div class="box">BOX</div>
-    </sx-animate>
     <div class="box2">BOX</div>
 
     <script type="module">

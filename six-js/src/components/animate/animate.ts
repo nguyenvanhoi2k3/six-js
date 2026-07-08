@@ -1,6 +1,7 @@
 // six-js\src\components\animate\animate.ts
 import { EASINGS, type EasingType } from "../../easing/easing";
 import { observe, unobserve } from "../../core/observer";
+import { parseTimeValue } from "../../core/time";
 
 type AnimateType =
   | "fade"
@@ -119,8 +120,8 @@ export class SxAnimate extends HTMLElement {
       x,
       y,
       easing: easing && easing in EASINGS ? easing : "ease-in-out",
-      duration: Number(this.getAttribute("duration")) || 400,
-      delay: Number(this.getAttribute("delay")) || 0,
+      duration: parseTimeValue(this.getAttribute("duration"), 400),
+      delay: parseTimeValue(this.getAttribute("delay"), 0),
     };
   }
 

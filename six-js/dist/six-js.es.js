@@ -1,17 +1,17 @@
-var it = Object.defineProperty;
-var st = (i, s, t) => s in i ? it(i, s, { enumerable: !0, configurable: !0, writable: !0, value: t }) : i[s] = t;
-var d = (i, s, t) => st(i, typeof s != "symbol" ? s + "" : s, t);
-const nt = "0.0.30";
-let W = !1;
-function rt() {
-  W || (W = !0, console.log(
-    ` SixJS v${nt}`
+var st = Object.defineProperty;
+var nt = (i, s, t) => s in i ? st(i, s, { enumerable: !0, configurable: !0, writable: !0, value: t }) : i[s] = t;
+var d = (i, s, t) => nt(i, typeof s != "symbol" ? s + "" : s, t);
+const rt = "0.0.30";
+let G = !1;
+function ot() {
+  G || (G = !0, console.log(
+    ` SixJS v${rt}`
   ));
 }
-function B(i) {
+function R(i) {
   return i < 1 / 2.75 ? 7.5625 * i * i : i < 2 / 2.75 ? (i -= 1.5 / 2.75, 7.5625 * i * i + 0.75) : i < 2.5 / 2.75 ? (i -= 2.25 / 2.75, 7.5625 * i * i + 0.9375) : (i -= 2.625 / 2.75, 7.5625 * i * i + 0.984375);
 }
-const I = 1.70158, R = I * 1.525, P = {
+const I = 1.70158, P = I * 1.525, L = {
   // Linear
   linear: (i) => i,
   // Quad
@@ -52,47 +52,60 @@ const I = 1.70158, R = I * 1.525, P = {
   "back-in-out": (i) => {
     if (i < 0.5) {
       const t = 2 * i;
-      return t * t * ((R + 1) * t - R) / 2;
+      return t * t * ((P + 1) * t - P) / 2;
     }
     const s = 2 * i - 2;
-    return (s * s * ((R + 1) * s + R) + 2) / 2;
+    return (s * s * ((P + 1) * s + P) + 2) / 2;
   },
   // Bounce
-  "bounce-in": (i) => 1 - B(1 - i),
-  "bounce-out": B,
-  "bounce-in-out": (i) => i < 0.5 ? (1 - B(1 - 2 * i)) / 2 : (1 + B(2 * i - 1)) / 2
+  "bounce-in": (i) => 1 - R(1 - i),
+  "bounce-out": R,
+  "bounce-in-out": (i) => i < 0.5 ? (1 - R(1 - 2 * i)) / 2 : (1 + R(2 * i - 1)) / 2
 }, H = /* @__PURE__ */ new WeakMap();
-let O = [], q = null;
-function G(i, s) {
-  O.push({ instance: i, type: s }), q === null && (q = requestAnimationFrame(ot));
+let q = [], _ = null;
+function Y(i, s) {
+  q.push({ instance: i, type: s }), _ === null && (_ = requestAnimationFrame(at));
 }
-function ot() {
-  const i = O.slice();
-  O.length = 0, q = null;
+function at() {
+  const i = q.slice();
+  q.length = 0, _ = null;
   for (let s = 0; s < i.length; s++) {
     const { instance: t, type: e } = i[s];
     e === "enter" ? t.enter() : t.leave && t.leave();
   }
 }
-let $ = null;
-function K() {
-  return typeof window > "u" ? null : ($ || ($ = new IntersectionObserver(
+let O = null;
+function Q() {
+  return typeof window > "u" ? null : (O || (O = new IntersectionObserver(
     (i) => {
       for (let s = 0; s < i.length; s++) {
         const t = i[s], e = H.get(t.target);
-        e && (t.isIntersecting ? G(e, "enter") : G(e, "leave"));
+        e && (t.isIntersecting ? Y(e, "enter") : Y(e, "leave"));
       }
     },
     { threshold: 0.05 }
-  )), $);
+  )), O);
 }
-function Q(i, s) {
+function Z(i, s) {
   var t;
-  H.set(i, s), (t = K()) == null || t.observe(i);
+  H.set(i, s), (t = Q()) == null || t.observe(i);
 }
-function _(i) {
+function N(i) {
   var s;
-  H.delete(i), (s = K()) == null || s.unobserve(i);
+  H.delete(i), (s = Q()) == null || s.unobserve(i);
+}
+function z(i, s) {
+  var o;
+  if (i == null) return s;
+  const t = i.trim();
+  if (!t) return s;
+  const e = t.match(/^(-?\d*\.?\d+)(ms|s)?$/i);
+  if (!e) {
+    const c = Number(t);
+    return Number.isFinite(c) ? c * 1e3 : s;
+  }
+  const n = Number(e[1]), r = (o = e[2]) == null ? void 0 : o.toLowerCase();
+  return r === "ms" ? n : r === "s" || !Number.isInteger(n) || n <= 10 ? n * 1e3 : n;
 }
 const k = class k extends HTMLElement {
   constructor() {
@@ -122,17 +135,17 @@ const k = class k extends HTMLElement {
       this.style.opacity = "1", this.style.transform = "none";
       return;
     }
-    this.setInitialState(), Q(this, {
+    this.setInitialState(), Z(this, {
       enter: () => this.handleEnter(),
       leave: () => this.handleLeave()
     });
   }
   disconnectedCallback() {
     var t;
-    (t = this.animation) == null || t.cancel(), _(this), k.groupQueue.delete(this);
+    (t = this.animation) == null || t.cancel(), N(this), k.groupQueue.delete(this);
   }
   handleEnter() {
-    this.hasAttribute("replay") || _(this), this.isGroup ? (k.groupQueue.add(this), k.scheduleGroup()) : this.play();
+    this.hasAttribute("replay") || N(this), this.isGroup ? (k.groupQueue.add(this), k.scheduleGroup()) : this.play();
   }
   handleLeave() {
     this.hasAttribute("replay") && this.reset();
@@ -148,9 +161,9 @@ const k = class k extends HTMLElement {
     return {
       x: o,
       y: c,
-      easing: r && r in P ? r : "ease-in-out",
-      duration: Number(this.getAttribute("duration")) || 400,
-      delay: Number(this.getAttribute("delay")) || 0
+      easing: r && r in L ? r : "ease-in-out",
+      duration: z(this.getAttribute("duration"), 400),
+      delay: z(this.getAttribute("delay"), 0)
     };
   }
   setInitialState() {
@@ -189,11 +202,11 @@ const k = class k extends HTMLElement {
 d(k, "counter", 0), d(k, "mediaQuery", window.matchMedia(
   "(prefers-reduced-motion: reduce)"
 )), d(k, "groupQueue", /* @__PURE__ */ new Set()), d(k, "isProcessingGroup", !1);
-let N = k;
-function at() {
-  customElements.get("sx-animate") || customElements.define("sx-animate", N);
+let X = k;
+function lt() {
+  customElements.get("sx-animate") || customElements.define("sx-animate", X);
 }
-class lt {
+class ht {
   constructor() {
     d(this, "_listeners", /* @__PURE__ */ new Set());
     d(this, "_time", 0);
@@ -286,8 +299,8 @@ class lt {
     return this._listeners.size;
   }
 }
-const v = new lt();
-class ht extends HTMLElement {
+const v = new ht();
+class ct extends HTMLElement {
   constructor() {
     super();
     d(this, "inner", null);
@@ -359,7 +372,7 @@ class ht extends HTMLElement {
     }
     this.addEventListener("mouseenter", this.onMouseEnter), this.addEventListener("mouseleave", this.onMouseLeave), this.resizeObserver = new ResizeObserver(() => {
       this.scheduleSetup();
-    }), this.resizeObserver.observe(this), Q(this, {
+    }), this.resizeObserver.observe(this), Z(this, {
       enter: () => {
         this.isVisible || (this.isVisible = !0, v.add(this.updateAnimation));
       },
@@ -370,7 +383,7 @@ class ht extends HTMLElement {
   }
   disconnectedCallback() {
     var t;
-    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (t = this.resizeObserver) == null || t.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), _(this), v.remove(this.updateAnimation);
+    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (t = this.resizeObserver) == null || t.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), N(this), v.remove(this.updateAnimation);
   }
   attributeChangedCallback(t, e, n) {
     e !== n && (t === "gap" ? (this.updateGapVar(), setTimeout(() => this.scheduleSetup(), 50)) : (t === "direction" || t === "speed" || t === "clone") && this.scheduleSetup());
@@ -473,22 +486,22 @@ class ht extends HTMLElement {
     this.inner && (this.isVertical ? this.inner.style.transform = `translate3d(0,${t}px,0)` : this.inner.style.transform = `translate3d(${t}px,0,0)`);
   }
 }
-class ct extends HTMLElement {
-}
 class dt extends HTMLElement {
+}
+class ut extends HTMLElement {
   connectedCallback() {
     this.style.cssText = "display:inline-block;flex-shrink:0;";
   }
 }
-function ut() {
-  customElements.get("sx-marquee") || customElements.define("sx-marquee", ht), customElements.get("sx-marquee-inner") || customElements.define("sx-marquee-inner", ct), customElements.get("sx-marquee-item") || customElements.define("sx-marquee-item", dt);
+function pt() {
+  customElements.get("sx-marquee") || customElements.define("sx-marquee", ct), customElements.get("sx-marquee-inner") || customElements.define("sx-marquee-inner", dt), customElements.get("sx-marquee-item") || customElements.define("sx-marquee-item", ut);
 }
-class pt extends HTMLElement {
+class ft extends HTMLElement {
   constructor() {
     super();
   }
 }
-class ft {
+class mt {
   constructor() {
     d(this, "sliders", /* @__PURE__ */ new Map());
   }
@@ -502,8 +515,8 @@ class ft {
     return this.sliders.get(s);
   }
 }
-const M = new ft();
-class mt extends HTMLElement {
+const M = new mt();
+class gt extends HTMLElement {
   constructor() {
     super();
     d(this, "renderedSignature", "");
@@ -621,7 +634,7 @@ class mt extends HTMLElement {
     this.innerContainer.style.transform = `translateX(${h}px)`;
   }
 }
-class gt extends HTMLElement {
+class xt extends HTMLElement {
   constructor() {
     super(), this.addEventListener("click", () => this.handleAction()), this.addEventListener("keydown", (s) => {
       (s.key === "Enter" || s.key === " ") && (s.preventDefault(), this.handleAction());
@@ -642,7 +655,7 @@ class gt extends HTMLElement {
     }
   }
 }
-class xt extends HTMLElement {
+class bt extends HTMLElement {
   constructor() {
     super();
     d(this, "bar");
@@ -656,7 +669,7 @@ class xt extends HTMLElement {
     this.bar.style.transition = n || "none", e === "vertical" ? (this.bar.style.transformOrigin = "top center", this.bar.style.transform = `scaleY(${r})`) : (this.bar.style.transformOrigin = "left center", this.bar.style.transform = `scaleX(${r})`);
   }
 }
-class bt extends HTMLElement {
+class yt extends HTMLElement {
   constructor() {
     super(), this.addEventListener("click", () => this.handleAction()), this.addEventListener("keydown", (s) => {
       (s.key === "Enter" || s.key === " ") && (s.preventDefault(), this.handleAction());
@@ -677,7 +690,7 @@ class bt extends HTMLElement {
     }
   }
 }
-class yt {
+class St {
   constructor(s, t, e = 0.92) {
     d(this, "velocity", 0);
     d(this, "friction");
@@ -709,7 +722,7 @@ class yt {
     this.onUpdate(this.velocity * t), this.velocity *= e;
   }
 }
-class St extends HTMLElement {
+class Ct extends HTMLElement {
   constructor() {
     super();
     d(this, "sliderCha", null);
@@ -748,7 +761,7 @@ class St extends HTMLElement {
       }
       this.sliderCha.startAutoplay();
     });
-    d(this, "wheelInertia", new yt(
+    d(this, "wheelInertia", new St(
       (t) => {
         if (this.sliderCha) {
           if (this.currentTranslate += t, this.sliderCha.options.loop)
@@ -987,7 +1000,7 @@ class St extends HTMLElement {
     }
   }
 }
-class Y {
+class j {
   static parse(s) {
     if (!s) return null;
     try {
@@ -1018,7 +1031,7 @@ class Y {
     return t;
   }
 }
-class Ct extends HTMLElement {
+class vt extends HTMLElement {
   constructor() {
     super();
     d(this, "options");
@@ -1189,7 +1202,7 @@ class Ct extends HTMLElement {
     this.parseOptions(), this.updateLayout(), this.startAutoplay();
   }
   parseOptions() {
-    const t = (p) => p ? isNaN(Number(p)) ? p : `${p}px` : "0px", e = this.getAttribute("edge-resistance"), n = e !== null ? Number(e) : 100, r = this.getAttribute("interval"), o = r !== null ? Number(r) : 4e3, c = this.getAttribute("start-index"), a = c !== null ? Number(c) : 0, l = this.getAttribute("per-move");
+    const t = (p) => p ? isNaN(Number(p)) ? p : `${p}px` : "0px", e = this.getAttribute("edge-resistance"), n = e !== null ? Number(e) : 100, r = this.getAttribute("interval"), o = z(r, 4e3), c = this.getAttribute("start-index"), a = c !== null ? Number(c) : 0, l = this.getAttribute("per-move");
     let h = "auto";
     if (l !== null && l !== "auto") {
       const p = Number(l);
@@ -1203,7 +1216,7 @@ class Ct extends HTMLElement {
       perView: Number(this.getAttribute("per-view")) || 1,
       gap: t(this.getAttribute("gap")),
       drag: this.getAttribute("drag") || "true",
-      speed: Number(this.getAttribute("speed")) || 300,
+      speed: z(this.getAttribute("speed"), 300),
       rightPadding: t(this.getAttribute("right-padding")),
       leftPadding: t(this.getAttribute("left-padding")),
       rewind: this.hasAttribute("rewind"),
@@ -1225,7 +1238,7 @@ class Ct extends HTMLElement {
       effect: f,
       sync: this.getAttribute("sync"),
       lockActive: this.hasAttribute("lock-active")
-    }, this.originalOptions = { ...this.options }, this.breakpointsConfig = Y.parse(
+    }, this.originalOptions = { ...this.options }, this.breakpointsConfig = j.parse(
       this.getAttribute("breakpoints")
     );
   }
@@ -1271,7 +1284,7 @@ class Ct extends HTMLElement {
     if (this.options.loop || e.forEach((p, m) => {
       p.setAttribute("data-real-index", m.toString());
     }), this.breakpointsConfig && this.originalOptions) {
-      this.options = Y.getMatch(
+      this.options = j.getMatch(
         t,
         JSON.parse(JSON.stringify(this.originalOptions)),
         this.breakpointsConfig
@@ -1615,8 +1628,8 @@ class Ct extends HTMLElement {
     });
   }
 }
-function vt() {
-  customElements.get("sx-slider") || customElements.define("sx-slider", Ct), customElements.get("sx-slider-track") || customElements.define("sx-slider-track", St), customElements.get("sx-slider-slide") || customElements.define("sx-slider-slide", pt), customElements.get("sx-slider-progress") || customElements.define("sx-slider-progress", xt), customElements.get("sx-slider-prev") || customElements.define("sx-slider-prev", bt), customElements.get("sx-slider-pagination") || customElements.define("sx-slider-pagination", mt), customElements.get("sx-slider-next") || customElements.define("sx-slider-next", gt);
+function kt() {
+  customElements.get("sx-slider") || customElements.define("sx-slider", vt), customElements.get("sx-slider-track") || customElements.define("sx-slider-track", Ct), customElements.get("sx-slider-slide") || customElements.define("sx-slider-slide", ft), customElements.get("sx-slider-progress") || customElements.define("sx-slider-progress", bt), customElements.get("sx-slider-prev") || customElements.define("sx-slider-prev", yt), customElements.get("sx-slider-pagination") || customElements.define("sx-slider-pagination", gt), customElements.get("sx-slider-next") || customElements.define("sx-slider-next", xt);
 }
 const E = {
   duration: 300,
@@ -1626,7 +1639,7 @@ const E = {
   overlay: !0,
   overlayStyle: "background-color: rgba(0, 0, 0, 0.5);"
 };
-class kt extends HTMLElement {
+class At extends HTMLElement {
   constructor() {
     super();
     d(this, "isOpen", !1);
@@ -1659,7 +1672,7 @@ class kt extends HTMLElement {
   }
   get duration() {
     const t = this.getAttribute("duration");
-    return t ? Number(t) : E.duration;
+    return z(t, E.duration);
   }
   get closeOnOutsideClick() {
     const t = this.getAttribute("close-on-outside-click");
@@ -1762,7 +1775,7 @@ class kt extends HTMLElement {
     `, this.backdropEl = this.querySelector(".sx-dialog-backdrop"), this.dialogCoreEl = this.querySelector(".sx-dialog-core"), this.backdropEl && this.backdropEl.addEventListener("click", this.handleBackdropClick);
   }
 }
-class At extends HTMLElement {
+class Tt extends HTMLElement {
   constructor() {
     super(...arguments);
     d(this, "handleKeyDown", (t) => {
@@ -1784,22 +1797,22 @@ class At extends HTMLElement {
     this.removeEventListener("click", this.toggleDialog), this.removeEventListener("keydown", this.handleKeyDown);
   }
 }
-function Tt() {
-  customElements.get("sx-dialog") || customElements.define("sx-dialog", kt), customElements.get("sx-dialog-trigger") || customElements.define("sx-dialog-trigger", At);
-}
 function wt() {
-  ut(), at(), vt(), Tt();
+  customElements.get("sx-dialog") || customElements.define("sx-dialog", At), customElements.get("sx-dialog-trigger") || customElements.define("sx-dialog-trigger", Tt);
 }
-const Z = /* @__PURE__ */ new Map();
+function Et() {
+  pt(), lt(), kt(), wt();
+}
+const J = /* @__PURE__ */ new Map();
 function x(i, s) {
-  Z.set(i, s);
-}
-function Et(i, s) {
-  const t = Z.get(i);
-  return t || (i.startsWith("--") ? Mt(i, s) : It(i, s));
+  J.set(i, s);
 }
 function Mt(i, s) {
-  return typeof s == "string" && !J(s) ? {
+  const t = J.get(i);
+  return t || (i.startsWith("--") ? It(i, s) : zt(i, s));
+}
+function It(i, s) {
+  return typeof s == "string" && !tt(s) ? {
     type: "discrete",
     cssKey: i,
     apply(t, e) {
@@ -1811,18 +1824,18 @@ function Mt(i, s) {
     defaultUnit: "",
     getCurrent(t) {
       const e = window.getComputedStyle(t).getPropertyValue(i).trim();
-      return e || console.warn(`[six-js] CSS variable "${i}" not set, defaulting to 0`), z(e);
+      return e || console.warn(`[six-js] CSS variable "${i}" not set, defaulting to 0`), B(e);
     },
     apply(t, e) {
       t.style.setProperty(i, `${e.num}${e.unit}`);
     }
   };
 }
-function J(i) {
+function tt(i) {
   return /^-?[\d.]+[a-z%]*$/i.test(i.trim());
 }
-function It(i, s) {
-  return typeof s == "string" && !J(s) ? {
+function zt(i, s) {
+  return typeof s == "string" && !tt(s) ? {
     type: "discrete",
     cssKey: i,
     apply(t, e) {
@@ -1834,14 +1847,14 @@ function It(i, s) {
     defaultUnit: "",
     getCurrent(t) {
       const e = window.getComputedStyle(t)[i];
-      return e === void 0 ? (console.warn(`[six-js] Invalid CSS property: "${i}"`), { num: 0, unit: "" }) : z(e);
+      return e === void 0 ? (console.warn(`[six-js] Invalid CSS property: "${i}"`), { num: 0, unit: "" }) : B(e);
     },
     apply(t, e) {
       t.style[i] = `${e.num}${e.unit}`;
     }
   };
 }
-function z(i, s = "") {
+function B(i, s = "") {
   if (typeof i == "number")
     return { num: i, unit: s };
   if (typeof i != "string" || i.length === 0)
@@ -1849,13 +1862,13 @@ function z(i, s = "") {
   const t = i.match(/^(-?[\d.]+)([a-z%]*)$/i);
   return t ? { num: parseFloat(t[1]) || 0, unit: t[2] || s } : { num: parseFloat(i) || 0, unit: s };
 }
-const zt = /^([+\-*/])=(-?[\d.]+)([a-z%]*)$/i;
-function Bt(i, s, t, e) {
+const Bt = /^([+\-*/])=(-?[\d.]+)([a-z%]*)$/i;
+function Rt(i, s, t, e) {
   if (typeof i != "string")
-    return z(i, e);
-  const n = i.match(zt);
+    return B(i, e);
+  const n = i.match(Bt);
   if (!n)
-    return z(i, e);
+    return B(i, e);
   const [, r, o, c] = n, a = parseFloat(o), l = c || t || e;
   if (isNaN(a))
     return console.warn(`[six-js] Invalid relative value: "${i}"`), { num: s, unit: l };
@@ -1880,15 +1893,15 @@ function Bt(i, s, t, e) {
   }
   return { num: h, unit: l };
 }
-const Rt = /rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)/i;
-function Pt(i) {
+const Pt = /rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)/i;
+function Lt(i) {
   const s = document.createElement("span");
   s.style.color = i, s.style.display = "none", document.body.appendChild(s);
   const t = window.getComputedStyle(s).color;
-  return document.body.removeChild(s), tt(t);
+  return document.body.removeChild(s), et(t);
 }
-function tt(i) {
-  const s = i.match(Rt);
+function et(i) {
+  const s = i.match(Pt);
   return s ? {
     r: parseFloat(s[1]),
     g: parseFloat(s[2]),
@@ -1896,7 +1909,7 @@ function tt(i) {
     a: s[4] !== void 0 ? parseFloat(s[4]) : 1
   } : { r: 0, g: 0, b: 0, a: 1 };
 }
-function Lt(i, s, t) {
+function Ft(i, s, t) {
   return {
     r: i.r + (s.r - i.r) * t,
     g: i.g + (s.g - i.g) * t,
@@ -1904,74 +1917,74 @@ function Lt(i, s, t) {
     a: i.a + (s.a - i.a) * t
   };
 }
-function Ft(i) {
+function Dt(i) {
   return `rgba(${Math.round(i.r)}, ${Math.round(i.g)}, ${Math.round(i.b)}, ${i.a})`;
 }
-const X = /-?[\d.]+/g;
-function j(i) {
-  return (i.match(X) || []).length;
-}
-function Dt(i, s, t) {
-  const e = j(i), n = j(s), r = e === n && n > 0;
-  return r || console.warn(`[six-js] "${t}": shape mismatch (${e} vs ${n} numbers), will snap instead of interpolate`), r;
+const V = /-?[\d.]+/g;
+function U(i) {
+  return (i.match(V) || []).length;
 }
 function $t(i, s, t) {
-  const e = (i.match(X) || []).map(Number);
+  const e = U(i), n = U(s), r = e === n && n > 0;
+  return r || console.warn(`[six-js] "${t}": shape mismatch (${e} vs ${n} numbers), will snap instead of interpolate`), r;
+}
+function Ot(i, s, t) {
+  const e = (i.match(V) || []).map(Number);
   let n = 0;
-  return s.replace(X, (r) => {
+  return s.replace(V, (r) => {
     const o = parseFloat(r), c = e[n] ?? o;
     n++;
     const a = c + (o - c) * t;
     return String(Math.round(a * 1e3) / 1e3);
   });
 }
-const F = /* @__PURE__ */ new WeakMap();
-function Ot(i) {
-  let s = F.get(i);
-  return s || (s = /* @__PURE__ */ new Map(), F.set(i, s)), s;
+const D = /* @__PURE__ */ new WeakMap();
+function qt(i) {
+  let s = D.get(i);
+  return s || (s = /* @__PURE__ */ new Map(), D.set(i, s)), s;
 }
-function qt(i, s) {
+function _t(i, s) {
   var t;
-  return (t = F.get(i)) == null ? void 0 : t.get(s);
+  return (t = D.get(i)) == null ? void 0 : t.get(s);
 }
-function _t(i, s, t) {
-  Ot(i).set(s, t);
+function Nt(i, s, t) {
+  qt(i).set(s, t);
 }
-function Nt(i) {
-  const s = F.get(i);
+function Xt(i) {
+  const s = D.get(i);
   if (!s || s.size === 0) return "";
   let t = "";
   for (const { fn: e, value: n, unit: r } of s.values())
     t += `${e}(${n}${r}) `;
   return t.trim();
 }
-function Xt(i, s, t) {
+function Vt(i, s, t) {
   const e = i.style[s];
   i.style[s] = t;
   const n = parseFloat(window.getComputedStyle(i)[s]) || 0;
   return i.style[s] = e, n;
 }
 const Ht = /^random\((.+)\)$/i;
-function Vt(i) {
+function Wt(i) {
   return /^-?[\d.]+$/.test(i.trim());
 }
-function Wt(i) {
+function Gt(i) {
   const s = i.match(Ht);
   if (!s) return i;
   const t = s[1].split(",").map((e) => e.trim());
   if (t.length === 0 || t.length === 1 && t[0] === "")
     return console.warn(`[six-js] Invalid random() syntax: "${i}"`), i;
-  if (t.length === 2 && t.every(Vt)) {
+  if (t.length === 2 && t.every(Wt)) {
     const e = parseFloat(t[0]), n = parseFloat(t[1]);
     return e + Math.random() * (n - e);
   }
   return t[Math.floor(Math.random() * t.length)];
 }
-function Gt(i, s, t) {
+function Yt(i, s, t) {
   let e = i;
-  return typeof e == "function" && (e = e(s, t)), typeof e == "string" && (e = Wt(e)), e;
+  return typeof e == "function" && (e = e(s, t)), typeof e == "string" && (e = Gt(e)), e;
 }
-class Yt {
+class jt {
   constructor(s, t) {
     d(this, "duration");
     d(this, "targets");
@@ -1980,7 +1993,7 @@ class Yt {
     d(this, "hasTransform", []);
     typeof s == "string" ? this.targets = Array.from(document.querySelectorAll(s)) : this.targets = Array.isArray(s) ? s : [s], this.targets.length === 0 && console.warn(`[six-js] No elements matched: "${s}"`), this.duration = t.duration ?? 0.5, this.duration < 0 && (console.warn(`[six-js] Negative duration (${this.duration}), using 0 instead`), this.duration = 0);
     const e = t.ease ?? "linear";
-    P[e] || console.warn(`[six-js] Unknown ease "${e}", falling back to linear`), this.easeFn = P[e] || P.linear, this.setupProps(t);
+    L[e] || console.warn(`[six-js] Unknown ease "${e}", falling back to linear`), this.easeFn = L[e] || L.linear, this.setupProps(t);
   }
   setupProps(s) {
     this.targets.forEach((t, e) => {
@@ -1988,30 +2001,30 @@ class Yt {
       let r = !1;
       for (const o in s) {
         if (o === "duration" || o === "ease") continue;
-        const c = Gt(s[o], e, t), a = Et(o, c);
+        const c = Yt(s[o], e, t), a = Mt(o, c);
         if (a.type === "discrete") {
           a.apply(t, String(c));
           continue;
         }
         if (a.type === "color") {
-          const f = a.getCurrent(t), p = Pt(String(c));
+          const f = a.getCurrent(t), p = Lt(String(c));
           n.push({ key: o, state: { kind: "color", start: f, end: p, apply: a.apply } });
           continue;
         }
         if (a.type === "complex") {
           const f = a.getCurrent(t), p = String(c);
-          Dt(f, p, o), n.push({ key: o, state: { kind: "complex", start: f, end: p, apply: a.apply } });
+          $t(f, p, o), n.push({ key: o, state: { kind: "complex", start: f, end: p, apply: a.apply } });
           continue;
         }
         const l = a.getCurrent(t, o);
-        let h = Bt(
+        let h = Rt(
           c,
           l.num,
           l.unit,
           a.defaultUnit
         ), u;
         if (!a.isTransform && h.unit && l.unit && h.unit !== l.unit) {
-          const f = Xt(t, o, `${h.num}${h.unit}`);
+          const f = Vt(t, o, `${h.num}${h.unit}`);
           u = `${h.num}${h.unit}`, h = { num: f, unit: l.unit };
         }
         a.isTransform && (r = !0), n.push({
@@ -2040,21 +2053,21 @@ class Yt {
       for (let a = 0; a < o.length; a++) {
         const { key: l, state: h } = o[a];
         if (h.kind === "color") {
-          h.apply(n, Lt(h.start, h.end, e));
+          h.apply(n, Ft(h.start, h.end, e));
           continue;
         }
         if (h.kind === "complex") {
-          h.apply(n, $t(h.start, h.end, e));
+          h.apply(n, Ot(h.start, h.end, e));
           continue;
         }
         const u = h.start + (h.end - h.start) * e;
-        h.isTransform && h.transformFn ? (_t(n, h.transformStoreKey ?? h.transformFn, {
+        h.isTransform && h.transformFn ? (Nt(n, h.transformStoreKey ?? h.transformFn, {
           value: u,
           unit: h.unit,
           fn: h.transformFn
         }), c = !0) : t === 1 && h.snapEnd !== void 0 ? n.style[l] = h.snapEnd : h.apply(n, { num: u, unit: h.unit });
       }
-      c && (n.style.transform = Nt(n));
+      c && (n.style.transform = Xt(n));
     });
   }
   onStart() {
@@ -2068,7 +2081,7 @@ class Yt {
     });
   }
 }
-class jt {
+class Ut {
   constructor(s, t = !0) {
     d(this, "animatable");
     d(this, "elapsed", 0);
@@ -2130,7 +2143,7 @@ class jt {
     return this.running;
   }
 }
-const V = {
+const W = {
   x: 0,
   y: 0,
   z: 0,
@@ -2143,15 +2156,15 @@ const V = {
   scaleY: 1,
   skewX: 0,
   skewY: 0
-}, L = 180 / Math.PI;
-function Ut(i) {
-  const s = window.getComputedStyle(i).transform;
-  return !s || s === "none" ? { ...V } : s.startsWith("matrix3d") ? Qt(s) : Kt(s);
-}
+}, F = 180 / Math.PI;
 function Kt(i) {
+  const s = window.getComputedStyle(i).transform;
+  return !s || s === "none" ? { ...W } : s.startsWith("matrix3d") ? Zt(s) : Qt(s);
+}
+function Qt(i) {
   const s = i.match(/matrix\(([^)]+)\)/);
-  if (!s) return { ...V };
-  const t = s[1].split(",").map((f) => parseFloat(f.trim())), [e, n, r, o, c, a] = t, l = Math.sqrt(e * e + n * n), h = Math.sqrt(r * r + o * o), u = Math.atan2(n, e) * L;
+  if (!s) return { ...W };
+  const t = s[1].split(",").map((f) => parseFloat(f.trim())), [e, n, r, o, c, a] = t, l = Math.sqrt(e * e + n * n), h = Math.sqrt(r * r + o * o), u = Math.atan2(n, e) * F;
   return {
     x: c,
     y: a,
@@ -2167,12 +2180,12 @@ function Kt(i) {
     skewY: 0
   };
 }
-function Qt(i) {
+function Zt(i) {
   const s = i.match(/matrix3d\(([^)]+)\)/);
-  if (!s) return { ...V };
+  if (!s) return { ...W };
   const t = s[1].split(",").map((g) => parseFloat(g.trim())), e = t[0], n = t[1], r = t[2], o = t[4], c = t[5], a = t[6];
   t[8], t[9];
-  const l = t[10], h = t[12], u = t[13], f = t[14], p = Math.sqrt(e * e + n * n + r * r), m = Math.sqrt(o * o + c * c + a * a), b = Math.atan2(n, e) * L, y = Math.atan2(-r, Math.sqrt(a * a + l * l)) * L, C = Math.atan2(a, l) * L;
+  const l = t[10], h = t[12], u = t[13], f = t[14], p = Math.sqrt(e * e + n * n + r * r), m = Math.sqrt(o * o + c * c + a * a), b = Math.atan2(n, e) * F, y = Math.atan2(-r, Math.sqrt(a * a + l * l)) * F, C = Math.atan2(a, l) * F;
   return {
     x: h,
     y: u,
@@ -2196,8 +2209,8 @@ function S(i, s, t, e = i) {
     transformStoreKey: e,
     defaultUnit: s,
     getCurrent(n) {
-      const r = qt(n, e);
-      return r ? { num: r.value, unit: r.unit } : { num: Ut(n)[t], unit: s };
+      const r = _t(n, e);
+      return r ? { num: r.value, unit: r.unit } : { num: Kt(n)[t], unit: s };
     },
     apply() {
     }
@@ -2224,7 +2237,7 @@ function A(i, s) {
     defaultUnit: s,
     getCurrent(t) {
       const e = window.getComputedStyle(t)[i];
-      return z(e, s);
+      return B(e, s);
     },
     apply(t, e) {
       t.style[i] = `${e.num}${e.unit}`;
@@ -2242,24 +2255,24 @@ x("borderWidth", A("borderWidth", "px"));
 x("opacity", A("opacity", ""));
 x("fontSize", A("fontSize", "px"));
 x("letterSpacing", A("letterSpacing", "px"));
-function D(i) {
+function $(i) {
   return {
     type: "color",
     cssKey: i,
     getCurrent(s) {
       const t = window.getComputedStyle(s)[i];
-      return tt(t);
+      return et(t);
     },
     apply(s, t) {
-      s.style[i] = Ft(t);
+      s.style[i] = Dt(t);
     }
   };
 }
-x("backgroundColor", D("backgroundColor"));
-x("color", D("color"));
-x("borderColor", D("borderColor"));
-x("background", D("backgroundColor"));
-function Zt(i) {
+x("backgroundColor", $("backgroundColor"));
+x("color", $("color"));
+x("borderColor", $("borderColor"));
+x("background", $("backgroundColor"));
+function Jt(i) {
   return {
     type: "discrete",
     cssKey: i,
@@ -2268,7 +2281,7 @@ function Zt(i) {
     }
   };
 }
-const Jt = [
+const te = [
   "display",
   "position",
   "visibility",
@@ -2292,8 +2305,8 @@ const Jt = [
   "clear",
   "objectFit"
 ];
-Jt.forEach((i) => x(i, Zt(i)));
-function et(i) {
+te.forEach((i) => x(i, Jt(i)));
+function it(i) {
   return {
     type: "complex",
     cssKey: i,
@@ -2306,22 +2319,22 @@ function et(i) {
     }
   };
 }
-x("boxShadow", et("boxShadow"));
-x("filter", et("filter"));
-rt();
-let U = !1;
-function te() {
-  U || (wt(), U = !0);
+x("boxShadow", it("boxShadow"));
+x("filter", it("filter"));
+ot();
+let K = !1;
+function ee() {
+  K || (Et(), K = !0);
 }
-function ee(i, s) {
-  const t = new Yt(i, s);
-  return new jt(t, !0);
+function ie(i, s) {
+  const t = new jt(i, s);
+  return new Ut(t, !0);
 }
-const se = {
-  initElement: te,
-  to: ee
+const ne = {
+  initElement: ee,
+  to: ie
 };
 export {
-  nt as VERSION,
-  se as six
+  rt as VERSION,
+  ne as six
 };
