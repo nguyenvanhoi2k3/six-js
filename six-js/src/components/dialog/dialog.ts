@@ -2,7 +2,6 @@
 
 import type { DialogOptions, DialogToggleDetail } from './types';
 
-// Khởi tạo giá trị mặc định chuẩn theo interface DialogOptions
 const DEFAULT_OPTIONS: Omit<DialogOptions, 'name'> = {
   duration: 300,
   closeOnOutsideClick: true,
@@ -16,51 +15,49 @@ export class SxDialog extends HTMLElement {
   private isOpen = false;
   private previousActiveElement: HTMLElement | null = null;
   private focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex]:not([tabindex="-1"]), [contenteditable]';
+  
+  private backdropEl: HTMLElement | null = null;
+  private dialogCoreEl: HTMLElement | null = null;
+  private originalContentHTML = '';
 
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
   }
 
   static get observedAttributes() {
     return ['sx-open', 'duration', 'scrollable', 'overlay', 'overlay-style'];
   }
 
-  // --- Map Attributes về chuẩn DialogOptions ---
-  get name(): DialogOptions['name'] { 
-    return this.getAttribute('name'); 
-  }
-  
+  get name(): DialogOptions['name'] { return this.getAttribute('name'); }
   get duration(): DialogOptions['duration'] { 
     const attr = this.getAttribute('duration');
     return attr ? Number(attr) : DEFAULT_OPTIONS.duration; 
   }
-  
   get closeOnOutsideClick(): DialogOptions['closeOnOutsideClick'] { 
     const attr = this.getAttribute('close-on-outside-click');
     return attr !== null ? attr !== 'false' : DEFAULT_OPTIONS.closeOnOutsideClick; 
   }
-  
   get closeOnEscKey(): DialogOptions['closeOnEscKey'] { 
     const attr = this.getAttribute('close-on-esc-key');
     return attr !== null ? attr !== 'false' : DEFAULT_OPTIONS.closeOnEscKey; 
   }
-  
   get scrollable(): DialogOptions['scrollable'] { 
-    return this.getAttribute('scrollable') === 'true' || DEFAULT_OPTIONS.scrollable; 
+    const attr = this.getAttribute('scrollable');
+    return attr !== null ? attr !== 'false' : DEFAULT_OPTIONS.scrollable; 
   }
-  
   get overlay(): DialogOptions['overlay'] { 
     const attr = this.getAttribute('overlay');
     return attr !== null ? attr !== 'false' : DEFAULT_OPTIONS.overlay; 
   }
-  
   get overlayStyle(): DialogOptions['overlayStyle'] { 
     return this.getAttribute('overlay-style') || DEFAULT_OPTIONS.overlayStyle; 
   }
 
   connectedCallback() {
+    // Lưu lại HTML Light DOM ban đầu do người dùng viết
+    this.originalContentHTML = this.innerHTML;
     this.render();
+    
     window.addEventListener('sx-dialog-toggle', this.handleToggleEvent as EventListener);
     this.addEventListener('keydown', this.handleKeyDown);
   }
@@ -68,6 +65,7 @@ export class SxDialog extends HTMLElement {
   disconnectedCallback() {
     window.removeEventListener('sx-dialog-toggle', this.handleToggleEvent as EventListener);
     this.removeEventListener('keydown', this.handleKeyDown);
+    this.setInertOnSiblings(false); // Clean up dọn dẹp nếu component bị hủy đột ngột
   }
 
   private handleToggleEvent = (e: CustomEvent<DialogToggleDetail>) => {
@@ -76,11 +74,10 @@ export class SxDialog extends HTMLElement {
     }
   };
 
-  // --- Dispatch Custom Event phục vụ Lifecycle (Mở rộng cho Developer bên ngoài dùng) ---
   private dispatchLifecycleEvent(eventName: 'sx-dialog-before-open' | 'sx-dialog-after-open' | 'sx-dialog-before-close' | 'sx-dialog-after-close') {
     this.dispatchEvent(new CustomEvent(eventName, {
       bubbles: true,
-      composed: true, // Cho phép lọt qua Shadow DOM boundary
+      composed: true,
       detail: { name: this.name }
     }));
   }
@@ -89,13 +86,21 @@ export class SxDialog extends HTMLElement {
     if (this.isOpen) return;
     
     this.dispatchLifecycleEvent('sx-dialog-before-open');
-    
     this.isOpen = true;
+    
+    // ✅ Screen reader support & Visibility toggle
     this.setAttribute('sx-open', '');
+    this.dialogCoreEl?.setAttribute('aria-hidden', 'false');
+    
+    // ✅ Restore focus sau khi đóng (Lưu lại element kích hoạt)
     this.previousActiveElement = document.activeElement as HTMLElement;
+    
     this.lockScroll();
+    // ✅ Inert background (Chặn Screen Reader đọc các phần tử ngoài Dialog)
+    this.setInertOnSiblings(true); 
     
     requestAnimationFrame(() => {
+      // ✅ Initial focus & Auto focus
       this.focusFirstElement();
       this.dispatchLifecycleEvent('sx-dialog-after-open');
     });
@@ -105,11 +110,16 @@ export class SxDialog extends HTMLElement {
     if (!this.isOpen) return;
     
     this.dispatchLifecycleEvent('sx-dialog-before-close');
-    
     this.isOpen = false;
-    this.removeAttribute('sx-open');
-    this.unlockScroll();
     
+    this.removeAttribute('sx-open');
+    this.dialogCoreEl?.setAttribute('aria-hidden', 'true');
+    
+    this.unlockScroll();
+    // ✅ Gỡ bỏ inert để trang hoạt động bình thường trở lại
+    this.setInertOnSiblings(false);
+    
+    // ✅ Restore focus trả lại nơi sinh ra
     if (this.previousActiveElement) {
       this.previousActiveElement.focus();
     }
@@ -119,8 +129,30 @@ export class SxDialog extends HTMLElement {
     }, this.duration);
   }
 
+  // ✅ Inert background helper
+  private setInertOnSiblings(isInert: boolean) {
+    let parent = this.parentElement;
+    while (parent) {
+      Array.from(parent.children).forEach(sibling => {
+        if (sibling !== this && !sibling.contains(this)) {
+          if (isInert) {
+            sibling.setAttribute('inert', '');
+            sibling.setAttribute('aria-hidden', 'true');
+          } else {
+            sibling.removeAttribute('inert');
+            sibling.removeAttribute('aria-hidden');
+          }
+        }
+      });
+      if (parent.tagName === 'BODY') break;
+      parent = parent.parentElement;
+    }
+  }
+
   private lockScroll() {
+    if (this.scrollable) return; 
     if (document.body.style.overflow === 'hidden') return; 
+
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.setProperty('--sx-scrollbar-width', `${scrollbarWidth}px`);
     document.body.style.paddingRight = 'var(--sx-scrollbar-width)';
@@ -128,9 +160,13 @@ export class SxDialog extends HTMLElement {
   }
 
   private unlockScroll() {
+    if (this.scrollable) return; 
+    
     setTimeout(() => {
-      const openDialogs = document.querySelectorAll('sx-dialog[sx-open]');
-      if (openDialogs.length === 0) {
+      const openDialogs = Array.from(document.querySelectorAll('sx-dialog[sx-open]'));
+      const hasLockedDialog = openDialogs.some(d => !(d as any).scrollable);
+      
+      if (!hasLockedDialog) {
         document.body.style.paddingRight = '';
         document.body.style.overflow = '';
         document.body.style.removeProperty('--sx-scrollbar-width');
@@ -146,35 +182,56 @@ export class SxDialog extends HTMLElement {
       return;
     }
     if (e.key === 'Tab') {
+      // ✅ Tab cycle & Shift+Tab cycle
       this.trapFocus(e);
     }
   };
 
   private getFocusableElements(): HTMLElement[] {
-    return Array.from(this.querySelectorAll<HTMLElement>(this.focusableElementsString));
+    if (!this.dialogCoreEl) return [];
+    return Array.from(this.dialogCoreEl.querySelectorAll<HTMLElement>(this.focusableElementsString))
+      .filter(el => el.tabIndex !== -1 && (el as any).disabled !== true);
   }
 
   private focusFirstElement() {
+    // Ưu tiên 1: Tìm phần tử có thuộc tính [autofocus] do người dùng tự đặt bên trong
+    const autoFocusEl = this.querySelector('[autofocus]') as HTMLElement;
+    if (autoFocusEl) {
+      autoFocusEl.focus();
+      return;
+    }
+
+    // Ưu tiên 2: Lấy phần tử focusable đầu tiên tìm thấy
     const focusableElements = this.getFocusableElements();
     if (focusableElements.length) {
       focusableElements[0].focus();
-    } else {
-      (this.shadowRoot!.querySelector('.dialog') as HTMLElement).focus();
+    } else if (this.dialogCoreEl) {
+      // Ưu tiên 3: Nếu không có gì focus được, focus vào chính hộp hội thoại
+      this.dialogCoreEl.focus();
     }
   }
 
+  // ✅ Focus Trap logic (Chặn vòng lặp Tab / Shift+Tab)
   private trapFocus(e: KeyboardEvent) {
     const focusableElements = this.getFocusableElements();
-    if (focusableElements.length === 0) return;
+    if (focusableElements.length === 0) {
+      e.preventDefault();
+      return;
+    }
+    
     const firstElement = focusableElements[0];
     const lastElement = focusableElements[focusableElements.length - 1];
 
-    if (e.shiftKey && document.activeElement === firstElement) {
-      e.preventDefault();
-      lastElement.focus();
-    } else if (!e.shiftKey && document.activeElement === lastElement) {
-      e.preventDefault();
-      firstElement.focus();
+    if (e.shiftKey) { // Shift + Tab (Đi lùi)
+      if (document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement.focus();
+      }
+    } else { // Tab (Đi tiến)
+      if (document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement.focus();
+      }
     }
   }
 
@@ -185,87 +242,37 @@ export class SxDialog extends HTMLElement {
   };
 
   private render() {
-    const style = `
-      :host {
-        --sx-duration: ${this.duration}ms;
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        visibility: hidden;
-        pointer-events: none;
-      }
-      
-      :host([sx-open]) {
-        visibility: visible;
-        pointer-events: auto;
-      }
+    this.style.setProperty('--sx-duration', `${this.duration}ms`);
+    
+    // Đọc ID tiêu đề và nội dung để tự động cấu hình ARIA liên kết ngầm
+    const titleEl = this.querySelector('[id*="title"], [class*="title"]');
+    const descEl = this.querySelector('[id*="desc"], [class*="desc"]');
+    
+    const labelAttr = titleEl ? `aria-labelledby="${titleEl.id || 'sx-dialog-title'}"` : '';
+    const descAttr = descEl ? `aria-describedby="${descEl.id || 'sx-dialog-desc'}"` : '';
+    
+    // Gán ID dự phòng nếu người dùng đặt class/tag mà quên điền ID để ARIA map trúng
+    if (titleEl && !titleEl.id) titleEl.id = 'sx-dialog-title';
+    if (descEl && !descEl.id) descEl.id = 'sx-dialog-desc';
 
-      .backdrop {
-        position: absolute;
-        inset: 0;
-        z-index: -1;
-        opacity: 0;
-        transition: opacity var(--sx-duration) ease;
-      }
-      
-      :host([sx-open]) .backdrop {
-        opacity: 1;
-      }
-
-      .dialog {
-        position: relative;
-        z-index: 1;
-        width: 100%;
-        max-width: var(--sx-dialog-max-width, 90vw);
-        max-height: calc(100vh - 4rem);
-        background: transparent;
-        opacity: 0;
-        transform: scale(0.96) translateY(10px);
-        transition: opacity var(--sx-duration) cubic-bezier(0.4, 0, 0.2, 1), 
-                    transform var(--sx-duration) cubic-bezier(0.4, 0, 0.2, 1);
-        will-change: transform, opacity;
-        display: flex;
-        flex-direction: column;
-        outline: none;
-      }
-
-      :host([sx-open]) .dialog {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-      }
-
-      .dialog-content {
-         background: var(--sx-dialog-bg-color, #ffffff);
-         border-radius: var(--sx-dialog-border-radius, 8px);
-         box-shadow: var(--sx-dialog-shadow);
-         width: 100%;
-      }
-
-      :host([scrollable="true"]) .dialog {
-        overflow-y: auto;
-      }
-    `;
-
-    this.shadowRoot!.innerHTML = `
-      <style>${style}</style>
-      ${this.overlay ? `<div class="backdrop" style="${this.overlayStyle}" part="backdrop"></div>` : ''}
-      <div class="dialog" part="dialog" role="dialog" aria-modal="true" tabindex="-1">
-        <div class="dialog-content" part="content">
-          <slot></slot>
-        </div>
+    this.innerHTML = `
+      ${this.overlay ? `<div class="sx-dialog-backdrop" style="${this.overlayStyle}"></div>` : ''}
+      <div class="sx-dialog-core" 
+           role="dialog" 
+           aria-modal="true" 
+           aria-hidden="true"
+           tabindex="-1"
+           ${labelAttr}
+           ${descAttr}>
+        ${this.originalContentHTML}
       </div>
     `;
 
-    const backdrop = this.shadowRoot!.querySelector('.backdrop');
-    if (backdrop) {
-      backdrop.addEventListener('click', this.handleBackdropClick);
+    this.backdropEl = this.querySelector('.sx-dialog-backdrop');
+    this.dialogCoreEl = this.querySelector('.sx-dialog-core');
+
+    if (this.backdropEl) {
+      this.backdropEl.addEventListener('click', this.handleBackdropClick);
     }
   }
-}
-
-if (!customElements.get('sx-dialog')) {
-  customElements.define('sx-dialog', SxDialog);
 }

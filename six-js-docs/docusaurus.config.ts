@@ -44,10 +44,10 @@ const config: Config = {
   },
 
   // dùng local
-  // clientModules: [
-  //   require.resolve("../six-js/dist/six-js.es.js"),
-  //   require.resolve("../six-js/dist/style.css"),
-  // ],
+  clientModules: [
+    require.resolve("../six-js/dist/six-js.es.js"),
+    require.resolve("../six-js/dist/style.css"),
+  ],
 
   presets: [
     [

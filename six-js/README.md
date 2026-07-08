@@ -15,6 +15,8 @@ npm install @six-js/core
 ## 📦 Usage
 
 ```bash
-import "@six-js/core";
-import "@six-js/core/style.css";
+import "@six-js/core/style.css"; 
+
+import { six } from "@six-js/core";
+six.initElement();
 ```

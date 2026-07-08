@@ -82,6 +82,12 @@ h6 {
   background-color: #ccc;
 }
 
+.box2 {
+  width: 200px;
+  height: 200px;
+  background-color: #ffb4b4;
+}
+
 .space {
   height: 100vh;
 }
@@ -102,4 +108,13 @@ h6 {
 
 .ai-center {
   align-items: center;
+}
+
+/* dialog */
+sx-dialog[name="dialog1"] {
+  .content {
+    background: #fff;
+    border-radius: 10px;
+    padding: 10px;
+  }
 }

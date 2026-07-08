@@ -659,7 +659,3 @@ export class SxSliderTrack extends HTMLElement {
     }
   }
 }
-
-if (!customElements.get("sx-slider-track")) {
-  customElements.define("sx-slider-track", SxSliderTrack);
-}

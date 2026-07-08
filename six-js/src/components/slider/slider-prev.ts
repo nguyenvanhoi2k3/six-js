@@ -39,7 +39,3 @@ export class SxSliderPrev extends HTMLElement {
     }
   }
 }
-
-if (!customElements.get('sx-slider-prev')) {
-  customElements.define('sx-slider-prev', SxSliderPrev);
-}

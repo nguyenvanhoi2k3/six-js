@@ -1,16 +1,55 @@
 /* six-js\src\components\modal\modal.css */
-:root {
-  --sx-dialog-max-width: 90vw;
-  --sx-dialog-bg-color: #ffffff;
-  --sx-dialog-border-radius: 8px;
-  --sx-dialog-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+sx-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  visibility: hidden;
+  pointer-events: none;
+  transition: visibility var(--sx-duration) step-end;
 }
 
-@media (min-width: 768px) {
-  :root {
-    --sx-dialog-max-width: 500px;
-  }
+sx-dialog[sx-open] {
+  visibility: visible;
+  pointer-events: auto;
+  transition: visibility 0s step-start;
+}
+
+sx-dialog .sx-dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity var(--sx-duration) ease;
+}
+
+sx-dialog[sx-open] .sx-dialog-backdrop {
+  opacity: 1;
+}
+
+sx-dialog .sx-dialog-core {
+  position: relative;
+  z-index: 1;
+  max-width: var(--sx-dialog-max-width, 90vw);
+  max-height: var(--sx-dialog-max-height, calc(100vh - 48px));
+  opacity: 0;
+  transform: scale(0.96) translateY(10px);
+  transition:
+    opacity var(--sx-duration) cubic-bezier(0.4, 0, 0.2, 1),
+    transform var(--sx-duration) cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+  display: flex;
+  flex-direction: column;
+  outline: none;
+  overflow-y: auto;
+}
+
+sx-dialog[sx-open] .sx-dialog-core {
+  opacity: 1;
+  transform: scale(1) translateY(0);
 }
 
 sx-dialog-trigger {

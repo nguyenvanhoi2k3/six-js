@@ -281,7 +281,3 @@ export class SxSliderPagination extends HTMLElement {
     this.innerContainer.style.transform = `translateX(${translateX}px)`;
   }
 }
-
-if (!customElements.get("sx-slider-pagination")) {
-  customElements.define("sx-slider-pagination", SxSliderPagination);
-}

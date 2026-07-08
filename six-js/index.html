@@ -10,19 +10,30 @@
   </head>
 
   <body>
-    <header class="flex" style="justify-content: space-between;">
-      <h2>Six js</h2>
-      <h2>Six js</h2>
-    </header>
-    <sx-dialog-trigger name="dialog1">Open Dialog</sx-dialog-trigger>
-    <sx-dialog name="dialog1">
-      <sx-dialog-trigger name="dialog1">Close Dialog</sx-dialog-trigger>
-      <p>This is the content of the dialog.</p>
-      <div>
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Nihil, aperiam.
-      </div>
-    </sx-dialog>
-    <div class="space"></div>
-    <script src="./dist/six-js.umd.js"></script>
+    <div class="box" style="--size: 100px; width: var(--size)">BOX</div>
+
+    <script type="module">
+      import { six } from "./dist/six-js.es.js";
+      six.initElement();
+
+      const anim1 = six.to(".box", {
+        "--size": "300px",
+        duration: 2,
+
+        ease: "cubic-in-out",
+      });
+    </script>
+
+    <!-- ------------------------------------------------GSAP------------------------------------------------ -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <script>
+      // document.addEventListener("DOMContentLoaded", (event) => {
+      //   gsap.to(".box", {
+      //     height: "random(100, 200, 300)",
+      //     ease: "cubic.inOut",
+      //     duration: 1.5,
+      //   });
+      // });
+    </script>
   </body>
 </html>

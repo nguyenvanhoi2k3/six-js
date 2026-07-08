@@ -4,7 +4,3 @@ export class SxSliderSlide extends HTMLElement {
     super();
   }
 }
-
-if (!customElements.get("sx-slider-slide")) {
-  customElements.define("sx-slider-slide", SxSliderSlide);
-}

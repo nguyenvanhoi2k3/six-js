@@ -28,7 +28,3 @@ export class SxSliderProgress extends HTMLElement {
     }
   }
 }
-
-if (!customElements.get("sx-slider-progress")) {
-  customElements.define("sx-slider-progress", SxSliderProgress);
-}

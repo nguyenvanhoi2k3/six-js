@@ -1,3 +1,4 @@
+// six-js\src\core\ticker.ts
 export type TickerCallback = (
   time: number,
   delta: number,

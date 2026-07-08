@@ -170,6 +170,3 @@ export class SxAnimate extends HTMLElement {
   }
 }
 
-if (!customElements.get("sx-animate")) {
-  customElements.define("sx-animate", SxAnimate);
-}

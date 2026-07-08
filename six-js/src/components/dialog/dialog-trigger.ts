@@ -37,6 +37,3 @@ export class SxDialogTrigger extends HTMLElement {
   };
 }
 
-if (!customElements.get("sx-dialog-trigger")) {
-  customElements.define("sx-dialog-trigger", SxDialogTrigger);
-}

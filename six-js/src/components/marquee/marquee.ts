@@ -325,14 +325,3 @@ export class SxMarqueeItem extends HTMLElement {
     this.style.cssText = "display:inline-block;flex-shrink:0;";
   }
 }
-
-// Giữ nguyên khai báo Custom Elements...
-if (!customElements.get("sx-marquee")) {
-  customElements.define("sx-marquee", SxMarquee);
-}
-if (!customElements.get("sx-marquee-inner")) {
-  customElements.define("sx-marquee-inner", SxMarqueeInner);
-}
-if (!customElements.get("sx-marquee-item")) {
-  customElements.define("sx-marquee-item", SxMarqueeItem);
-}

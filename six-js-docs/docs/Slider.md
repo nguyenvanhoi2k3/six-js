@@ -133,18 +133,51 @@ Thanh tiến trình slider
 <br />
 
 ## Method
+
+|Method|Tham số|Kiểu trả về|Mô tả|
+|---|---|---|---|
+|next()|Không|void|Chuyển sang slide kế tiếp.|
+|prev()|Không|void|Quay lại slide trước đó.|
+|goTo(index)|index: number|void|Nhảy thẳng tới slide chỉ định.|
+|getCurrentIndex()|Không|number|Trả về index của slide đang hiển thị.|
+
+## Custom Events
+
+|Tên Sự Kiện|event.detail|Thời điểm kích hoạt|
+|---|---|---|
+|sx-slider-init()|`{ name: string \| null }`|Kích hoạt ngay sau khi slider tính toán xong kích thước và khởi tạo thành công.|
+|sx-change()|`{ activeIndex: number }`|Kích hoạt bất cứ khi nào slide hiện tại thay đổi (do kéo thả, click nút, chạy tự động hoặc gọi API).|
+|sx-slider-destroy()|`{ name: string \| null }`|Kích hoạt khi thẻ slider bị xóa (remove) khỏi cấu trúc DOM.|
+
 ```js
 const slider = document.querySelector('sx-slider[name="my-slider"]');
 
 slider.next();
-
 slider.prev();
-
 slider.goTo(2);
 
 // Lấy index hiện tại để xử lý logic riêng
 const currentIndex = slider.getCurrentIndex();
 console.log("Slide hiện tại là:", currentIndex);
+
+// Lắng nghe khi Slider đã sẵn sàng
+slider.addEventListener('sx-slider-init', (event) => {
+  console.log(`Slider "${event.detail.name}" đã khởi tạo thành công!`);
+});
+
+// Theo dõi mỗi khi người dùng chuyển slide
+slider.addEventListener('sx-change', (event) => {
+  const currentActive = event.detail.activeIndex;
+  console.log("Slider vừa chuyển sang slide index:", currentActive);
+  
+  // Ứng dụng: Cập nhật số trang hiển thị tự chế (Ví dụ: 1 / 5)
+  document.getElementById('page-indicator').innerText = `${currentActive + 1}`;
+});
+
+// Theo dõi khi slider bị hủy (Dọn dẹp tài nguyên nếu cần)
+slider.addEventListener('sx-slider-destroy', (event) => {
+  console.log(`Slider "${event.detail.name}" đã bị hủy bỏ.`);
+});
 ```
 
 👉 **[DEMO](/slider)**

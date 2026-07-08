@@ -4,13 +4,6 @@ import { SxSliderTrack } from "./slider-track";
 import { sliderRegistry } from "./slider-registry";
 import { Breakpoints } from "../../core/breakpoints";
 
-import "./slider-track";
-import "./slider-slide";
-import "./slider-prev";
-import "./slider-next";
-import "./slider-pagination";
-import "./slider-progress";
-
 export class SxSlider extends HTMLElement {
   public options!: SliderOptions;
   private originalOptions!: SliderOptions;
@@ -1228,10 +1221,6 @@ export class SxSlider extends HTMLElement {
       }
     });
   }
-}
-
-if (!customElements.get("sx-slider")) {
-  customElements.define("sx-slider", SxSlider);
 }
 
 declare global {

@@ -39,7 +39,3 @@ export class SxSliderNext extends HTMLElement {
     }
   }
 }
-
-if (!customElements.get('sx-slider-next')) {
-  customElements.define('sx-slider-next', SxSliderNext);
-}
