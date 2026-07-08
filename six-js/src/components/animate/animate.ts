@@ -118,8 +118,7 @@ export class SxAnimate extends HTMLElement {
     return {
       x,
       y,
-      easing:
-        easing && easing in EASINGS ? EASINGS[easing] : EASINGS["ease-in-out"],
+      easing: easing && easing in EASINGS ? easing : "ease-in-out",
       duration: Number(this.getAttribute("duration")) || 400,
       delay: Number(this.getAttribute("delay")) || 0,
     };

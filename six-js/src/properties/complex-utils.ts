@@ -17,13 +17,7 @@ export function validateComplexPair(startStr: string, endStr: string, key: strin
   const ok = startCount === endCount && endCount > 0;
 
   if (!ok) {
-    console.warn(
-      `[six-js] "${key}": không thể animate mượt vì giá trị bắt đầu ("${startStr}") ` +
-        `và kết thúc ("${endStr}") không cùng cấu trúc (số lượng con số khác nhau: ` +
-        `${startCount} vs ${endCount}). Animation sẽ nhảy thẳng tới giá trị cuối thay vì ` +
-        `chạy mượt. Gợi ý: dùng fromTo() và chỉ định rõ chuỗi bắt đầu cùng cấu trúc với ` +
-        `chuỗi kết thúc, ví dụ cùng dùng "blur(0px) brightness(1)" -> "blur(4px) brightness(1.6)".`,
-    );
+    console.warn(`[six-js] "${key}": shape mismatch (${startCount} vs ${endCount} numbers), will snap instead of interpolate`);
   }
 
   return ok;

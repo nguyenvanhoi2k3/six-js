@@ -10,6 +10,10 @@ export interface NumericPropertyHandler {
   type: "numeric";
   isTransform: boolean;
   transformFn?: string;
+  /** Ô lưu trong transform-state; mặc định = transformFn nếu không set. Dùng khi
+   * nhiều property (vd x và xAxis) cùng dùng 1 hàm CSS (translateX) nhưng phải
+   * cộng dồn riêng biệt thay vì ghi đè lên nhau. */
+  transformStoreKey?: string;
   defaultUnit: string;
   getCurrent(target: HTMLElement, key: string): ParsedValue;
   apply(target: HTMLElement, value: ParsedValue): void;
@@ -87,11 +91,7 @@ function cssVariableHandler(key: string, rawValue?: string | number): PropertyHa
       const raw = window.getComputedStyle(target).getPropertyValue(key).trim();
 
       if (!raw) {
-        console.warn(
-          `[six-js] CSS variable "${key}" chưa có giá trị nào trên phần tử này ` +
-            `(getPropertyValue trả về rỗng) — mặc định dùng 0. Kiểm tra lại đã khai báo ` +
-            `"${key}" trong inline style hoặc CSS chưa.`,
-        );
+        console.warn(`[six-js] CSS variable "${key}" not set, defaulting to 0`);
       }
 
       return parseNumericValue(raw);
@@ -129,12 +129,7 @@ function fallbackHandler(key: string, rawValue?: string | number): PropertyHandl
       const raw = (window.getComputedStyle(target) as any)[key];
 
       if (raw === undefined) {
-        console.warn(
-          `[six-js] Thuộc tính "${key}" không phải là CSS property hợp lệ ` +
-            `(getComputedStyle trả về undefined). Kiểm tra lại tên — ví dụ đúng chuẩn CSS ` +
-            `là "rotate" chứ không phải "rotation" (đó là tên riêng của GSAP), ` +
-            `nếu six-js chưa hỗ trợ alias này hãy đăng ký thêm trong properties/.`,
-        );
+        console.warn(`[six-js] Invalid CSS property: "${key}"`);
         return { num: 0, unit: "" };
       }
 
@@ -197,17 +192,12 @@ export function resolveNumericValue(
   const resolvedUnit = unit || currentUnit || fallbackUnit;
 
   if (isNaN(delta)) {
-    console.warn(
-      `[six-js] Giá trị tương đối không hợp lệ: "${rawValue}" — con số sau toán tử không parse được. ` +
-        `Giữ nguyên giá trị hiện tại (${currentNum}${resolvedUnit}).`,
-    );
+    console.warn(`[six-js] Invalid relative value: "${rawValue}"`);
     return { num: currentNum, unit: resolvedUnit };
   }
 
   if (op === "/" && delta === 0) {
-    console.warn(
-      `[six-js] "${rawValue}" — không thể chia cho 0. Giữ nguyên giá trị hiện tại (${currentNum}${resolvedUnit}).`,
-    );
+    console.warn(`[six-js] Division by zero: "${rawValue}"`);
     return { num: currentNum, unit: resolvedUnit };
   }
 

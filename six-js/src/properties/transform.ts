@@ -4,23 +4,25 @@ import { readTransform, TransformValues } from "./transform-parser";
 import { getStoredTransform } from "./transform-state";
 
 /**
- * Lưu ý quan trọng: dùng `fn` (tên hàm CSS thật, vd "rotate") làm key lưu trạng thái,
- * KHÔNG dùng property alias (`key` truyền vào từ vars, vd "rotation"). Nhờ vậy nếu
- * anh trộn `rotate` và `rotation` (2 alias cùng trỏ 1 hàm CSS) trên nhiều tween khác
- * nhau của cùng 1 phần tử, chúng vẫn ghi đè đúng lên nhau thay vì tạo 2 rotate() chồng nhau.
+ * storeKey mặc định trùng `fn` (tên hàm CSS). Với xAxis/yAxis, cần storeKey RIÊNG
+ * (khác x/y) dù cùng dùng translateX/translateY — nhờ 2 phép translateX liên tiếp
+ * cộng dồn tuyến tính đúng theo toán học transform matrix, x (px) và xAxis (%) tự
+ * cộng vào nhau khi build chuỗi transform, không cần calc().
  */
 function transformHandler(
   fn: string,
   defaultUnit: string,
   valueKey: keyof TransformValues,
+  storeKey: string = fn,
 ): NumericPropertyHandler {
   return {
     type: "numeric",
     isTransform: true,
     transformFn: fn,
+    transformStoreKey: storeKey,
     defaultUnit,
     getCurrent(target): ParsedValue {
-      const stored = getStoredTransform(target, fn);
+      const stored = getStoredTransform(target, storeKey);
       if (stored) return { num: stored.value, unit: stored.unit };
 
       const values = readTransform(target);
@@ -35,6 +37,12 @@ function transformHandler(
 registerProperty("x", transformHandler("translateX", "px", "x"));
 registerProperty("y", transformHandler("translateY", "px", "y"));
 registerProperty("z", transformHandler("translateZ", "px", "z"));
+
+// translateX/translateY = translate theo % kích thước của chính phần tử (number -> px,
+// "N%" -> %). storeKey riêng để không đè lên ô của x/y — 2 lệnh translateX cộng dồn
+// tuyến tính đúng khi build chuỗi transform (miễn không có rotate/scale chen giữa).
+registerProperty("translateX", transformHandler("translateX", "px", "x", "translateX-2"));
+registerProperty("translateY", transformHandler("translateY", "px", "y", "translateY-2"));
 
 registerProperty("rotate", transformHandler("rotate", "deg", "rotate"));
 registerProperty("rotateX", transformHandler("rotateX", "deg", "rotateX"));
