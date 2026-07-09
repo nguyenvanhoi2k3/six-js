@@ -4,7 +4,7 @@ import { logVersion } from "./log";
 import { registerComponents } from "./components";
 import { SxTween, TweenVars, TweenMode } from "./core/tween";
 import { Playable } from "./core/playable";
-import { setDefault } from "./core/defaults";
+import { setDefaults } from "./core/defaults";
 import { ScrollTriggerController, OnScrollOptions } from "./core/scroll-trigger";
 import "./properties";
 
@@ -77,5 +77,5 @@ export const six = {
   to,
   from,
   fromTo,
-  setDefault,
+  setDefaults,
 };

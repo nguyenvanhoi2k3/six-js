@@ -10,23 +10,16 @@
   </head>
 
   <body>
-    <div class="space"></div>
-    <div class="box">BOX</div>
-    <div class="space"></div>
+    <div class="container">
+      <div class="box">BOX</div>
+    </div>
 
     <script type="module">
       import { six } from "./dist/six-js.es.js";
+      six.setDefaults({ ease: "quint-in-out" });
       six.to(".box", {
         x: 200,
-        rotate: 20,
         duration: 2,
-        onScroll: {
-          target: ".box",
-          start: "center center",
-          end: "bottom top",
-          sync: 0.3,
-          debug: true,
-        },
       });
     </script>
 
