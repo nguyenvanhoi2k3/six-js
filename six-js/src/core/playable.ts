@@ -124,6 +124,10 @@ export class Playable {
     return this.animatable.duration === 0 ? 1 : this.elapsed / this.animatable.duration;
   }
 
+  get duration(): number {
+    return this.animatable.duration;
+  }
+
   get isRunning(): boolean {
     return this.running;
   }

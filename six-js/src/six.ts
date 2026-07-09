@@ -2,9 +2,10 @@
 
 import { logVersion } from "./log";
 import { registerComponents } from "./components";
-import { SxTween, TweenVars } from "./core/tween";
+import { SxTween, TweenVars, TweenMode } from "./core/tween";
 import { Playable } from "./core/playable";
 import { setDefault } from "./core/defaults";
+import { ScrollTriggerController, OnScrollOptions } from "./core/scroll-trigger";
 import "./properties";
 
 logVersion();
@@ -17,23 +18,58 @@ function initElement() {
   initialized = true;
 }
 
-function to(target: string | HTMLElement | HTMLElement[], vars: TweenVars): Playable {
-  const tween = new SxTween(target, vars, "to");
-  return new Playable(tween, true);
+function resolveTriggerElement(
+  target: string | HTMLElement | HTMLElement[],
+): HTMLElement | null {
+  if (typeof target === "string") return document.querySelector(target);
+  if (Array.isArray(target)) return target[0] ?? null;
+  return target;
 }
 
-function from(target: string | HTMLElement | HTMLElement[], vars: TweenVars): Playable {
-  const tween = new SxTween(target, vars, "from");
-  return new Playable(tween, true);
+function createTween(
+  target: string | HTMLElement | HTMLElement[],
+  vars: TweenVars & { onScroll?: OnScrollOptions },
+  mode: TweenMode,
+  fromVars?: Record<string, any>,
+): Playable {
+  const { onScroll, ...restVars } = vars;
+
+  const tween = new SxTween(target, restVars, mode, fromVars);
+  const playable = new Playable(tween, !onScroll); // có onScroll -> không autoplay, để scroll điều khiển
+
+  if (onScroll) {
+    const triggerEl = resolveTriggerElement(onScroll.target ?? target);
+
+    if (!triggerEl) {
+      console.warn(`[six-js] onScroll: trigger element not found`);
+    } else {
+      new ScrollTriggerController(triggerEl, playable, onScroll);
+    }
+  }
+
+  return playable;
+}
+
+function to(
+  target: string | HTMLElement | HTMLElement[],
+  vars: TweenVars & { onScroll?: OnScrollOptions },
+): Playable {
+  return createTween(target, vars, "to");
+}
+
+function from(
+  target: string | HTMLElement | HTMLElement[],
+  vars: TweenVars & { onScroll?: OnScrollOptions },
+): Playable {
+  return createTween(target, vars, "from");
 }
 
 function fromTo(
   target: string | HTMLElement | HTMLElement[],
   fromVars: Record<string, any>,
-  toVars: TweenVars,
+  toVars: TweenVars & { onScroll?: OnScrollOptions },
 ): Playable {
-  const tween = new SxTween(target, toVars, "fromTo", fromVars);
-  return new Playable(tween, true);
+  return createTween(target, toVars, "fromTo", fromVars);
 }
 
 export const six = {

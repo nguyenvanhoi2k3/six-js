@@ -10,30 +10,22 @@
   </head>
 
   <body>
+    <div class="space"></div>
     <div class="box">BOX</div>
+    <div class="space"></div>
 
     <script type="module">
       import { six } from "./dist/six-js.es.js";
       six.to(".box", {
         x: 200,
+        rotate: 20,
         duration: 2,
-        ease: "quint-in-out",
-        onscroll: {
-          target: ".box", //chạy animate ngay khi enter viewport
-        },
-      });
-
-      six.to(".box", {
-        x: 200,
-        duration: 2,
-        ease: "quint-in-out",
-        onscroll: {
+        onScroll: {
           target: ".box",
-          start: "top top", // when the top of the trigger hits the top of the viewport
-          end: "+=500", // end after scrolling 500px beyond the start
-          smooth: 1, //true: animation sẽ chạy ngay lập tức theo từng pixel cuộn.
-          //Number: càng cao animate chạy theo càng chậm,
-          //false: Khi thanh cuộn vừa chạm đến điểm start, animation sẽ tự động kích hoạt và chạy một mạch từ đầu đến cuối với tốc độ (duration) cố định đã thiết lập trong timeline, bất kể sau đó người dùng có cuộn tiếp, cuộn chậm lại hay dừng cuộn.
+          start: "center center",
+          end: "bottom top",
+          sync: 0.3,
+          debug: true,
         },
       });
     </script>
