@@ -17,10 +17,8 @@
     <script type="module">
       import { six } from "./dist/six-js.es.js";
       six.setDefaults({ ease: "quint-in-out" });
-      six.to(".box", {
-        x: 200,
-        duration: 2,
-      });
+// Lỗi animate borderRadius tự nhiên đang chạy 1 nửa thì dừng xong nhảy ngay lập tức đến end, rất giật. 
+      const anim2 = six.to(".box", {  duration: 1, borderRadius: "50%",  });
     </script>
 
     <!-- ------------------------------------------------GSAP------------------------------------------------ -->

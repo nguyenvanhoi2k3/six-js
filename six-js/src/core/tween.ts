@@ -261,4 +261,12 @@ export class SxTween implements Animatable {
       }
     });
   }
+
+  /** Danh sách (target, property keys) mà tween này đang điều khiển — dùng cho overwrite */
+  getTouchedProperties(): { target: HTMLElement; keys: string[] }[] {
+    return this.targets.map((target, index) => ({
+      target,
+      keys: this.propStates[index].map((s) => s.key),
+    }));
+  }
 }
