@@ -7,6 +7,7 @@ import { Playable } from "./core/playable";
 import { setDefaults } from "./core/defaults";
 import { ScrollTriggerController, OnScrollOptions } from "./core/scroll-trigger";
 import { applyOverwrite } from "./core/overwrite-manager";
+import { computeStaggerDelay, PlayableGroup, StaggerInput } from "./core/stagger";
 import "./properties";
 
 logVersion();
@@ -27,16 +28,75 @@ function resolveTriggerElement(
   return target;
 }
 
-type FullTweenVars = TweenVars & { onScroll?: OnScrollOptions };
+function resolveTargetList(target: string | HTMLElement | HTMLElement[]): HTMLElement[] {
+  if (typeof target === "string") return Array.from(document.querySelectorAll(target));
+  if (Array.isArray(target)) return target;
+  return [target];
+}
+
+type FullTweenVars = TweenVars & { onScroll?: OnScrollOptions; stagger?: StaggerInput };
+
+function buildSingleTween(
+  target: string | HTMLElement | HTMLElement[],
+  restVars: TweenVars,
+  mode: TweenMode,
+  fromVars: Record<string, any> | undefined,
+  extraDelay: number,
+  common: {
+    onScroll?: OnScrollOptions;
+    delay?: number;
+    paused?: boolean;
+    repeat?: number;
+    repeatDelay?: number;
+    boomerang?: boolean;
+    overwrite?: boolean | "auto";
+    onStart?: () => void;
+    onUpdate?: () => void;
+    onComplete?: () => void;
+    onRepeat?: () => void;
+    onReverseComplete?: () => void;
+  },
+): Playable {
+  const tween = new SxTween(target, restVars, mode, fromVars);
+
+  const playable = new Playable(tween, {
+    autoplay: common.onScroll ? false : !common.paused,
+    delay: (common.delay ?? 0) + extraDelay,
+    repeat: common.repeat,
+    repeatDelay: common.repeatDelay,
+    boomerang: common.boomerang,
+  });
+
+  if (common.onStart) playable.on("start", common.onStart);
+  if (common.onUpdate) playable.on("update", common.onUpdate);
+  if (common.onComplete) playable.on("complete", common.onComplete);
+  if (common.onRepeat) playable.on("repeat", common.onRepeat);
+  if (common.onReverseComplete) playable.on("reverseComplete", common.onReverseComplete);
+
+  applyOverwrite(tween.targetElements, playable, common.overwrite);
+
+  if (common.onScroll) {
+    const triggerEl = resolveTriggerElement(common.onScroll.target ?? target);
+
+    if (!triggerEl) {
+      console.warn(`[six-js] onScroll: trigger element not found`);
+    } else {
+      new ScrollTriggerController(triggerEl, playable, common.onScroll);
+    }
+  }
+
+  return playable;
+}
 
 function createTween(
   target: string | HTMLElement | HTMLElement[],
   vars: FullTweenVars,
   mode: TweenMode,
   fromVars?: Record<string, any>,
-): Playable {
+): Playable | PlayableGroup {
   const {
     onScroll,
+    stagger,
     delay,
     paused,
     repeat,
@@ -51,45 +111,51 @@ function createTween(
     ...restVars
   } = vars;
 
-  // restVars vẫn còn "duration"/"ease" (SxTween cần đọc 2 field này) lẫn property CSS ->
-  // KHÔNG lọc tiếp ở đây, SxTween tự bỏ qua "duration"/"ease" khi build danh sách property.
-  const tween = new SxTween(target, restVars, mode, fromVars);
+  const common = { onScroll, delay, paused, repeat, repeatDelay, boomerang, overwrite, onStart, onUpdate, onComplete, onRepeat, onReverseComplete };
 
-  const playable = new Playable(tween, {
-    // Có onScroll -> luôn không autoplay (scroll điều khiển). Không thì theo `paused`.
-    autoplay: onScroll ? false : !paused,
-    delay,
-    repeat,
-    repeatDelay,
-    boomerang,
-  });
-
-  if (onStart) playable.on("start", onStart);
-  if (onUpdate) playable.on("update", onUpdate);
-  if (onComplete) playable.on("complete", onComplete);
-  if (onRepeat) playable.on("repeat", onRepeat);
-  if (onReverseComplete) playable.on("reverseComplete", onReverseComplete);
-
-  applyOverwrite(tween.targetElements, playable, overwrite);
-
-  if (onScroll) {
-    const triggerEl = resolveTriggerElement(onScroll.target ?? target);
-
-    if (!triggerEl) {
-      console.warn(`[six-js] onScroll: trigger element not found`);
-    } else {
-      new ScrollTriggerController(triggerEl, playable, onScroll);
-    }
+  if (stagger === undefined) {
+    // restVars vẫn còn "duration"/"ease" (SxTween cần đọc 2 field này) lẫn property CSS ->
+    // KHÔNG lọc tiếp ở đây, SxTween tự bỏ qua "duration"/"ease" khi build danh sách property.
+    return buildSingleTween(target, restVars, mode, fromVars, 0, common);
   }
 
-  return playable;
+  const elements = resolveTargetList(target);
+
+  if (onScroll) {
+    console.warn(`[six-js] stagger + onScroll chưa được hỗ trợ đồng thời, bỏ qua stagger`);
+    return buildSingleTween(target, restVars, mode, fromVars, 0, common);
+  }
+
+  if (elements.length === 0) {
+    console.warn(`[six-js] stagger: no elements matched`);
+  }
+
+  const hasIndexFn = Object.values(restVars).some((v) => typeof v === "function");
+  if (hasIndexFn) {
+    console.warn(
+      `[six-js] stagger: function value (index, el) => ... luôn nhận index=0 vì mỗi phần ` +
+        `tử stagger giờ là 1 tween độc lập, không phải index gốc trong danh sách. Nếu cần ` +
+        `giá trị theo index gốc, hãy tự tính mảng giá trị trước thay vì dùng callback.`,
+    );
+  }
+
+  // Mỗi phần tử là 1 SxTween + Playable ĐỘC LẬP (delay khác nhau) — vì vậy hàm động dạng
+  // (index, el) => ... trong vars sẽ luôn nhận index=0 (không phải index gốc trong danh
+  // sách stagger), do mỗi tween con chỉ biết về đúng 1 phần tử của chính nó. Nếu cần phối
+  // hợp cả stagger lẫn giá trị theo index gốc, hãy tự tính mảng giá trị trước thay vì
+  // dùng callback (index, el) => ... .
+  const playables = elements.map((el, index) =>
+    buildSingleTween(el, restVars, mode, fromVars, computeStaggerDelay(index, elements.length, stagger), common),
+  );
+
+  return new PlayableGroup(playables);
 }
 
-function to(target: string | HTMLElement | HTMLElement[], vars: FullTweenVars): Playable {
+function to(target: string | HTMLElement | HTMLElement[], vars: FullTweenVars): Playable | PlayableGroup {
   return createTween(target, vars, "to");
 }
 
-function from(target: string | HTMLElement | HTMLElement[], vars: FullTweenVars): Playable {
+function from(target: string | HTMLElement | HTMLElement[], vars: FullTweenVars): Playable | PlayableGroup {
   return createTween(target, vars, "from");
 }
 
@@ -97,7 +163,7 @@ function fromTo(
   target: string | HTMLElement | HTMLElement[],
   fromVars: Record<string, any>,
   toVars: FullTweenVars,
-): Playable {
+): Playable | PlayableGroup {
   return createTween(target, toVars, "fromTo", fromVars);
 }
 

@@ -11,39 +11,47 @@
 
   <body>
     <div class="container">
-      <div class="box"></div>
-<!-- 
-      <button onclick="anim.play()">play()</button>
-      <button onclick="anim.pause()">pause()</button>
-      <button onclick="anim.play()">resume(play)</button>
-      <button onclick="anim.reverse()">reverse()</button>
-      <button onclick="anim.restart()">restart()</button>
-      <button onclick="anim.seek(1)">seek(1s)</button>
-      <button onclick="anim.speed(2)">2x Speed</button>
-      <button onclick="anim.speed(0.5)">0.5x Speed</button>
-      <button onclick="anim.kill()">kill()</button> -->
+      <div class="space"></div>
+      <div class="space"></div>
+      <div class="flex" style="gap: 10px">
+        <div class="box"></div>
+        <div class="box"></div>
+        <div class="box"></div>
+        <div class="box"></div>
+      </div>
+      <div class="space"></div>
+      <div class="space"></div>
     </div>
 
     <script type="module">
       import { six } from "./dist/six-js.es.js";
-      six.setDefaults({ ease: "quint-in-out" });
-      const anim = six.to(".box", {
-        x: 600,
-        rotate: 360,
-        duration: 2,
-        repeat: -1,
-        boomerang: true,
+      six.to(".box", {
+        rotate: 180,
+        onScroll: {
+          target: ".flex",
+          start: "top center",
+          end: "top top",
+          sync: 0.3,
+          debug: true,
+        },
       });
     </script>
 
     <!-- ------------------------------------------------GSAP------------------------------------------------ -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/ScrollTrigger.min.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", (event) => {
-        gsap.to(".box2", {
-          xPercent: 20,
-          ease: "cubic.inOut",
-          duration: 1.5,
+        gsap.to(".box", {
+          y: -100,
+          stagger: 0.2,
+          scrollTrigger: {
+            trigger: ".flex",
+            start: "top center",
+            end: "top top",
+            scrub: true,
+            markers: true,
+          },
         });
       });
     </script> -->
