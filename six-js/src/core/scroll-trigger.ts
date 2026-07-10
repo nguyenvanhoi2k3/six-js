@@ -17,6 +17,7 @@ export interface OnScrollOptions {
   onLeave?: () => void;
   onEnterBack?: () => void;
   onLeaveBack?: () => void;
+  onUpdate?: () => void;
 }
 
 interface ResolvedPoint {
@@ -415,6 +416,8 @@ export class ScrollTriggerController {
     } else if (syncMode === true) {
       this.playable.seek(progress * this.playable.duration);
     }
+
+    this.options.onUpdate?.();
   }
 
   private tickSmooth(delta: number): void {
@@ -426,6 +429,7 @@ export class ScrollTriggerController {
       this.smoothInitialized = true;
       this.smoothedProgress = target;
       this.playable.seek(this.smoothedProgress * this.playable.duration);
+      this.options.onUpdate?.();
       return;
     }
 
@@ -440,6 +444,7 @@ export class ScrollTriggerController {
     }
 
     this.playable.seek(this.smoothedProgress * this.playable.duration);
+    this.options.onUpdate?.();
   }
 
   private setupPin(): void {

@@ -11,7 +11,7 @@ import {
 } from "../properties/registry";
 import { parseColor, interpolateColor, RGBA } from "../properties/color-utils";
 import { validateComplexPair, interpolateComplexString } from "../properties/complex-utils";
-import { setStoredTransform, buildTransformString } from "../properties/transform-state";
+import { setTransformValue, buildTransformString, TransformCache } from "../properties/transform-state";
 import { convertToPx } from "../properties/unit-convert";
 import { resolveDynamicValue } from "../properties/dynamic-value";
 import { getDefaults } from "./defaults";
@@ -19,6 +19,7 @@ import { getDefaults } from "./defaults";
 export type KeyframeArrayItem = Record<string, any> & {
   duration?: number;
   ease?: EasingType;
+  delay?: number;
   onStart?: () => void;
   onUpdate?: () => void;
   onComplete?: () => void;
@@ -55,7 +56,6 @@ interface NumericPropState {
   unit: string;
   isTransform: boolean;
   transformFn?: string;
-  transformStoreKey?: string;
   apply: NumericPropertyHandler["apply"];
   snapEnd?: string;
 }
@@ -82,21 +82,58 @@ interface DiscretePropState {
 
 type PropState = NumericPropState | ColorPropState | ComplexPropState | DiscretePropState;
 
-interface Segment {
-  duration: number;
+function normalizeTransformLength(
+  target: HTMLElement,
+  pxAxis: "x" | "y" | undefined,
+  value: ParsedValue,
+): ParsedValue {
+  if (!pxAxis || !value.unit || value.unit === "px") return value;
+
+  const probe = pxAxis === "x" ? "left" : "top";
+  const px = convertToPx(target, probe, `${value.num}${value.unit}`);
+
+  return { num: px, unit: "px" };
+}
+
+interface TrackEntry {
+  startTime: number;
+  endTime: number;
   easeFn: (t: number) => number;
-  propStates: { key: string; state: PropState }[][];
-  hasTransform: boolean[];
+  state: PropState;
+}
+
+interface KeyTrack {
+  key: string;
+  isTransform: boolean;
+  entries: TrackEntry[];
+}
+
+interface PointWindow {
+  startTime: number;
+  endTime: number;
+  onStart?: () => void;
+  onUpdate?: () => void;
+  onComplete?: () => void;
+}
+
+interface KeyframePoint {
+  duration: number;
+  delay: number;
+  easeFn: (t: number) => number;
+  props: Record<string, any>;
   onSegmentStart?: () => void;
   onSegmentUpdate?: () => void;
   onSegmentComplete?: () => void;
 }
+
 export class SxTween implements Animatable {
   readonly duration: number;
 
   private targets: HTMLElement[];
-  private segments: Segment[] = [];
-  private lastSegIndex = -1;
+  private targetTracks: KeyTrack[][] = [];
+  private pointWindows: PointWindow[] = [];
+  private activeWindows = new Set<number>();
+  private implicitRefreshers: (() => void)[] = [];
 
   get targetElements(): readonly HTMLElement[] {
     return this.targets;
@@ -129,12 +166,16 @@ export class SxTween implements Animatable {
         );
       }
 
-      this.segments = this.buildKeyframeSegments(vars.keyframes, vars);
+      const built = this.buildKeyframeTracks(vars.keyframes, vars);
+      this.targetTracks = built.tracks;
+      this.pointWindows = built.pointWindows;
+      this.duration = built.duration;
     } else {
-      this.segments = [this.buildSingleSegment(vars, mode, fromVars)];
+      const built = this.buildSingleTrackSet(vars, mode, fromVars);
+      this.targetTracks = built.tracks;
+      this.duration = built.duration;
     }
 
-    this.duration = this.segments.reduce((sum, seg) => sum + seg.duration, 0);
     this.applyWillChange();
   }
 
@@ -189,7 +230,7 @@ export class SxTween implements Animatable {
       return { key, isTransform: false, state: { kind: "complex", start: startStr, end: endStr, apply: handler.apply } };
     }
 
-    const startParsed: ParsedValue =
+    let startParsed: ParsedValue =
       rawStart !== undefined ? parseNumericValue(rawStart, handler.defaultUnit) : handler.getCurrent(target, key);
 
     let endParsed: ParsedValue =
@@ -198,6 +239,11 @@ export class SxTween implements Animatable {
         : handler.getCurrent(target, key);
 
     let snapEnd: string | undefined;
+
+    if (handler.pxAxis) {
+      startParsed = normalizeTransformLength(target, handler.pxAxis, startParsed);
+      endParsed = normalizeTransformLength(target, handler.pxAxis, endParsed);
+    }
 
     if (!handler.isTransform && endParsed.unit && startParsed.unit && endParsed.unit !== startParsed.unit) {
       const pxValue = convertToPx(target, key, `${endParsed.num}${endParsed.unit}`);
@@ -215,14 +261,61 @@ export class SxTween implements Animatable {
         unit: endParsed.unit || startParsed.unit,
         isTransform: handler.isTransform,
         transformFn: handler.transformFn,
-        transformStoreKey: handler.transformStoreKey,
         apply: handler.apply,
         snapEnd,
       },
     };
   }
 
-  private buildSingleSegment(vars: TweenVars, mode: TweenMode, fromVars?: Record<string, any>): Segment {
+  private registerImplicitRefresh(
+    target: HTMLElement,
+    key: string,
+    rawStart: any,
+    rawEnd: any,
+    state: PropState,
+  ): void {
+    if (state.kind === "discrete") return;
+
+    const handler = getPropertyHandler(key, rawEnd ?? rawStart);
+
+    if (rawStart === undefined) {
+      if (state.kind === "numeric" && handler.type === "numeric") {
+        this.implicitRefreshers.push(() => {
+          state.start = handler.getCurrent(target, key).num;
+        });
+      } else if (state.kind === "color" && handler.type === "color") {
+        this.implicitRefreshers.push(() => {
+          state.start = handler.getCurrent(target);
+        });
+      } else if (state.kind === "complex" && handler.type === "complex") {
+        this.implicitRefreshers.push(() => {
+          state.start = handler.getCurrent(target);
+        });
+      }
+    }
+
+    if (rawEnd === undefined) {
+      if (state.kind === "numeric" && handler.type === "numeric") {
+        this.implicitRefreshers.push(() => {
+          state.end = handler.getCurrent(target, key).num;
+        });
+      } else if (state.kind === "color" && handler.type === "color") {
+        this.implicitRefreshers.push(() => {
+          state.end = handler.getCurrent(target);
+        });
+      } else if (state.kind === "complex" && handler.type === "complex") {
+        this.implicitRefreshers.push(() => {
+          state.end = handler.getCurrent(target);
+        });
+      }
+    }
+  }
+
+  private buildSingleTrackSet(
+    vars: TweenVars,
+    mode: TweenMode,
+    fromVars?: Record<string, any>,
+  ): { tracks: KeyTrack[][]; duration: number } {
     const defaults = getDefaults();
     const duration = this.resolveDuration(vars.duration, defaults);
     const easeFn = this.resolveEase(vars.ease ?? defaults.ease);
@@ -234,13 +327,9 @@ export class SxTween implements Animatable {
     keys.delete("ease");
     keys.delete("keyframes");
 
-    const propStates: { key: string; state: PropState }[][] = [];
-    const hasTransform: boolean[] = [];
+    const tracks: KeyTrack[][] = this.targets.map(() => []);
 
     this.targets.forEach((target, index) => {
-      const states: { key: string; state: PropState }[] = [];
-      let transformTouched = false;
-
       for (const key of keys) {
         let rawStart: any;
         let rawEnd: any;
@@ -256,25 +345,31 @@ export class SxTween implements Animatable {
 
         const handler = getPropertyHandler(key, rawEnd ?? rawStart);
         if (handler.type === "discrete") {
-          handler.apply(target, String(rawEnd ?? rawStart));
+          const state: PropState = { kind: "discrete", value: String(rawEnd ?? rawStart), apply: handler.apply };
+          tracks[index].push({ key, isTransform: false, entries: [{ startTime: 0, endTime: duration, easeFn, state }] });
           continue;
         }
 
         const resolved = this.resolveProp(target, key, rawStart, rawEnd);
         if (!resolved) continue;
 
-        if (resolved.isTransform) transformTouched = true;
-        states.push({ key: resolved.key, state: resolved.state });
-      }
+        tracks[index].push({
+          key: resolved.key,
+          isTransform: resolved.isTransform,
+          entries: [{ startTime: 0, endTime: duration, easeFn, state: resolved.state }],
+        });
 
-      propStates[index] = states;
-      hasTransform[index] = transformTouched;
+        this.registerImplicitRefresh(target, key, rawStart, rawEnd, resolved.state);
+      }
     });
 
-    return { duration, easeFn, propStates, hasTransform };
+    return { tracks, duration };
   }
 
-  private buildKeyframeSegments(input: KeyframesInput, vars: TweenVars): Segment[] {
+  private buildKeyframeTracks(
+    input: KeyframesInput,
+    vars: TweenVars,
+  ): { tracks: KeyTrack[][]; pointWindows: PointWindow[]; duration: number } {
     const defaults = getDefaults();
     const topDuration = vars.duration;
     const topEase = vars.ease ?? defaults.ease;
@@ -288,22 +383,26 @@ export class SxTween implements Animatable {
     }
 
     const carry: Record<string, any>[] = this.targets.map(() => ({}));
-    const segments: Segment[] = [];
+    const tracks: KeyTrack[][] = this.targets.map(() => []);
+    const trackIndexByKey: Record<string, number>[] = this.targets.map(() => ({}));
+    const pointWindows: PointWindow[] = [];
+
+    let prevEnd = 0;
+    let maxEnd = 0;
 
     for (let i = 0; i < points.length - 1; i++) {
       const fromPoint = points[i];
       const toPoint = points[i + 1];
 
-      const propStates: { key: string; state: PropState }[][] = [];
-      const hasTransform: boolean[] = [];
+      const startTime = prevEnd + toPoint.delay;
+      const endTime = startTime + toPoint.duration;
+      prevEnd = endTime;
+      maxEnd = Math.max(maxEnd, endTime);
 
       const keys = new Set<string>();
       for (const k in toPoint.props) keys.add(k);
 
       this.targets.forEach((target, index) => {
-        const states: { key: string; state: PropState }[] = [];
-        let transformTouched = false;
-
         for (const key of keys) {
           const rawEnd = resolveDynamicValue(toPoint.props[key], index, target);
 
@@ -312,43 +411,50 @@ export class SxTween implements Animatable {
               ? resolveDynamicValue(fromPoint.props[key], index, target)
               : key in carry[index]
                 ? carry[index][key]
-                : undefined; 
+                : undefined;
 
           const handler = getPropertyHandler(key, rawEnd);
 
+          let state: PropState;
+          let isTransform = false;
+
           if (handler.type === "discrete") {
-            states.push({
-              key,
-              state: { kind: "discrete", value: String(rawEnd), apply: handler.apply },
-            });
-            carry[index][key] = rawEnd;
-            continue;
+            state = { kind: "discrete", value: String(rawEnd), apply: handler.apply };
+          } else {
+            const resolved = this.resolveProp(target, key, rawStart, rawEnd);
+            if (!resolved) continue;
+            state = resolved.state;
+            isTransform = resolved.isTransform;
           }
 
-          const resolved = this.resolveProp(target, key, rawStart, rawEnd);
-          if (!resolved) continue;
-
-          if (resolved.isTransform) transformTouched = true;
-          states.push({ key: resolved.key, state: resolved.state });
           carry[index][key] = rawEnd;
-        }
 
-        propStates[index] = states;
-        hasTransform[index] = transformTouched;
+          if (i === 0) {
+            this.registerImplicitRefresh(target, key, rawStart, rawEnd, state);
+          }
+
+          const entry: TrackEntry = { startTime, endTime, easeFn: toPoint.easeFn, state };
+
+          const existingIdx = trackIndexByKey[index][key];
+          if (existingIdx !== undefined) {
+            tracks[index][existingIdx].entries.push(entry);
+          } else {
+            trackIndexByKey[index][key] = tracks[index].length;
+            tracks[index].push({ key, isTransform, entries: [entry] });
+          }
+        }
       });
 
-      segments.push({
-        duration: toPoint.duration,
-        easeFn: toPoint.easeFn,
-        propStates,
-        hasTransform,
-        onSegmentStart: toPoint.onSegmentStart,
-        onSegmentUpdate: toPoint.onSegmentUpdate,
-        onSegmentComplete: toPoint.onSegmentComplete,
+      pointWindows.push({
+        startTime,
+        endTime,
+        onStart: toPoint.onSegmentStart,
+        onUpdate: toPoint.onSegmentUpdate,
+        onComplete: toPoint.onSegmentComplete,
       });
     }
 
-    return segments;
+    return { tracks, pointWindows, duration: maxEnd };
   }
 
   private normalizeArrayKeyframes(
@@ -356,22 +462,8 @@ export class SxTween implements Animatable {
     topDuration: number | undefined,
     topEase: EasingType | undefined,
     defaults: ReturnType<typeof getDefaults>,
-  ): {
-    duration: number;
-    easeFn: (t: number) => number;
-    props: Record<string, any>;
-    onSegmentStart?: () => void;
-    onSegmentUpdate?: () => void;
-    onSegmentComplete?: () => void;
-  }[] {
-    const points: {
-      duration: number;
-      easeFn: (t: number) => number;
-      props: Record<string, any>;
-      onSegmentStart?: () => void;
-      onSegmentUpdate?: () => void;
-      onSegmentComplete?: () => void;
-    }[] = [{ duration: 0, easeFn: EASINGS.linear, props: {} }];
+  ): KeyframePoint[] {
+    const points: KeyframePoint[] = [{ duration: 0, delay: 0, easeFn: EASINGS.linear, props: {} }];
 
     const withoutOwnDuration = input.filter((kf) => kf.duration === undefined).length;
     const explicitTotal = input.reduce((sum, kf) => sum + (kf.duration ?? 0), 0);
@@ -384,12 +476,13 @@ export class SxTween implements Animatable {
         : defaults.duration ?? 0.5;
 
     for (const kf of input) {
-      const { duration: kfDuration, ease: kfEase, onStart, onUpdate, onComplete, ...props } = kf;
+      const { duration: kfDuration, ease: kfEase, delay: kfDelay, onStart, onUpdate, onComplete, ...props } = kf;
       const duration = this.resolveDuration(kfDuration ?? evenShare, defaults);
       const easeFn = this.resolveEase(kfEase ?? topEase);
 
       points.push({
         duration,
+        delay: kfDelay ?? 0,
         easeFn,
         props,
         onSegmentStart: onStart,
@@ -406,14 +499,7 @@ export class SxTween implements Animatable {
     topDuration: number | undefined,
     topEase: EasingType | undefined,
     defaults: ReturnType<typeof getDefaults>,
-  ): {
-    duration: number;
-    easeFn: (t: number) => number;
-    props: Record<string, any>;
-    onSegmentStart?: () => void;
-    onSegmentUpdate?: () => void;
-    onSegmentComplete?: () => void;
-  }[] {
+  ): KeyframePoint[] {
     const totalDuration = this.resolveDuration(topDuration, defaults);
 
     const parsed = Object.entries(input)
@@ -432,21 +518,15 @@ export class SxTween implements Animatable {
       console.warn(`[six-js] keyframes: first position should be "0%", got "${parsed[0].pos * 100}%"`);
     }
 
-    const points: {
-      duration: number;
-      easeFn: (t: number) => number;
-      props: Record<string, any>;
-      onSegmentStart?: () => void;
-      onSegmentUpdate?: () => void;
-      onSegmentComplete?: () => void;
-    }[] = [];
+    const points: KeyframePoint[] = [];
 
     for (let i = 0; i < parsed.length; i++) {
-      const { ease: pointEase, onStart, onUpdate, onComplete, ...props } = parsed[i].props as Record<
+      const { ease: pointEase, delay: pointDelay, onStart, onUpdate, onComplete, ...props } = parsed[i].props as Record<
         string,
         any
       > & {
         ease?: EasingType;
+        delay?: number;
         onStart?: () => void;
         onUpdate?: () => void;
         onComplete?: () => void;
@@ -456,6 +536,7 @@ export class SxTween implements Animatable {
 
       points.push({
         duration: Math.max(0, segDuration),
+        delay: pointDelay ?? 0,
         easeFn: this.resolveEase(pointEase ?? topEase),
         props,
         onSegmentStart: onStart,
@@ -468,37 +549,27 @@ export class SxTween implements Animatable {
   }
 
   render(localTime: number): void {
-    let t = localTime;
-    let segIndex = 0;
-
-    while (segIndex < this.segments.length - 1 && t > this.segments[segIndex].duration) {
-      t -= this.segments[segIndex].duration;
-      segIndex++;
-    }
-
-    const seg = this.segments[segIndex];
-    if (!seg) return;
-
-    const progress = seg.duration === 0 ? 1 : Math.min(Math.max(t / seg.duration, 0), 1);
-    const eased = seg.easeFn(progress);
-
-    if (segIndex !== this.lastSegIndex) {
-      if (this.lastSegIndex !== -1 && segIndex > this.lastSegIndex) {
-        this.segments[this.lastSegIndex].onSegmentComplete?.();
-      }
-      seg.onSegmentStart?.();
-      this.lastSegIndex = segIndex;
-    }
-
     this.targets.forEach((target, index) => {
-      const states = seg.propStates[index];
+      const tracks = this.targetTracks[index];
       let touchedTransform = false;
 
-      for (let i = 0; i < states.length; i++) {
-        const { key, state } = states[i];
+      for (const track of tracks) {
+        const entries = track.entries;
+        let entry = entries[0];
+
+        for (const candidate of entries) {
+          if (candidate.startTime <= localTime) entry = candidate;
+          else break;
+        }
+
+        const span = entry.endTime - entry.startTime;
+        const progress =
+          span <= 0 ? (localTime >= entry.startTime ? 1 : 0) : Math.min(Math.max((localTime - entry.startTime) / span, 0), 1);
+        const eased = entry.easeFn(progress);
+        const state = entry.state;
 
         if (state.kind === "discrete") {
-          state.apply(target, state.value);
+          if (localTime >= entry.startTime) state.apply(target, state.value);
           continue;
         }
 
@@ -515,14 +586,10 @@ export class SxTween implements Animatable {
         const currentVal = state.start + (state.end - state.start) * eased;
 
         if (state.isTransform && state.transformFn) {
-          setStoredTransform(target, state.transformStoreKey ?? state.transformFn, {
-            value: currentVal,
-            unit: state.unit,
-            fn: state.transformFn,
-          });
+          setTransformValue(target, state.transformFn as keyof TransformCache, currentVal);
           touchedTransform = true;
-        } else if (progress === 1 && state.snapEnd !== undefined) {
-          (target.style as any)[key] = state.snapEnd;
+        } else if (progress === 1 && localTime >= entry.endTime && state.snapEnd !== undefined) {
+          (target.style as any)[track.key] = state.snapEnd;
         } else {
           state.apply(target, { num: currentVal, unit: state.unit });
         }
@@ -533,20 +600,41 @@ export class SxTween implements Animatable {
       }
     });
 
-    seg.onSegmentUpdate?.();
+    this.updateSegmentCallbacks(localTime);
+  }
 
-    if (segIndex === this.segments.length - 1 && progress === 1) {
-      seg.onSegmentComplete?.();
-    }
+  private updateSegmentCallbacks(localTime: number): void {
+    if (this.pointWindows.length === 0) return;
+
+    const newActive = new Set<number>();
+
+    this.pointWindows.forEach((w, i) => {
+      if (localTime >= w.startTime && localTime <= w.endTime) newActive.add(i);
+    });
+
+    this.activeWindows.forEach((i) => {
+      if (!newActive.has(i)) this.pointWindows[i].onComplete?.();
+    });
+
+    newActive.forEach((i) => {
+      if (!this.activeWindows.has(i)) this.pointWindows[i].onStart?.();
+    });
+
+    newActive.forEach((i) => {
+      this.pointWindows[i].onUpdate?.();
+    });
+
+    this.activeWindows = newActive;
   }
 
   onStart(): void {
+    for (const refresh of this.implicitRefreshers) refresh();
     this.applyWillChange();
   }
 
   private applyWillChange(): void {
     this.targets.forEach((_target, index) => {
-      if (this.segments.some((seg) => seg.hasTransform[index])) {
+      if (this.targetTracks[index]?.some((track) => track.isTransform)) {
         this.targets[index].style.willChange = "transform";
       }
     });
@@ -554,19 +642,16 @@ export class SxTween implements Animatable {
 
   onComplete(): void {
     this.targets.forEach((_target, index) => {
-      if (this.segments.some((seg) => seg.hasTransform[index])) {
+      if (this.targetTracks[index]?.some((track) => track.isTransform)) {
         this.targets[index].style.willChange = "";
       }
     });
   }
-  
+
   getTouchedProperties(): { target: HTMLElement; keys: string[] }[] {
-    return this.targets.map((target, index) => {
-      const keySet = new Set<string>();
-      for (const seg of this.segments) {
-        for (const { key } of seg.propStates[index]) keySet.add(key);
-      }
-      return { target, keys: Array.from(keySet) };
-    });
+    return this.targets.map((target, index) => ({
+      target,
+      keys: this.targetTracks[index].map((track) => track.key),
+    }));
   }
 }

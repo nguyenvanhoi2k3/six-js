@@ -111,6 +111,7 @@ export class Playable {
     } else {
       this.elapsed = 0;
       this.rate = 1;
+      this.animatable.render(this.elapsed, true);
     }
 
     if (this.repeatDelay > 0) {
@@ -206,7 +207,7 @@ export class Playable {
     this.hasFiredStart = false;
     this.isBoomerangReverse = false;
     this.waitRemaining = this.delay;
-    this.animatable.render(0);
+    this.animatable.render(0, true);
     this.play();
 
     return this;
@@ -222,7 +223,7 @@ export class Playable {
     this.hasFiredStart = false;
     this.isBoomerangReverse = false;
     this.waitRemaining = this.delay;
-    this.animatable.render(0);
+    this.animatable.render(0, true);
     this.emit("update");
 
     return this;
@@ -268,5 +269,9 @@ export class Playable {
 
   get isDead(): boolean {
     return this.dead;
+  }
+
+  getAnimatable(): Animatable {
+    return this.animatable;
   }
 }

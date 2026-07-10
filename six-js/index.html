@@ -10,22 +10,35 @@
   </head>
 
   <body>
-    <div class="box"></div>
+    <div class="container">
+      <img
+        class="img"
+        src="https://cdn.shopify.com/s/files/1/0768/4069/8019/files/SixJS..jpg?v=1783711159"
+        alt=""
+      />
+    </div>
 
     <script type="module">
       import { six } from "./dist/six-js.es.js";
-      // delay trong từng keyframes chưa hoạt động
-      // khi boomerang false và chạy xong frame cuối thì box không start ở vị trí ban đầu ngay mà bị giật một đoạn rồi chạy x(100) ngay tại vị trí kết thúc của frame cuối sau đó lại giật lên frame thứ 2 (y: 200)
-      six.to(".box", {
-        keyframes: [
-          { x: 100, duration: 1, ease: "sineInOut" }, // finetune with individual eases
-          { y: 200, duration: 1 }, // create a 0.5 second gap
-          { rotate: 360, duration: 2, delay: -0.25 }, // overlap by 0.25 seconds
-        ],
-        duration: 1,
-        repeat: -1,
-        ease: "strongInOut",
-      });
+
+      let tl = six.timeline();
+      tl.set(".img", { x: "-50%", y: "-50%" })
+        .to(".img", {
+          opacity: 1,
+          duration: 0.8,
+        })
+        .to(".img", {
+          width: "100vw",
+          top: "100%",
+          y: "-100%",
+          duration: 1.5,
+          ease: "quintInOut",
+        })
+        .to(".img", {
+          y: "-120vh",
+          duration: 1.5,
+          ease: "quintInOut",
+        });
     </script>
 
     <!-- ------------------------------------------------GSAP------------------------------------------------ -->
@@ -35,21 +48,24 @@
       document.addEventListener("DOMContentLoaded", (event) => {
         gsap.registerPlugin(ScrollTrigger);
 
-        const gallery = document.querySelector(".gallery");
-
-        const distance = gallery.scrollWidth - window.innerWidth;
-
-        gsap.to(".gallery", {
-          x: -distance,
-          ease: "none",
-          scrollTrigger: {
-            trigger: ".gallery-section",
-            start: "center center",
-            end: `+=${distance}`,
-            pin: true,
-            scrub: true,
-          },
-        });
+        let tl = gsap.timeline();
+        tl.to(".img", {
+          opacity: 1,
+          duration: 0.8,
+        })
+          .to(".img", {
+            width: "100vw",
+            top: "100%",
+            xPercent: -50,
+            yPercent: -100,
+            duration: 1.2,
+            ease: "power2.inOut",
+          })
+          .to(".img", {
+            y: "-120vh",
+            duration: 1.5,
+            ease: "power2.inOut",
+          });
       });
     </script> -->
   </body>

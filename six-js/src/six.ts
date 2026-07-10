@@ -6,6 +6,7 @@ import { setDefaults } from "./core/defaults";
 import { ScrollTriggerController, OnScrollOptions } from "./core/scroll-trigger";
 import { applyOverwrite } from "./core/overwrite-manager";
 import { computeStaggerDelay, PlayableGroup, StaggerInput } from "./core/stagger";
+import { SxTimeline, TimelineVars } from "./core/timeline";
 import "./properties";
 
 logVersion();
@@ -171,10 +172,15 @@ function fromTo(
   return createTween(target, toVars, "fromTo", fromVars);
 }
 
+function timeline(vars?: TimelineVars): SxTimeline {
+  return new SxTimeline(vars);
+}
+
 export const six = {
   initElement,
   to,
   from,
   fromTo,
+  timeline,
   setDefaults,
 };

@@ -1,7 +1,7 @@
 export interface Animatable {
   readonly duration: number;
 
-  render(localTime: number): void;
+  render(localTime: number, isJump?: boolean): void;
 
   onStart?(): void;
 

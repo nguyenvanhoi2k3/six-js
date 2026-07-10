@@ -9,7 +9,7 @@ export interface NumericPropertyHandler {
   type: "numeric";
   isTransform: boolean;
   transformFn?: string;
-  transformStoreKey?: string;
+  pxAxis?: "x" | "y";
   defaultUnit: string;
   getCurrent(target: HTMLElement, key: string): ParsedValue;
   apply(target: HTMLElement, value: ParsedValue): void;
@@ -41,15 +41,17 @@ export type PropertyHandler =
   | DiscretePropertyHandler
   | ComplexPropertyHandler;
 
-const registry = new Map<string, PropertyHandler>();
+type RegisteredHandler = PropertyHandler | ((rawValue?: string | number) => PropertyHandler);
 
-export function registerProperty(key: string, handler: PropertyHandler): void {
+const registry = new Map<string, RegisteredHandler>();
+
+export function registerProperty(key: string, handler: RegisteredHandler): void {
   registry.set(key, handler);
 }
 
 export function getPropertyHandler(key: string, rawValue?: string | number): PropertyHandler {
   const existing = registry.get(key);
-  if (existing) return existing;
+  if (existing) return typeof existing === "function" ? existing(rawValue) : existing;
 
   if (key.startsWith("--")) {
     return cssVariableHandler(key, rawValue);

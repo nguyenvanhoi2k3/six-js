@@ -1,45 +1,45 @@
 import { registerProperty, ParsedValue, NumericPropertyHandler } from "./registry";
-import { readTransform, TransformValues } from "./transform-parser";
-import { getStoredTransform } from "./transform-state";
+import { getTransformValue, setTransformValue, TransformCache } from "./transform-state";
 
-function transformHandler(
-  fn: string,
-  defaultUnit: string,
-  valueKey: keyof TransformValues,
-  storeKey: string = fn,
-): NumericPropertyHandler {
+function cacheHandler(cacheKey: keyof TransformCache, defaultUnit: string, pxAxis?: "x" | "y"): NumericPropertyHandler {
   return {
     type: "numeric",
     isTransform: true,
-    transformFn: fn,
-    transformStoreKey: storeKey,
+    transformFn: cacheKey,
+    pxAxis,
     defaultUnit,
     getCurrent(target): ParsedValue {
-      const stored = getStoredTransform(target, storeKey);
-      if (stored) return { num: stored.value, unit: stored.unit };
-
-      const values = readTransform(target);
-      return { num: values[valueKey], unit: defaultUnit };
+      return { num: getTransformValue(target, cacheKey), unit: defaultUnit };
     },
-    apply() {
+    apply(target, value) {
+      setTransformValue(target, cacheKey, value.num);
     },
   };
 }
 
-registerProperty("x", transformHandler("translateX", "px", "x"));
-registerProperty("y", transformHandler("translateY", "px", "y"));
-registerProperty("z", transformHandler("translateZ", "px", "z"));
+function pxOrPercent(
+  pxKey: keyof TransformCache,
+  percentKey: keyof TransformCache,
+  axis: "x" | "y",
+): (rawValue?: string | number) => NumericPropertyHandler {
+  const pxHandler = cacheHandler(pxKey, "px", axis);
+  const percentHandler = cacheHandler(percentKey, "%");
 
-registerProperty("translateX", transformHandler("translateX", "px", "x", "translateX-2"));
-registerProperty("translateY", transformHandler("translateY", "px", "y", "translateY-2"));
+  return (rawValue) => (typeof rawValue === "string" && rawValue.trim().endsWith("%") ? percentHandler : pxHandler);
+}
 
-registerProperty("rotate", transformHandler("rotate", "deg", "rotate"));
-registerProperty("rotateX", transformHandler("rotateX", "deg", "rotateX"));
-registerProperty("rotateY", transformHandler("rotateY", "deg", "rotateY"));
-registerProperty("rotateZ", transformHandler("rotateZ", "deg", "rotateZ"));
+registerProperty("x", pxOrPercent("x", "xPercent", "x"));
+registerProperty("y", pxOrPercent("y", "yPercent", "y"));
+registerProperty("z", cacheHandler("z", "px"));
 
-registerProperty("scale", transformHandler("scale", "", "scale"));
-registerProperty("scaleX", transformHandler("scaleX", "", "scaleX"));
-registerProperty("scaleY", transformHandler("scaleY", "", "scaleY"));
-registerProperty("skewX", transformHandler("skewX", "deg", "skewX"));
-registerProperty("skewY", transformHandler("skewY", "deg", "skewY"));
+registerProperty("rotate", cacheHandler("rotate", "deg"));
+registerProperty("rotateX", cacheHandler("rotateX", "deg"));
+registerProperty("rotateY", cacheHandler("rotateY", "deg"));
+registerProperty("rotateZ", cacheHandler("rotateZ", "deg"));
+
+registerProperty("scale", cacheHandler("scale", ""));
+registerProperty("scaleX", cacheHandler("scaleX", ""));
+registerProperty("scaleY", cacheHandler("scaleY", ""));
+
+registerProperty("skewX", cacheHandler("skewX", "deg"));
+registerProperty("skewY", cacheHandler("skewY", "deg"));

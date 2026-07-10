@@ -79,14 +79,20 @@ h6 {
 .box {
   width: 200px;
   height: 200px;
-  background-color: #30364F;
-  color: #F0F0DB;
+  background-color: #30364f;
+  color: #f0f0db;
 }
 
 .box2 {
   width: 200px;
   height: 200px;
   background-color: #ffb4b4;
+}
+
+.box3 {
+  width: 200px;
+  height: 200px;
+  background-color: #c6ffb4;
 }
 
 .slide {
@@ -117,11 +123,18 @@ h6 {
   align-items: center;
 }
 
-/* dialog */
-sx-dialog[name="dialog1"] {
-  .content {
-    background: #fff;
-    border-radius: 10px;
-    padding: 10px;
-  }
+/* -------- */
+.container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 200px;
+  opacity: 0;
 }
