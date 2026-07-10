@@ -17,7 +17,6 @@ export class InertiaPhysics {
     this.onComplete = onComplete;
     this.friction = friction;
     
-    // Đăng ký callback vào Ticker
     this.tickerCallback = (time, delta, frame) => this.loop(delta);
   }
 
@@ -48,8 +47,6 @@ export class InertiaPhysics {
   private loop(deltaMs: number) {
     if (!this.isRunning) return;
 
-    // Chuẩn hóa friction dựa trên khung hình 60fps (~16.67ms)
-    // Giúp tốc độ cuộn mượt mà như nhau trên màn hình 60Hz lẫn 144Hz
     const timeScale = deltaMs / 16.67;
     const currentFriction = Math.pow(this.friction, timeScale);
 

@@ -1,5 +1,3 @@
-// six-js\src\six.ts
-
 import { logVersion } from "./log";
 import { registerComponents } from "./components";
 import { SxTween, TweenVars, TweenMode } from "./core/tween";
@@ -114,17 +112,10 @@ function createTween(
   const common = { onScroll, delay, paused, repeat, repeatDelay, boomerang, overwrite, onStart, onUpdate, onComplete, onRepeat, onReverseComplete };
 
   if (stagger === undefined) {
-    // restVars vẫn còn "duration"/"ease" (SxTween cần đọc 2 field này) lẫn property CSS ->
-    // KHÔNG lọc tiếp ở đây, SxTween tự bỏ qua "duration"/"ease" khi build danh sách property.
     return buildSingleTween(target, restVars, mode, fromVars, 0, common);
   }
 
   const elements = resolveTargetList(target);
-
-  if (onScroll) {
-    console.warn(`[six-js] stagger + onScroll chưa được hỗ trợ đồng thời, bỏ qua stagger`);
-    return buildSingleTween(target, restVars, mode, fromVars, 0, common);
-  }
 
   if (elements.length === 0) {
     console.warn(`[six-js] stagger: no elements matched`);
@@ -139,16 +130,29 @@ function createTween(
     );
   }
 
-  // Mỗi phần tử là 1 SxTween + Playable ĐỘC LẬP (delay khác nhau) — vì vậy hàm động dạng
-  // (index, el) => ... trong vars sẽ luôn nhận index=0 (không phải index gốc trong danh
-  // sách stagger), do mỗi tween con chỉ biết về đúng 1 phần tử của chính nó. Nếu cần phối
-  // hợp cả stagger lẫn giá trị theo index gốc, hãy tự tính mảng giá trị trước thay vì
-  // dùng callback (index, el) => ... .
+  const delays = elements.map((_, index) => computeStaggerDelay(index, elements.length, stagger));
+
+  const childCommon = onScroll ? { ...common, onScroll: undefined, paused: true } : common;
+
+  const usesGroupSeek = !!onScroll && (onScroll.sync === true || typeof onScroll.sync === "number");
+
   const playables = elements.map((el, index) =>
-    buildSingleTween(el, restVars, mode, fromVars, computeStaggerDelay(index, elements.length, stagger), common),
+    buildSingleTween(el, restVars, mode, fromVars, usesGroupSeek ? 0 : delays[index], childCommon),
   );
 
-  return new PlayableGroup(playables);
+  const group = new PlayableGroup(playables, delays);
+
+  if (onScroll) {
+    const triggerEl = resolveTriggerElement(onScroll.target ?? target);
+
+    if (!triggerEl) {
+      console.warn(`[six-js] onScroll: trigger element not found`);
+    } else {
+      new ScrollTriggerController(triggerEl, group, onScroll);
+    }
+  }
+
+  return group;
 }
 
 function to(target: string | HTMLElement | HTMLElement[], vars: FullTweenVars): Playable | PlayableGroup {

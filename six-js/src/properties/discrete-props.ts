@@ -1,4 +1,3 @@
-// src/properties/discrete-props.ts
 import { registerProperty, DiscretePropertyHandler } from "./registry";
 
 function discreteHandler(cssKey: string): DiscretePropertyHandler {
@@ -11,7 +10,6 @@ function discreteHandler(cssKey: string): DiscretePropertyHandler {
   };
 }
 
-// Các property không thể nội suy tuyến tính — set ngay lập tức, không animate qua từng frame.
 const DISCRETE_KEYS = [
   "display",
   "position",

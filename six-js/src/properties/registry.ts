@@ -1,4 +1,3 @@
-// src/properties/registry.ts
 import { RGBA } from "./color-utils";
 
 export interface ParsedValue {
@@ -10,9 +9,6 @@ export interface NumericPropertyHandler {
   type: "numeric";
   isTransform: boolean;
   transformFn?: string;
-  /** Ô lưu trong transform-state; mặc định = transformFn nếu không set. Dùng khi
-   * nhiều property (vd x và xAxis) cùng dùng 1 hàm CSS (translateX) nhưng phải
-   * cộng dồn riêng biệt thay vì ghi đè lên nhau. */
   transformStoreKey?: string;
   defaultUnit: string;
   getCurrent(target: HTMLElement, key: string): ParsedValue;
@@ -32,7 +28,6 @@ export interface DiscretePropertyHandler {
   apply(target: HTMLElement, value: string): void;
 }
 
-/** Giá trị nhiều con số gộp trong 1 chuỗi: boxShadow, filter, clipPath... */
 export interface ComplexPropertyHandler {
   type: "complex";
   cssKey: string;
@@ -52,10 +47,6 @@ export function registerProperty(key: string, handler: PropertyHandler): void {
   registry.set(key, handler);
 }
 
-/**
- * rawValue được truyền vào để fallback (property chưa đăng ký tường minh)
- * tự quyết định nên xử lý như numeric hay discrete, tránh set NaN vào style.
- */
 export function getPropertyHandler(key: string, rawValue?: string | number): PropertyHandler {
   const existing = registry.get(key);
   if (existing) return existing;
@@ -67,11 +58,6 @@ export function getPropertyHandler(key: string, rawValue?: string | number): Pro
   return fallbackHandler(key, rawValue);
 }
 
-/**
- * CSS custom property (vd "--size"). KHÔNG dùng bracket notation (style["--size"])
- * để đọc/ghi — không ổn định trên các bản Safari cũ. Luôn dùng đúng API chuẩn
- * getPropertyValue()/setProperty(), hoạt động nhất quán trên mọi trình duyệt.
- */
 function cssVariableHandler(key: string, rawValue?: string | number): PropertyHandler {
   if (typeof rawValue === "string" && !isNumericLike(rawValue)) {
     return {
@@ -150,8 +136,6 @@ export function parseNumericValue(
   }
 
   if (typeof value !== "string" || value.length === 0) {
-    // Guard: tránh crash "Cannot read properties of undefined (reading 'match')"
-    // khi computed style trả về undefined/null vì property không hợp lệ.
     return { num: 0, unit: fallbackUnit };
   }
 
@@ -166,11 +150,6 @@ export function parseNumericValue(
 
 const RELATIVE_REGEX = /^([+\-*/])=(-?[\d.]+)([a-z%]*)$/i;
 
-/**
- * Xử lý cú pháp tương đối kiểu GSAP: "+=100", "-=50", "*=2", "/=2".
- * Cần currentNum/currentUnit (giá trị hiện tại của property) để tính ra end thật.
- * Nếu rawValue không phải dạng tương đối, fallback về parseNumericValue bình thường.
- */
 export function resolveNumericValue(
   rawValue: string | number,
   currentNum: number,

@@ -1,4 +1,3 @@
-// six-js\src\core\ticker.ts
 export type TickerCallback = (
   time: number,
   delta: number,
@@ -8,8 +7,8 @@ export type TickerCallback = (
 export class SxTicker {
   private _listeners = new Set<TickerCallback>();
 
-  private _time = 0; // seconds
-  private _delta = 0; // ms
+  private _time = 0;
+  private _delta = 0; 
   private _frame = 0;
 
   private _start = this._now();

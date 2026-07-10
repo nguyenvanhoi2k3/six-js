@@ -1,5 +1,3 @@
-// src/properties/transform-parser.ts
-
 export interface TransformValues {
   x: number;
   y: number;
@@ -32,17 +30,7 @@ const IDENTITY: TransformValues = {
 
 const RAD_TO_DEG = 180 / Math.PI;
 
-/**
- * Đọc transform hiện tại của phần tử từ computed style, decompose ra
- * x/y/z/rotate/scale. Dùng cho to()/from() để biết "điểm bắt đầu thật"
- * thay vì luôn giả định 0.
- *
- * Giới hạn đã biết:
- * - skewX/skewY không decompose được từ matrix (luôn trả 0) — CSS matrix
- *   không tách biệt rõ skew khỏi scale/rotate, cần lưu trạng thái riêng
- *   nếu sau này cần track skew chính xác.
- * - "scale" (uniform) trả về scaleX khi scaleX !== scaleY.
- */
+
 export function readTransform(target: HTMLElement): TransformValues {
   const computed = window.getComputedStyle(target).transform;
 
@@ -92,7 +80,6 @@ function parseMatrix3d(value: string): TransformValues {
 
   const m = match[1].split(",").map((n) => parseFloat(n.trim()));
 
-  // CSS matrix3d liệt kê theo cột: m11,m12,m13,m14, m21,m22,m23,m24, m31,m32,m33,m34, m41,m42,m43,m44
   const m11 = m[0],
     m12 = m[1],
     m13 = m[2];

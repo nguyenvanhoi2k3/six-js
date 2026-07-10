@@ -1,19 +1,14 @@
-// src/core/stagger.ts
 import { Playable } from "./playable";
 
 export type StaggerFrom = "start" | "end" | "center" | number;
 
 export interface StaggerOptions {
-  /** Giây, khoảng lệch giữa 2 phần tử liên tiếp theo "khoảng cách" tính từ `from` */
   each: number;
-  /** "start" (mặc định): lệch dần từ phần tử đầu. "end": lệch dần từ phần tử cuối.
-   *  "center": lan ra từ giữa. number: lan ra từ đúng index đó. */
   from?: StaggerFrom;
 }
 
 export type StaggerInput = number | StaggerOptions;
 
-/** Tính độ lệch delay (giây) cho 1 phần tử tại `index` trong tổng số `total` phần tử */
 export function computeStaggerDelay(index: number, total: number, stagger: StaggerInput): number {
   if (typeof stagger === "number") {
     return index * stagger;
@@ -35,18 +30,30 @@ export function computeStaggerDelay(index: number, total: number, stagger: Stagg
 
   return distance * each;
 }
-
-/**
- * Bọc nhiều Playable (mỗi phần tử stagger 1 cái) thành 1 điều khiển chung — gọi play()
- * là TẤT CẢ cùng play() (giữ nguyên độ lệch delay đã tính từ trước), không phải là
- * Timeline thật (chưa hỗ trợ seek() đồng bộ toàn nhóm theo % tổng thể).
- */
 export class PlayableGroup {
-  constructor(private playables: Playable[]) {}
+  private delays: number[];
+
+  constructor(private playables: Playable[], delays: number[] = []) {
+    this.delays = delays;
+  }
 
   play(): this {
     this.playables.forEach((p) => p.play());
     return this;
+  }
+
+  seek(time: number): this {
+    this.playables.forEach((p, i) => p.seek(time - (this.delays[i] ?? 0)));
+    return this;
+  }
+
+  get duration(): number {
+    let max = 0;
+    this.playables.forEach((p, i) => {
+      const total = p.duration + (this.delays[i] ?? 0);
+      if (total > max) max = total;
+    });
+    return max;
   }
 
   pause(): this {
@@ -74,7 +81,6 @@ export class PlayableGroup {
     return this;
   }
 
-  /** Danh sách Playable con, dùng khi cần điều khiển riêng lẻ từng phần tử */
   get all(): readonly Playable[] {
     return this.playables;
   }

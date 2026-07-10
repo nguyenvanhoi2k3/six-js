@@ -1,4 +1,3 @@
-// src/core/tween.ts
 import { EASINGS, EasingType } from "../easing/easing";
 import { Animatable } from "./animatable";
 import {
@@ -17,9 +16,6 @@ import { convertToPx } from "../properties/unit-convert";
 import { resolveDynamicValue } from "../properties/dynamic-value";
 import { getDefaults } from "./defaults";
 
-/** 1 mốc trong dạng mảng: { x: 100, duration: 1, ease: "..." } — duration/ease riêng cho mốc này.
- *  Có thể thêm onStart/onUpdate/onComplete riêng cho từng mốc, khác với callback tổng của
- *  cả tween (onStart/onComplete truyền ở ngoài keyframes, do Playable quản lý). */
 export type KeyframeArrayItem = Record<string, any> & {
   duration?: number;
   ease?: EasingType;
@@ -28,7 +24,6 @@ export type KeyframeArrayItem = Record<string, any> & {
   onComplete?: () => void;
 };
 
-/** Dạng object theo %: { "0%": {...}, "50%": {...}, "100%": {...} } */
 export type KeyframePercentObject = Record<string, Record<string, any>>;
 
 export type KeyframesInput = KeyframeArrayItem[] | KeyframePercentObject;
@@ -36,21 +31,12 @@ export type KeyframesInput = KeyframeArrayItem[] | KeyframePercentObject;
 export interface TweenVars {
   duration?: number;
   ease?: EasingType;
-  /** Dãy mốc animate tuần tự, giống keyframes của GSAP — xem KeyframesInput. */
   keyframes?: KeyframesInput;
-  /** Giây chờ trước khi chạy lần đầu (không lặp lại mỗi vòng repeat). */
   delay?: number;
-  /** true: KHÔNG tự chạy khi tạo tween, chờ gọi .play() thủ công. Giống GSAP `paused`. */
   paused?: boolean;
-  /** Số lần lặp SAU lần chạy đầu. -1 = vô hạn. */
   repeat?: number;
-  /** Giây tạm dừng giữa các lượt lặp. */
   repeatDelay?: number;
-  /** Tương đương yoyo của GSAP: mỗi lượt lặp tự đảo chiều thay vì nhảy về đầu. Đặt tên
-   *  "boomerang" để KHÔNG bị nhầm với method .reverse() (tua ngược thủ công, khác hẳn). */
   boomerang?: boolean;
-  /** true: huỷ toàn bộ tween khác đang chạy trên cùng target. "auto": (tạm thời xử lý
-   *  giống true — xem ghi chú trong overwrite-manager.ts) chỉ huỷ property trùng nhau. */
   overwrite?: boolean | "auto";
   onStart?: () => void;
   onUpdate?: () => void;
@@ -99,32 +85,12 @@ type PropState = NumericPropState | ColorPropState | ComplexPropState | Discrete
 interface Segment {
   duration: number;
   easeFn: (t: number) => number;
-  /** propStates[targetIndex] = danh sách property của target đó trong đoạn này */
   propStates: { key: string; state: PropState }[][];
   hasTransform: boolean[];
-  /** Callback riêng cho keyframe này (khác onStart/onComplete của toàn bộ tween, do
-   *  Playable quản lý). Chỉ có ý nghĩa khi dùng keyframes — single segment (to/from/fromTo)
-   *  không có callback riêng vì chính là onStart/onComplete của Playable rồi. */
   onSegmentStart?: () => void;
   onSegmentUpdate?: () => void;
   onSegmentComplete?: () => void;
 }
-
-/**
- * SxTween chỉ biết "vẽ" theo localTime, KHÔNG tự chạy theo ticker.
- * Việc play/pause/seek là trách nhiệm của Playable (xem playable.ts).
- *
- * Nội bộ luôn biểu diễn dưới dạng danh sách "segment" nối tiếp nhau — to()/from()/fromTo()
- * chỉ là trường hợp đặc biệt "1 segment duy nhất", còn keyframes là N segment nối tiếp,
- * mỗi segment tự có duration/ease riêng, property nào không xuất hiện ở segment sau thì
- * tự động giữ nguyên giá trị segment trước để lại (carry-forward), không cần khai báo lại.
- *
- * mode quyết định bên nào đọc DOM, bên nào lấy giá trị tường minh (chỉ áp dụng khi
- * KHÔNG dùng keyframes):
- * - "to":     start = đọc DOM hiện tại,  end = vars (tường minh)
- * - "from":   start = vars (tường minh), end = đọc DOM hiện tại
- * - "fromTo": start = fromVars (tường minh), end = vars (tường minh), không đọc DOM
- */
 export class SxTween implements Animatable {
   readonly duration: number;
 
@@ -169,6 +135,7 @@ export class SxTween implements Animatable {
     }
 
     this.duration = this.segments.reduce((sum, seg) => sum + seg.duration, 0);
+    this.applyWillChange();
   }
 
   private resolveEase(easeKey: EasingType | undefined): (t: number) => number {
@@ -189,7 +156,6 @@ export class SxTween implements Animatable {
     return duration;
   }
 
-  /** Tạo 1 PropState từ rawStart/rawEnd đã resolve — dùng chung cho single-segment lẫn keyframes */
   private resolveProp(
     target: HTMLElement,
     key: string,
@@ -223,7 +189,6 @@ export class SxTween implements Animatable {
       return { key, isTransform: false, state: { kind: "complex", start: startStr, end: endStr, apply: handler.apply } };
     }
 
-    // numeric
     const startParsed: ParsedValue =
       rawStart !== undefined ? parseNumericValue(rawStart, handler.defaultUnit) : handler.getCurrent(target, key);
 
@@ -257,8 +222,6 @@ export class SxTween implements Animatable {
     };
   }
 
-  // ---------- single segment (to/from/fromTo) ----------
-
   private buildSingleSegment(vars: TweenVars, mode: TweenMode, fromVars?: Record<string, any>): Segment {
     const defaults = getDefaults();
     const duration = this.resolveDuration(vars.duration, defaults);
@@ -291,8 +254,6 @@ export class SxTween implements Animatable {
           if (fromVars && key in fromVars) rawStart = resolveDynamicValue(fromVars[key], index, target);
         }
 
-        // discrete: giữ hành vi CŨ — set ngay lập tức lúc setup (single-segment không có
-        // khái niệm "thời điểm trong tương lai" để hoãn áp dụng, khác với keyframes).
         const handler = getPropertyHandler(key, rawEnd ?? rawStart);
         if (handler.type === "discrete") {
           handler.apply(target, String(rawEnd ?? rawStart));
@@ -313,8 +274,6 @@ export class SxTween implements Animatable {
     return { duration, easeFn, propStates, hasTransform };
   }
 
-  // ---------- keyframes ----------
-
   private buildKeyframeSegments(input: KeyframesInput, vars: TweenVars): Segment[] {
     const defaults = getDefaults();
     const topDuration = vars.duration;
@@ -328,7 +287,6 @@ export class SxTween implements Animatable {
       console.warn(`[six-js] keyframes needs at least 2 points, got ${points.length}`);
     }
 
-    // carry[targetIndex][key] = giá trị RAW cuối cùng của key đó tính tới điểm mốc hiện tại
     const carry: Record<string, any>[] = this.targets.map(() => ({}));
     const segments: Segment[] = [];
 
@@ -354,7 +312,7 @@ export class SxTween implements Animatable {
               ? resolveDynamicValue(fromPoint.props[key], index, target)
               : key in carry[index]
                 ? carry[index][key]
-                : undefined; // undefined -> đọc DOM hiện tại (điểm mốc đầu tiên chưa có carry)
+                : undefined; 
 
           const handler = getPropertyHandler(key, rawEnd);
 
@@ -389,10 +347,6 @@ export class SxTween implements Animatable {
         onSegmentComplete: toPoint.onSegmentComplete,
       });
     }
-
-    // Điểm mốc đầu tiên (vd "0%") cần được ÁP DỤNG NGAY để phần tử ở đúng trạng thái ban
-    // đầu kể cả khi có delay trước khi Playable thật sự bắt đầu chạy — render(0) của segment
-    // đầu tiên (progress=0) đã tự làm việc này rồi nên KHÔNG cần xử lý gì thêm ở đây.
 
     return segments;
   }
@@ -513,8 +467,6 @@ export class SxTween implements Animatable {
     return points;
   }
 
-  // ---------- render ----------
-
   render(localTime: number): void {
     let t = localTime;
     let segIndex = 0;
@@ -530,8 +482,6 @@ export class SxTween implements Animatable {
     const progress = seg.duration === 0 ? 1 : Math.min(Math.max(t / seg.duration, 0), 1);
     const eased = seg.easeFn(progress);
 
-    // Phát hiện chuyển segment (chỉ có ý nghĩa với keyframes — single segment không set
-    // các callback này nên các dòng dưới là no-op an toàn với to/from/fromTo).
     if (segIndex !== this.lastSegIndex) {
       if (this.lastSegIndex !== -1 && segIndex > this.lastSegIndex) {
         this.segments[this.lastSegIndex].onSegmentComplete?.();
@@ -591,6 +541,10 @@ export class SxTween implements Animatable {
   }
 
   onStart(): void {
+    this.applyWillChange();
+  }
+
+  private applyWillChange(): void {
     this.targets.forEach((_target, index) => {
       if (this.segments.some((seg) => seg.hasTransform[index])) {
         this.targets[index].style.willChange = "transform";
@@ -605,8 +559,7 @@ export class SxTween implements Animatable {
       }
     });
   }
-
-  /** Union tất cả property key bị chạm qua mọi segment — dùng bởi overwrite-manager */
+  
   getTouchedProperties(): { target: HTMLElement; keys: string[] }[] {
     return this.targets.map((target, index) => {
       const keySet = new Set<string>();

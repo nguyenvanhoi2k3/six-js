@@ -1,5 +1,3 @@
-// src/properties/color.ts
-
 export interface RGBA {
   r: number;
   g: number;
@@ -9,12 +7,6 @@ export interface RGBA {
 
 const RGB_REGEX = /rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)/i;
 
-/**
- * Chuyển bất kỳ chuỗi màu hợp lệ nào (named color "red", hex "#ff0000",
- * rgb(), hsl()...) thành RGBA, bằng cách mượn chính trình duyệt để resolve
- * (gán vào 1 element ẩn rồi đọc lại computed style — computed color luôn
- * là dạng rgb()/rgba() chuẩn hoá).
- */
 export function parseColor(value: string): RGBA {
   const probe = document.createElement("span");
   probe.style.color = value;
