@@ -25,7 +25,6 @@ registerProperty("right", cssNumericHandler("right", "px"));
 registerProperty("bottom", cssNumericHandler("bottom", "px"));
 
 // Border
-registerProperty("borderRadius", cssNumericHandler("borderRadius", "px"));
 registerProperty("borderWidth", cssNumericHandler("borderWidth", "px"));
 
 // Opacity

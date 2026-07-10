@@ -8,10 +8,10 @@ function xt() {
     ` SixJS v${bt}`
   ));
 }
-function R(s) {
+function B(s) {
   return s < 1 / 2.75 ? 7.5625 * s * s : s < 2 / 2.75 ? (s -= 1.5 / 2.75, 7.5625 * s * s + 0.75) : s < 2.5 / 2.75 ? (s -= 2.25 / 2.75, 7.5625 * s * s + 0.9375) : (s -= 2.625 / 2.75, 7.5625 * s * s + 0.984375);
 }
-const I = 1.70158, P = I * 1.525, D = {
+const I = 1.70158, L = I * 1.525, D = {
   // Linear
   linear: (s) => s,
   // Quad
@@ -52,30 +52,30 @@ const I = 1.70158, P = I * 1.525, D = {
   "back-in-out": (s) => {
     if (s < 0.5) {
       const t = 2 * s;
-      return t * t * ((P + 1) * t - P) / 2;
+      return t * t * ((L + 1) * t - L) / 2;
     }
     const i = 2 * s - 2;
-    return (i * i * ((P + 1) * i + P) + 2) / 2;
+    return (i * i * ((L + 1) * i + L) + 2) / 2;
   },
   // Bounce
-  "bounce-in": (s) => 1 - R(1 - s),
-  "bounce-out": R,
-  "bounce-in-out": (s) => s < 0.5 ? (1 - R(1 - 2 * s)) / 2 : (1 + R(2 * s - 1)) / 2
+  "bounce-in": (s) => 1 - B(1 - s),
+  "bounce-out": B,
+  "bounce-in-out": (s) => s < 0.5 ? (1 - B(1 - 2 * s)) / 2 : (1 + B(2 * s - 1)) / 2
 }, j = /* @__PURE__ */ new WeakMap();
-let V = [], N = null;
+let N = [], V = null;
 function J(s, i) {
-  V.push({ instance: s, type: i }), N === null && (N = requestAnimationFrame(yt));
+  N.push({ instance: s, type: i }), V === null && (V = requestAnimationFrame(yt));
 }
 function yt() {
-  const s = V.slice();
-  V.length = 0, N = null;
+  const s = N.slice();
+  N.length = 0, V = null;
   for (let i = 0; i < s.length; i++) {
     const { instance: t, type: e } = s[i];
     e === "enter" ? t.enter() : t.leave && t.leave();
   }
 }
 let Y = null;
-function lt() {
+function ht() {
   return typeof window > "u" ? null : (Y || (Y = new IntersectionObserver(
     (s) => {
       for (let i = 0; i < s.length; i++) {
@@ -86,27 +86,27 @@ function lt() {
     { threshold: 0.05 }
   )), Y);
 }
-function ht(s, i) {
+function ct(s, i) {
   var t;
-  j.set(s, i), (t = lt()) == null || t.observe(s);
+  j.set(s, i), (t = ht()) == null || t.observe(s);
 }
 function H(s) {
   var i;
-  j.delete(s), (i = lt()) == null || i.unobserve(s);
+  j.delete(s), (i = ht()) == null || i.unobserve(s);
 }
-function L(s, i) {
+function R(s, i) {
   if (s == null) return i;
   const t = s.trim();
   if (!t) return i;
   const e = Number(t);
   return Number.isFinite(e) ? e * 1e3 : i;
 }
-const T = class T extends HTMLElement {
+const k = class k extends HTMLElement {
   constructor() {
     super(...arguments);
     a(this, "animation");
     a(this, "options");
-    a(this, "order", T.counter++);
+    a(this, "order", k.counter++);
   }
   static get reduceMotion() {
     return this.mediaQuery.matches;
@@ -125,21 +125,21 @@ const T = class T extends HTMLElement {
     return this.hasAttribute("group");
   }
   connectedCallback() {
-    if (this.options = this.getOptions(), T.reduceMotion) {
+    if (this.options = this.getOptions(), k.reduceMotion) {
       this.style.opacity = "1", this.style.transform = "none";
       return;
     }
-    this.setInitialState(), ht(this, {
+    this.setInitialState(), ct(this, {
       enter: () => this.handleEnter(),
       leave: () => this.handleLeave()
     });
   }
   disconnectedCallback() {
     var t;
-    (t = this.animation) == null || t.cancel(), H(this), T.groupQueue.delete(this);
+    (t = this.animation) == null || t.cancel(), H(this), k.groupQueue.delete(this);
   }
   handleEnter() {
-    this.hasAttribute("replay") || H(this), this.isGroup ? (T.groupQueue.add(this), T.scheduleGroup()) : this.play();
+    this.hasAttribute("replay") || H(this), this.isGroup ? (k.groupQueue.add(this), k.scheduleGroup()) : this.play();
   }
   handleLeave() {
     this.hasAttribute("replay") && this.reset();
@@ -156,8 +156,8 @@ const T = class T extends HTMLElement {
       x: o,
       y: d,
       easing: r && r in D ? r : "ease-in-out",
-      duration: L(this.getAttribute("duration"), 400),
-      delay: L(this.getAttribute("delay"), 0)
+      duration: R(this.getAttribute("duration"), 400),
+      delay: R(this.getAttribute("delay"), 0)
     };
   }
   setInitialState() {
@@ -193,10 +193,10 @@ const T = class T extends HTMLElement {
     };
   }
 };
-a(T, "counter", 0), a(T, "mediaQuery", window.matchMedia(
+a(k, "counter", 0), a(k, "mediaQuery", window.matchMedia(
   "(prefers-reduced-motion: reduce)"
-)), a(T, "groupQueue", /* @__PURE__ */ new Set()), a(T, "isProcessingGroup", !1);
-let X = T;
+)), a(k, "groupQueue", /* @__PURE__ */ new Set()), a(k, "isProcessingGroup", !1);
+let X = k;
 function St() {
   customElements.get("sx-animate") || customElements.define("sx-animate", X);
 }
@@ -293,7 +293,7 @@ class vt {
     return this._listeners.size;
   }
 }
-const C = new vt();
+const v = new vt();
 class Ct extends HTMLElement {
   constructor() {
     super();
@@ -366,18 +366,18 @@ class Ct extends HTMLElement {
     }
     this.addEventListener("mouseenter", this.onMouseEnter), this.addEventListener("mouseleave", this.onMouseLeave), this.resizeObserver = new ResizeObserver(() => {
       this.scheduleSetup();
-    }), this.resizeObserver.observe(this), ht(this, {
+    }), this.resizeObserver.observe(this), ct(this, {
       enter: () => {
-        this.isVisible || (this.isVisible = !0, C.add(this.updateAnimation));
+        this.isVisible || (this.isVisible = !0, v.add(this.updateAnimation));
       },
       leave: () => {
-        this.isVisible && (this.isVisible = !1, C.remove(this.updateAnimation));
+        this.isVisible && (this.isVisible = !1, v.remove(this.updateAnimation));
       }
     });
   }
   disconnectedCallback() {
     var t;
-    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (t = this.resizeObserver) == null || t.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), H(this), C.remove(this.updateAnimation);
+    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (t = this.resizeObserver) == null || t.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), H(this), v.remove(this.updateAnimation);
   }
   attributeChangedCallback(t, e, n) {
     e !== n && (t === "gap" ? (this.updateGapVar(), setTimeout(() => this.scheduleSetup(), 50)) : (t === "direction" || t === "speed" || t === "clone") && this.scheduleSetup());
@@ -480,15 +480,15 @@ class Ct extends HTMLElement {
     this.inner && (this.isVertical ? this.inner.style.transform = `translate3d(0,${t}px,0)` : this.inner.style.transform = `translate3d(${t}px,0,0)`);
   }
 }
-class kt extends HTMLElement {
-}
 class wt extends HTMLElement {
+}
+class kt extends HTMLElement {
   connectedCallback() {
     this.style.cssText = "display:inline-block;flex-shrink:0;";
   }
 }
 function Tt() {
-  customElements.get("sx-marquee") || customElements.define("sx-marquee", Ct), customElements.get("sx-marquee-inner") || customElements.define("sx-marquee-inner", kt), customElements.get("sx-marquee-item") || customElements.define("sx-marquee-item", wt);
+  customElements.get("sx-marquee") || customElements.define("sx-marquee", Ct), customElements.get("sx-marquee-inner") || customElements.define("sx-marquee-inner", wt), customElements.get("sx-marquee-item") || customElements.define("sx-marquee-item", kt);
 }
 class Et extends HTMLElement {
   constructor() {
@@ -593,19 +593,19 @@ class Mt extends HTMLElement {
       n && (u.className = "sx-slider-pagination-bullet"), p === t ? (u.setAttribute("sx-bullet-active", ""), u.setAttribute("aria-current", "true")) : (u.removeAttribute("sx-bullet-active"), u.removeAttribute("aria-current"));
     }), r && this.snakeBar) {
       if (this.snakeTimeout !== null && (clearTimeout(this.snakeTimeout), this.snakeTimeout = null), o[t]) {
-        const m = t * 20, b = this.lastActiveIndex * 20;
+        const b = t * 20, x = this.lastActiveIndex * 20;
         if (t > this.lastActiveIndex) {
-          const S = m - b + 10;
-          this.snakeBar.style.left = `${b}px`, this.snakeBar.style.width = `${S}px`, this.snakeTimeout = window.setTimeout(() => {
-            this.getAttribute("effect") === "snake" && this.snakeBar && (this.snakeBar.style.left = `${m}px`, this.snakeBar.style.width = "10px");
+          const S = b - x + 10;
+          this.snakeBar.style.left = `${x}px`, this.snakeBar.style.width = `${S}px`, this.snakeTimeout = window.setTimeout(() => {
+            this.getAttribute("effect") === "snake" && this.snakeBar && (this.snakeBar.style.left = `${b}px`, this.snakeBar.style.width = "10px");
           }, 150);
         } else if (t < this.lastActiveIndex) {
-          const S = b - m + 10;
-          this.snakeBar.style.left = `${m}px`, this.snakeBar.style.width = `${S}px`, this.snakeTimeout = window.setTimeout(() => {
+          const S = x - b + 10;
+          this.snakeBar.style.left = `${b}px`, this.snakeBar.style.width = `${S}px`, this.snakeTimeout = window.setTimeout(() => {
             this.getAttribute("effect") === "snake" && this.snakeBar && (this.snakeBar.style.width = "10px");
           }, 150);
         } else
-          this.snakeBar.style.left = `${m}px`, this.snakeBar.style.width = "10px";
+          this.snakeBar.style.left = `${b}px`, this.snakeBar.style.width = "10px";
       }
       this.lastActiveIndex = t;
       return;
@@ -663,7 +663,7 @@ class It extends HTMLElement {
     this.bar.style.transition = n || "none", e === "vertical" ? (this.bar.style.transformOrigin = "top center", this.bar.style.transform = `scaleY(${r})`) : (this.bar.style.transformOrigin = "left center", this.bar.style.transform = `scaleX(${r})`);
   }
 }
-class Lt extends HTMLElement {
+class Rt extends HTMLElement {
   constructor() {
     super(), this.addEventListener("click", () => this.handleAction()), this.addEventListener("keydown", (i) => {
       (i.key === "Enter" || i.key === " ") && (i.preventDefault(), this.handleAction());
@@ -684,7 +684,7 @@ class Lt extends HTMLElement {
     }
   }
 }
-class Rt {
+class Bt {
   constructor(i, t, e = 0.92) {
     a(this, "velocity", 0);
     a(this, "friction");
@@ -701,10 +701,10 @@ class Rt {
     this.velocity += i, this.isRunning || this.start();
   }
   stop() {
-    this.isRunning && (this.isRunning = !1, this.velocity = 0, C.remove(this.tickerCallback));
+    this.isRunning && (this.isRunning = !1, this.velocity = 0, v.remove(this.tickerCallback));
   }
   start() {
-    this.isRunning || (this.isRunning = !0, C.add(this.tickerCallback));
+    this.isRunning || (this.isRunning = !0, v.add(this.tickerCallback));
   }
   loop(i) {
     if (!this.isRunning) return;
@@ -716,7 +716,7 @@ class Rt {
     this.onUpdate(this.velocity * t), this.velocity *= e;
   }
 }
-class Pt extends HTMLElement {
+class Lt extends HTMLElement {
   constructor() {
     super();
     a(this, "sliderCha", null);
@@ -755,7 +755,7 @@ class Pt extends HTMLElement {
       }
       this.sliderCha.startAutoplay();
     });
-    a(this, "wheelInertia", new Rt(
+    a(this, "wheelInertia", new Bt(
       (t) => {
         if (this.sliderCha) {
           if (this.currentTranslate += t, this.sliderCha.options.loop)
@@ -892,7 +892,7 @@ class Pt extends HTMLElement {
       this.currentTranslate = t, this.setTransform(this.currentTranslate), this.prevTranslate = this.currentTranslate, (d = this.sliderCha) != null && d.options.loop && this.checkLoopBoundsInstant(), n && n();
       return;
     }
-    this.scrollStartTime = performance.now(), this.isScrollAnimating = !0, C.add(this.scrollTickerCallback);
+    this.scrollStartTime = performance.now(), this.isScrollAnimating = !0, v.add(this.scrollTickerCallback);
   }
   runScrollLoop() {
     if (!this.isScrollAnimating || !this.sliderCha) return;
@@ -926,10 +926,10 @@ class Pt extends HTMLElement {
         }
       }
     }
-    n >= 1 && Math.abs(d) < 0.5 && (this.isScrollAnimating = !1, this.prevTranslate = this.currentTranslate, C.remove(this.scrollTickerCallback), this.sliderCha.alignIndexToFreeTranslation(this.currentTranslate), this.sliderCha.startAutoplay());
+    n >= 1 && Math.abs(d) < 0.5 && (this.isScrollAnimating = !1, this.prevTranslate = this.currentTranslate, v.remove(this.scrollTickerCallback), this.sliderCha.alignIndexToFreeTranslation(this.currentTranslate), this.sliderCha.startAutoplay());
   }
   cancelMomentumScroll() {
-    this.isScrollAnimating = !1, C.remove(this.scrollTickerCallback);
+    this.isScrollAnimating = !1, v.remove(this.scrollTickerCallback);
   }
   checkLoopBoundsInstant() {
     if (!this.sliderCha || !this.sliderCha.options.loop) return;
@@ -938,19 +938,19 @@ class Pt extends HTMLElement {
     if (this.sliderCha.options.autoSize)
       o = this.sliderCha.getOffsetForIndex(e), r = this.sliderCha.getOffsetForIndex(e + t) - o;
     else {
-      const m = this.sliderCha.getSlideSizeWithGap();
-      o = e * m, r = t * m;
+      const b = this.sliderCha.getSlideSizeWithGap();
+      o = e * b, r = t * b;
     }
     let d = 0;
     if (this.sliderCha.options.centered) {
-      const m = this.sliderCha.getBoundingClientRect()[this.sliderCha.sizeDim];
-      let b = 0;
+      const b = this.sliderCha.getBoundingClientRect()[this.sliderCha.sizeDim];
+      let x = 0;
       if (this.sliderCha.options.autoSize) {
-        const S = this.sliderCha.convertToPx(this.sliderCha.options.gap), x = this.children[e];
-        b = x ? x.getBoundingClientRect()[this.sliderCha.sizeDim] + S : 0;
+        const S = this.sliderCha.convertToPx(this.sliderCha.options.gap), m = this.children[e];
+        x = m ? m.getBoundingClientRect()[this.sliderCha.sizeDim] + S : 0;
       } else
-        b = this.sliderCha.getSlideSizeWithGap();
-      d = m / 2 - b / 2;
+        x = this.sliderCha.getSlideSizeWithGap();
+      d = b / 2 - x / 2;
     }
     const h = -o + n + d, l = h - r;
     let c = !1, u = this.currentTranslate, p = 0, f = 0;
@@ -1025,7 +1025,7 @@ class tt {
     return t;
   }
 }
-class Bt extends HTMLElement {
+class Pt extends HTMLElement {
   constructor() {
     super();
     a(this, "options");
@@ -1196,7 +1196,7 @@ class Bt extends HTMLElement {
     this.parseOptions(), this.updateLayout(), this.startAutoplay();
   }
   parseOptions() {
-    const t = (f) => f ? isNaN(Number(f)) ? f : `${f}px` : "0px", e = this.getAttribute("edge-resistance"), n = e !== null ? Number(e) : 100, r = this.getAttribute("interval"), o = L(r, 4e3), d = this.getAttribute("start-index"), h = d !== null ? Number(d) : 0, l = this.getAttribute("per-move");
+    const t = (f) => f ? isNaN(Number(f)) ? f : `${f}px` : "0px", e = this.getAttribute("edge-resistance"), n = e !== null ? Number(e) : 100, r = this.getAttribute("interval"), o = R(r, 4e3), d = this.getAttribute("start-index"), h = d !== null ? Number(d) : 0, l = this.getAttribute("per-move");
     let c = "auto";
     if (l !== null && l !== "auto") {
       const f = Number(l);
@@ -1210,7 +1210,7 @@ class Bt extends HTMLElement {
       perView: Number(this.getAttribute("per-view")) || 1,
       gap: t(this.getAttribute("gap")),
       drag: this.getAttribute("drag") || "true",
-      speed: L(this.getAttribute("speed"), 300),
+      speed: R(this.getAttribute("speed"), 300),
       rightPadding: t(this.getAttribute("right-padding")),
       leftPadding: t(this.getAttribute("left-padding")),
       rewind: this.hasAttribute("rewind"),
@@ -1314,9 +1314,9 @@ class Bt extends HTMLElement {
         g ? f.style[this.sizeDim] = `${g.getBoundingClientRect()[this.sizeDim]}px` : f.style[this.sizeDim] = "max-content", f.style[this.marginProp] = this.options.gap;
       }), this.options.perView = this.getVisibleSlidesCount();
     else {
-      const m = ((t || window.innerWidth) - l - c - h * (this.options.perView - 1)) / this.options.perView;
-      e.forEach((b) => {
-        b.style[this.sizeDim] = `${m}px`, b.style[this.marginProp] = this.options.gap;
+      const b = ((t || window.innerWidth) - l - c - h * (this.options.perView - 1)) / this.options.perView;
+      e.forEach((x) => {
+        x.style[this.sizeDim] = `${b}px`, x.style[this.marginProp] = this.options.gap;
       });
     }
     let u = !1;
@@ -1392,9 +1392,9 @@ class Bt extends HTMLElement {
     if (t.length === 0) return;
     const e = this.options.loop, n = e ? this.originalSlidesCount : t.length;
     if (n === 0) return;
-    const r = e ? this.options.autoSize ? this.originalSlidesCount : this.options.perView : 0, o = (x) => {
-      if (!e) return x;
-      let w = (x - r) % n;
+    const r = e ? this.options.autoSize ? this.originalSlidesCount : this.options.perView : 0, o = (m) => {
+      if (!e) return m;
+      let w = (m - r) % n;
       return w < 0 && (w += n), w;
     }, d = this.options.centered ? 0 : Math.floor(this.options.perView / 2), h = o(this.currentIndex);
     this.lastFiredIndex !== h && (this.lastFiredIndex = h, this.dispatchEvent(
@@ -1405,32 +1405,32 @@ class Bt extends HTMLElement {
     const l = o(this.currentIndex - 1), c = o(this.currentIndex + 1), u = o(this.currentIndex + d), p = this.isFirstHeightMeasure;
     p && (this.isFirstHeightMeasure = !1);
     let f = null;
-    p && (f = document.createElement("style"), f.innerHTML = "sx-slider-slide, sx-slider-slide * { transition: none !important; }", this.appendChild(f), this.offsetHeight), this.options.lockActive && !this.isClickRouting && !p || t.forEach((x, w) => {
-      x.removeAttribute("sx-slide-active"), x.removeAttribute("sx-slide-prev"), x.removeAttribute("sx-slide-next"), x.removeAttribute("sx-slide-center");
-      let v = o(w);
-      x.setAttribute("aria-label", `${v + 1}/${n}`), v === h && x.setAttribute("sx-slide-active", ""), v === l && x.setAttribute("sx-slide-prev", ""), v === c && x.setAttribute("sx-slide-next", ""), v === u && x.setAttribute("sx-slide-center", "");
+    p && (f = document.createElement("style"), f.innerHTML = "sx-slider-slide, sx-slider-slide * { transition: none !important; }", this.appendChild(f), this.offsetHeight), this.options.lockActive && !this.isClickRouting && !p || t.forEach((m, w) => {
+      m.removeAttribute("sx-slide-active"), m.removeAttribute("sx-slide-prev"), m.removeAttribute("sx-slide-next"), m.removeAttribute("sx-slide-center");
+      let E = o(w);
+      m.setAttribute("aria-label", `${E + 1}/${n}`), E === h && m.setAttribute("sx-slide-active", ""), E === l && m.setAttribute("sx-slide-prev", ""), E === c && m.setAttribute("sx-slide-next", ""), E === u && m.setAttribute("sx-slide-center", "");
     }), this.updateAutoHeight(), this.updateNavigation();
-    const g = e ? n - 1 : this.getRealMaxIndex(), m = this.getResolvedPerMove();
-    let b = [];
-    if (m > 1 && !this.options.autoSize) {
-      let x = 0;
-      for (; x < g; )
-        b.push(x), x += m;
-      x !== g && b.push(g);
+    const g = e ? n - 1 : this.getRealMaxIndex(), b = this.getResolvedPerMove();
+    let x = [];
+    if (b > 1 && !this.options.autoSize) {
+      let m = 0;
+      for (; m < g; )
+        x.push(m), m += b;
+      m !== g && x.push(g);
     } else
-      for (let x = 0; x <= g; x++)
-        b.push(x);
-    let S = b.indexOf(h);
+      for (let m = 0; m <= g; m++)
+        x.push(m);
+    let S = x.indexOf(h);
     if (S === -1) {
-      for (let x = b.length - 1; x >= 0; x--)
-        if (h >= b[x]) {
-          S = x;
+      for (let m = x.length - 1; m >= 0; m--)
+        if (h >= x[m]) {
+          S = m;
           break;
         }
     }
-    this.updatePagination(b, S), this.options.sync && (this.isClickRouting || !this.options.lockActive) && this.options.sync.split(",").map((w) => w.trim()).forEach((w) => {
-      const v = M.get(w);
-      v && v.syncFromController(h);
+    this.updatePagination(x, S), this.options.sync && (this.isClickRouting || !this.options.lockActive) && this.options.sync.split(",").map((w) => w.trim()).forEach((w) => {
+      const E = M.get(w);
+      E && E.syncFromController(h);
     }), p && f && requestAnimationFrame(() => {
       f == null || f.remove();
     });
@@ -1447,10 +1447,10 @@ class Bt extends HTMLElement {
       if (e) {
         const h = this.options.autoSize ? this.originalSlidesCount : this.options.perView, l = t + h, c = this.originalSlidesCount, u = n.length;
         let p = l, f = Math.abs(l - this.currentIndex);
-        [l - c, l, l + c].forEach((m) => {
-          if (m >= 0 && m < u) {
-            const b = Math.abs(m - this.currentIndex);
-            b < f && (f = b, p = m);
+        [l - c, l, l + c].forEach((b) => {
+          if (b >= 0 && b < u) {
+            const x = Math.abs(b - this.currentIndex);
+            x < f && (f = x, p = b);
           }
         }), this.currentIndex = p;
       } else
@@ -1563,16 +1563,16 @@ class Bt extends HTMLElement {
       if (this.options.autoSize)
         u = this.getOffsetForIndex(c), p = this.getRectSize(r[c]) + o;
       else {
-        const m = this.getSlideSizeWithGap();
-        u = c * m, p = m;
+        const b = this.getSlideSizeWithGap();
+        u = c * b, p = b;
       }
       let f = e;
       if (this.options.centered ? f += n / 2 - (u + p / 2) : f -= u, !this.options.loop) {
-        const { max: m, min: b } = this.getBoundaries();
+        const { max: b, min: x } = this.getBoundaries();
         this.options.centered && this.options.autoCentered ? f = Math.max(
-          b,
-          Math.min(m, f)
-        ) : this.options.centered || (c === 0 && (f = 0), f < b && (f = b), f > 0 && (f = 0));
+          x,
+          Math.min(b, f)
+        ) : this.options.centered || (c === 0 && (f = 0), f < x && (f = x), f > 0 && (f = 0));
       }
       const g = Math.abs(t - f);
       g < h - 0.5 ? (h = g, d = c) : Math.abs(g - h) <= 0.5 && Math.abs(c - l) < Math.abs(d - l) && (d = c, h = g);
@@ -1623,7 +1623,7 @@ class Bt extends HTMLElement {
   }
 }
 function Dt() {
-  customElements.get("sx-slider") || customElements.define("sx-slider", Bt), customElements.get("sx-slider-track") || customElements.define("sx-slider-track", Pt), customElements.get("sx-slider-slide") || customElements.define("sx-slider-slide", Et), customElements.get("sx-slider-progress") || customElements.define("sx-slider-progress", It), customElements.get("sx-slider-prev") || customElements.define("sx-slider-prev", Lt), customElements.get("sx-slider-pagination") || customElements.define("sx-slider-pagination", Mt), customElements.get("sx-slider-next") || customElements.define("sx-slider-next", zt);
+  customElements.get("sx-slider") || customElements.define("sx-slider", Pt), customElements.get("sx-slider-track") || customElements.define("sx-slider-track", Lt), customElements.get("sx-slider-slide") || customElements.define("sx-slider-slide", Et), customElements.get("sx-slider-progress") || customElements.define("sx-slider-progress", It), customElements.get("sx-slider-prev") || customElements.define("sx-slider-prev", Rt), customElements.get("sx-slider-pagination") || customElements.define("sx-slider-pagination", Mt), customElements.get("sx-slider-next") || customElements.define("sx-slider-next", zt);
 }
 const A = {
   duration: 300,
@@ -1666,7 +1666,7 @@ class Ft extends HTMLElement {
   }
   get duration() {
     const t = this.getAttribute("duration");
-    return L(t, A.duration);
+    return R(t, A.duration);
   }
   get closeOnOutsideClick() {
     const t = this.getAttribute("close-on-outside-click");
@@ -1769,7 +1769,7 @@ class Ft extends HTMLElement {
     `, this.backdropEl = this.querySelector(".sx-dialog-backdrop"), this.dialogCoreEl = this.querySelector(".sx-dialog-core"), this.backdropEl && this.backdropEl.addEventListener("click", this.handleBackdropClick);
   }
 }
-class Ot extends HTMLElement {
+class $t extends HTMLElement {
   constructor() {
     super(...arguments);
     a(this, "handleKeyDown", (t) => {
@@ -1791,22 +1791,22 @@ class Ot extends HTMLElement {
     this.removeEventListener("click", this.toggleDialog), this.removeEventListener("keydown", this.handleKeyDown);
   }
 }
-function $t() {
-  customElements.get("sx-dialog") || customElements.define("sx-dialog", Ft), customElements.get("sx-dialog-trigger") || customElements.define("sx-dialog-trigger", Ot);
+function Ot() {
+  customElements.get("sx-dialog") || customElements.define("sx-dialog", Ft), customElements.get("sx-dialog-trigger") || customElements.define("sx-dialog-trigger", $t);
 }
 function qt() {
-  Tt(), St(), Dt(), $t();
+  Tt(), St(), Dt(), Ot();
 }
-const ct = /* @__PURE__ */ new Map();
+const dt = /* @__PURE__ */ new Map();
 function y(s, i) {
-  ct.set(s, i);
+  dt.set(s, i);
 }
 function Yt(s, i) {
-  const t = ct.get(s);
-  return t || (s.startsWith("--") ? _t(s, i) : Vt(s, i));
+  const t = dt.get(s);
+  return t || (s.startsWith("--") ? _t(s, i) : Nt(s, i));
 }
 function _t(s, i) {
-  return typeof i == "string" && !dt(i) ? {
+  return typeof i == "string" && !ut(i) ? {
     type: "discrete",
     cssKey: s,
     apply(t, e) {
@@ -1825,11 +1825,11 @@ function _t(s, i) {
     }
   };
 }
-function dt(s) {
+function ut(s) {
   return /^-?[\d.]+[a-z%]*$/i.test(s.trim());
 }
-function Vt(s, i) {
-  return typeof i == "string" && !dt(i) ? {
+function Nt(s, i) {
+  return typeof i == "string" && !ut(i) ? {
     type: "discrete",
     cssKey: s,
     apply(t, e) {
@@ -1856,11 +1856,11 @@ function z(s, i = "") {
   const t = s.match(/^(-?[\d.]+)([a-z%]*)$/i);
   return t ? { num: parseFloat(t[1]) || 0, unit: t[2] || i } : { num: parseFloat(s) || 0, unit: i };
 }
-const Nt = /^([+\-*/])=(-?[\d.]+)([a-z%]*)$/i;
+const Vt = /^([+\-*/])=(-?[\d.]+)([a-z%]*)$/i;
 function Ht(s, i, t, e) {
   if (typeof s != "string")
     return z(s, e);
-  const n = s.match(Nt);
+  const n = s.match(Vt);
   if (!n)
     return z(s, e);
   const [, r, o, d] = n, h = parseFloat(o), l = d || t || e;
@@ -1892,9 +1892,9 @@ function et(s) {
   const i = document.createElement("span");
   i.style.color = s, i.style.display = "none", document.body.appendChild(i);
   const t = window.getComputedStyle(i).color;
-  return document.body.removeChild(i), ut(t);
+  return document.body.removeChild(i), pt(t);
 }
-function ut(s) {
+function pt(s) {
   const i = s.match(Xt);
   return i ? {
     r: parseFloat(i[1]),
@@ -1932,20 +1932,20 @@ function Ut(s, i, t) {
     return String(Math.round(h * 1e3) / 1e3);
   });
 }
-const O = /* @__PURE__ */ new WeakMap();
+const $ = /* @__PURE__ */ new WeakMap();
 function Kt(s) {
-  let i = O.get(s);
-  return i || (i = /* @__PURE__ */ new Map(), O.set(s, i)), i;
+  let i = $.get(s);
+  return i || (i = /* @__PURE__ */ new Map(), $.set(s, i)), i;
 }
 function Qt(s, i) {
   var t;
-  return (t = O.get(s)) == null ? void 0 : t.get(i);
+  return (t = $.get(s)) == null ? void 0 : t.get(i);
 }
 function Zt(s, i, t) {
   Kt(s).set(i, t);
 }
 function Jt(s) {
-  const i = O.get(s);
+  const i = $.get(s);
   if (!i || i.size === 0) return "";
   let t = "";
   for (const { fn: e, value: n, unit: r } of i.values())
@@ -1974,7 +1974,7 @@ function se(s) {
   }
   return t[Math.floor(Math.random() * t.length)];
 }
-function B(s, i, t) {
+function P(s, i, t) {
   let e = s;
   return typeof e == "function" && (e = e(i, t)), typeof e == "string" && (e = se(e)), e;
 }
@@ -1998,6 +1998,11 @@ class oe {
     const o = t.ease ?? r.ease ?? "linear";
     D[o] || console.warn(`[six-js] Unknown ease "${o}", falling back to linear`), this.easeFn = D[o] || D.linear, this.setupProps(t, e, n);
   }
+  /** Danh sách phần tử DOM thực sự bị tween này chạm vào — dùng bởi overwrite-manager
+   *  để biết cần huỷ tween nào khi có tween mới ghi đè lên cùng target. */
+  get targetElements() {
+    return this.targets;
+  }
   setupProps(i, t, e) {
     const n = /* @__PURE__ */ new Set();
     for (const r in i) n.add(r);
@@ -2007,27 +2012,27 @@ class oe {
       let h = !1;
       for (const l of n) {
         let c, u;
-        t === "to" ? u = B(i[l], o, r) : t === "from" ? c = B(i[l], o, r) : (l in i && (u = B(i[l], o, r)), e && l in e && (c = B(e[l], o, r)));
+        t === "to" ? u = P(i[l], o, r) : t === "from" ? c = P(i[l], o, r) : (l in i && (u = P(i[l], o, r)), e && l in e && (c = P(e[l], o, r)));
         const p = Yt(l, u ?? c);
         if (p.type === "discrete") {
           p.apply(r, String(u ?? c));
           continue;
         }
         if (p.type === "color") {
-          const b = c !== void 0 ? et(String(c)) : p.getCurrent(r), S = u !== void 0 ? et(String(u)) : p.getCurrent(r);
-          d.push({ key: l, state: { kind: "color", start: b, end: S, apply: p.apply } });
+          const x = c !== void 0 ? et(String(c)) : p.getCurrent(r), S = u !== void 0 ? et(String(u)) : p.getCurrent(r);
+          d.push({ key: l, state: { kind: "color", start: x, end: S, apply: p.apply } });
           continue;
         }
         if (p.type === "complex") {
-          const b = c !== void 0 ? String(c) : p.getCurrent(r), S = u !== void 0 ? String(u) : p.getCurrent(r);
-          jt(b, S, l), d.push({ key: l, state: { kind: "complex", start: b, end: S, apply: p.apply } });
+          const x = c !== void 0 ? String(c) : p.getCurrent(r), S = u !== void 0 ? String(u) : p.getCurrent(r);
+          jt(x, S, l), d.push({ key: l, state: { kind: "complex", start: x, end: S, apply: p.apply } });
           continue;
         }
         const f = c !== void 0 ? z(c, p.defaultUnit) : p.getCurrent(r, l);
-        let g = u !== void 0 ? Ht(u, f.num, f.unit, p.defaultUnit) : p.getCurrent(r, l), m;
+        let g = u !== void 0 ? Ht(u, f.num, f.unit, p.defaultUnit) : p.getCurrent(r, l), b;
         if (!p.isTransform && g.unit && f.unit && g.unit !== f.unit) {
-          const b = te(r, l, `${g.num}${g.unit}`);
-          m = `${g.num}${g.unit}`, g = { num: b, unit: f.unit };
+          const x = te(r, l, `${g.num}${g.unit}`);
+          b = `${g.num}${g.unit}`, g = { num: x, unit: f.unit };
         }
         p.isTransform && (h = !0), d.push({
           key: l,
@@ -2040,7 +2045,7 @@ class oe {
             transformFn: p.transformFn,
             transformStoreKey: p.transformStoreKey,
             apply: p.apply,
-            snapEnd: m
+            snapEnd: b
           }
         });
       }
@@ -2082,86 +2087,115 @@ class oe {
       this.hasTransform[t] && (i.style.willChange = "");
     });
   }
-  /** Danh sách (target, property keys) mà tween này đang điều khiển — dùng cho overwrite */
-  getTouchedProperties() {
-    return this.targets.map((i, t) => ({
-      target: i,
-      keys: this.propStates[t].map((e) => e.key)
-    }));
-  }
 }
 class ae {
-  constructor(i, t = !0, e = {}) {
+  constructor(i, t = {}) {
     a(this, "animatable");
-    a(this, "options");
     a(this, "elapsed", 0);
     // giây, luôn trong [0, duration]
     a(this, "rate", 1);
     // 1 = xuôi, -1 = ngược
     a(this, "running", !1);
+    a(this, "dead", !1);
+    // đã kill() -> không thể play/reverse/seek lại được nữa
     a(this, "listeners", {});
-    a(this, "delayRemaining");
-    a(this, "repeatsLeft");
-    a(this, "repeatDelayRemaining", 0);
-    a(this, "hasStartedOnce", !1);
-    a(this, "timeScale");
+    a(this, "delay");
+    a(this, "repeat");
+    a(this, "repeatDelay");
+    a(this, "boomerang");
+    a(this, "repeatsDone", 0);
+    /** Giây còn lại đang trong pha "chờ" (delay ban đầu HOẶC repeatDelay giữa các lượt lặp).
+     *  > 0 nghĩa là animatable tạm thời không render giá trị mới, chỉ đếm ngược. */
+    a(this, "waitRemaining");
+    /** true nếu tick() ĐÃ từng bắn "start" (đúng 1 lần, trừ khi restart() reset lại). */
+    a(this, "hasFiredStart", !1);
+    /** Phân biệt "đang chạy ngược vì boomerang tự đảo" và "đang chạy ngược vì user gọi
+     *  .reverse() thủ công" — 2 trường hợp cần xử lý khác nhau khi elapsed chạm mốc 0
+     *  (xem onBackwardBoundary). */
+    a(this, "isBoomerangReverse", !1);
     a(this, "tick", (i, t) => {
-      const e = t / 1e3 * this.timeScale;
-      if (this.delayRemaining > 0) {
-        if (this.delayRemaining -= e, this.delayRemaining > 0) return;
-        this.elapsed += -this.delayRemaining * this.rate, this.delayRemaining = 0;
-      }
-      if (this.repeatDelayRemaining > 0) {
-        if (this.repeatDelayRemaining -= e, this.repeatDelayRemaining > 0) return;
-        this.repeatDelayRemaining = 0;
-      }
-      this.elapsed += e * this.rate;
+      const e = t / 1e3;
+      if (this.waitRemaining > 0) {
+        if (this.waitRemaining -= e, this.waitRemaining > 0) return;
+        const r = -this.waitRemaining;
+        this.waitRemaining = 0, this.fireStartIfNeeded(), this.elapsed += r * this.rate;
+      } else
+        this.fireStartIfNeeded(), this.elapsed += e * this.rate;
       const n = this.animatable.duration;
       if (this.elapsed >= n) {
-        this.elapsed = n, this.animatable.render(this.elapsed), this.emit("update"), this.handleBoundReached(!0);
+        this.elapsed = n, this.animatable.render(this.elapsed), this.emit("update"), this.onForwardBoundary();
         return;
       }
-      if (this.elapsed <= 0 && this.rate < 0) {
-        this.elapsed = 0, this.animatable.render(0), this.emit("update"), this.handleBoundReached(!1);
+      if (this.elapsed <= 0) {
+        this.elapsed = 0, this.animatable.render(this.elapsed), this.emit("update"), this.onBackwardBoundary();
         return;
       }
       this.animatable.render(this.elapsed), this.emit("update");
     });
-    this.animatable = i, this.options = e, this.delayRemaining = Math.max(0, e.delay ?? 0), this.repeatsLeft = e.repeat === -1 ? 1 / 0 : Math.max(0, e.repeat ?? 0), this.timeScale = e.speed ?? 1, t ? this.play() : this.animatable.render(0);
+    this.animatable = i, this.delay = Math.max(0, t.delay ?? 0), this.repeat = t.repeat ?? 0, this.repeatDelay = Math.max(0, t.repeatDelay ?? 0), this.boomerang = t.boomerang ?? !1, this.waitRemaining = this.delay, t.autoplay ?? !0 ? this.play() : this.animatable.render(0);
   }
-  /** forward=true: vừa chạm mốc duration. forward=false: vừa chạm mốc 0 khi đang chạy ngược. */
-  handleBoundReached(i) {
-    if (this.repeatsLeft > 0) {
-      this.repeatsLeft !== 1 / 0 && this.repeatsLeft--, this.emit("repeat"), this.options.repeatDelay && (this.repeatDelayRemaining = this.options.repeatDelay), this.options.yoyo ? this.rate = i ? -1 : 1 : (this.elapsed = 0, this.rate = 1);
+  /** Bắn onStart/emit("start") đúng 1 lần duy nhất mỗi vòng đời (reset lại bởi restart()).
+   *  Tách riêng vì cần gọi từ CẢ 2 nhánh của tick() (có delay hoặc không có delay). */
+  fireStartIfNeeded() {
+    var i, t;
+    this.hasFiredStart || (this.hasFiredStart = !0, (t = (i = this.animatable).onStart) == null || t.call(i), this.emit("start"));
+  }
+  /** Chạm mốc cuối (duration) trong khi đang phát XUÔI: xử lý repeat/boomerang hoặc hoàn tất. */
+  onForwardBoundary() {
+    if (!(this.repeat === -1 || this.repeatsDone < this.repeat)) {
+      this.stop(), this.emit("complete");
       return;
     }
-    this.stop(), this.emit(i ? "complete" : "reverseComplete");
+    this.repeatsDone++, this.emit("repeat"), this.boomerang ? (this.rate = -1, this.isBoomerangReverse = !0) : (this.elapsed = 0, this.rate = 1), this.repeatDelay > 0 && (this.waitRemaining = this.repeatDelay);
+  }
+  /** Chạm mốc đầu (0). Có 2 nguồn gốc khác nhau cần phân biệt: boomerang tự đảo, hay
+   *  user chủ động gọi .reverse() để tua ngược thủ công (không liên quan gì tới
+   *  boomerang/repeat). */
+  onBackwardBoundary() {
+    if (this.isBoomerangReverse) {
+      if (!(this.repeat === -1 || this.repeatsDone < this.repeat)) {
+        this.stop(), this.emit("complete");
+        return;
+      }
+      this.repeatsDone++, this.emit("repeat"), this.rate = 1, this.isBoomerangReverse = !1, this.repeatDelay > 0 && (this.waitRemaining = this.repeatDelay);
+      return;
+    }
+    this.stop(), this.emit("reverseComplete");
   }
   play() {
     var i, t;
-    return this.running ? this : (this.running = !0, this.rate = this.rate < 0 ? this.rate : 1, (t = (i = this.animatable).onStart) == null || t.call(i), C.add(this.tick), this.hasStartedOnce || (this.hasStartedOnce = !0, this.emit("start")), this);
+    return this.dead || this.running ? this : (this.running = !0, this.rate = this.rate < 0 ? this.rate : 1, v.add(this.tick), this.waitRemaining <= 0 && ((t = (i = this.animatable).onStart) == null || t.call(i)), this);
   }
+  /** Tua ngược thủ công (khác với boomerang tự động) — dùng vd cho hiệu ứng hover-out. */
   reverse() {
     var i, t;
-    return this.rate = -1, this.running || (this.running = !0, (t = (i = this.animatable).onStart) == null || t.call(i), C.add(this.tick)), this;
+    return this.dead ? this : (this.rate = -1, this.isBoomerangReverse = !1, this.running || (this.running = !0, (t = (i = this.animatable).onStart) == null || t.call(i), v.add(this.tick)), this);
   }
   pause() {
-    return this.running ? (this.running = !1, C.remove(this.tick), this) : this;
+    return this.dead || !this.running ? this : (this.running = !1, v.remove(this.tick), this);
   }
   stop() {
     var i, t;
-    this.running = !1, C.remove(this.tick), (t = (i = this.animatable).onComplete) == null || t.call(i);
+    this.running = !1, v.remove(this.tick), (t = (i = this.animatable).onComplete) == null || t.call(i);
   }
-  /** Tua tới thời điểm bất kỳ (giây), không phụ thuộc trạng thái đang chạy hay không */
+  /** Tua tới thời điểm bất kỳ (giây) trong 1 lượt hiện tại, không phụ thuộc trạng thái
+   *  đang chạy hay không. Không tính tới nhiều vòng repeat (chỉ trong [0, duration]). */
   seek(i) {
-    return this.elapsed = Math.max(0, Math.min(i, this.animatable.duration)), this.animatable.render(this.elapsed), this.emit("update"), this;
+    return this.dead ? this : (this.elapsed = Math.max(0, Math.min(i, this.animatable.duration)), this.animatable.render(this.elapsed), this.emit("update"), this);
   }
   restart() {
-    return this.elapsed = 0, this.rate = 1, this.delayRemaining = Math.max(0, this.options.delay ?? 0), this.repeatsLeft = this.options.repeat === -1 ? 1 / 0 : Math.max(0, this.options.repeat ?? 0), this.repeatDelayRemaining = 0, this.hasStartedOnce = !1, this.animatable.render(0), this.play(), this;
+    return this.dead ? this : (this.elapsed = 0, this.rate = 1, this.repeatsDone = 0, this.hasFiredStart = !1, this.isBoomerangReverse = !1, this.waitRemaining = this.delay, this.animatable.render(0), this.play(), this);
   }
-  /** Dừng hẳn, gỡ khỏi ticker, không bắn onComplete (dùng cho overwrite/kill) */
+  /** Đưa tween về đúng trạng thái BAN ĐẦU (elapsed=0, hướng xuôi, đếm repeat/delay reset
+   *  lại từ đầu) và DỪNG LUÔN, khác với restart() (reset xong tự play() ngay). Dùng khi
+   *  muốn "rewind" 1 tween về trạng thái nghỉ mà không muốn nó chạy lại ngay lập tức. */
+  reset() {
+    return this.dead ? this : (this.pause(), this.elapsed = 0, this.rate = 1, this.repeatsDone = 0, this.hasFiredStart = !1, this.isBoomerangReverse = !1, this.waitRemaining = this.delay, this.animatable.render(0), this.emit("update"), this);
+  }
+  /** Dừng vĩnh viễn — sau khi kill(), mọi lệnh play/reverse/seek/restart đều là no-op.
+   *  Dùng nội bộ bởi overwrite-manager để huỷ tween cũ khi bị tween mới ghi đè. */
   kill() {
-    this.running = !1, C.remove(this.tick);
+    return this.dead ? this : (this.dead = !0, this.pause(), this);
   }
   on(i, t) {
     return this.listeners[i] || (this.listeners[i] = /* @__PURE__ */ new Set()), this.listeners[i].add(t), this;
@@ -2183,18 +2217,15 @@ class ae {
   get isRunning() {
     return this.running;
   }
-  get speed() {
-    return this.timeScale;
-  }
-  setSpeed(i) {
-    return i <= 0 ? (console.warn(`[six-js] speed must be > 0, got ${i}, ignoring`), this) : (this.timeScale = i, this);
+  get isDead() {
+    return this.dead;
   }
 }
-function pt() {
+function ft() {
   var s;
   return ((s = window.visualViewport) == null ? void 0 : s.height) ?? window.innerHeight;
 }
-function $(s, i) {
+function O(s, i) {
   return s.ratio * i + s.offsetPx;
 }
 function st(s) {
@@ -2228,7 +2259,7 @@ function nt(s, i, t) {
       triggerLabel: s
     };
   }
-  const [n = "top", r = "top"] = s.trim().split(/\s+/), o = st(n), d = st(r), h = i.getBoundingClientRect(), c = window.scrollY + h.top + $(o, h.height), u = $(d, pt());
+  const [n = "top", r = "top"] = s.trim().split(/\s+/), o = st(n), d = st(r), h = i.getBoundingClientRect(), c = window.scrollY + h.top + O(o, h.height), u = O(d, ft());
   return {
     scrollY: c - u,
     viewportSpec: d,
@@ -2280,7 +2311,7 @@ class he {
     a(this, "onResizeBound", () => this.recalc());
     a(this, "tickerBound", (i, t) => this.tickSmooth(t));
     var n;
-    this.triggerEl = i, this.playable = t, this.options = e, e.debug && this.setupDebugMarkers(), this.recalc(), window.addEventListener("scroll", this.onScrollBound, { passive: !0 }), window.addEventListener("resize", this.onResizeBound), (n = window.visualViewport) == null || n.addEventListener("resize", this.onResizeBound), this.setupResizeObserver(), typeof e.sync == "number" && C.add(this.tickerBound), this.update();
+    this.triggerEl = i, this.playable = t, this.options = e, e.debug && this.setupDebugMarkers(), this.recalc(), window.addEventListener("scroll", this.onScrollBound, { passive: !0 }), window.addEventListener("resize", this.onResizeBound), (n = window.visualViewport) == null || n.addEventListener("resize", this.onResizeBound), this.setupResizeObserver(), typeof e.sync == "number" && v.add(this.tickerBound), this.update();
   }
   /**
    * Ngoài "resize" của window, kích thước trang có thể đổi vì lý do khác:
@@ -2312,9 +2343,9 @@ class he {
     }));
   }
   update() {
-    var h, l, c, u, p, f, g, m;
+    var h, l, c, u, p, f, g, b;
     const i = window.scrollY, t = this.computeProgress(), e = i >= this.startY && i <= this.endY, n = i >= this.lastScrollY, r = e && !this.wasInside, o = !e && this.wasInside;
-    r ? n ? (l = (h = this.options).onEnter) == null || l.call(h) : (u = (c = this.options).onEnterBack) == null || u.call(c) : o && (n ? (f = (p = this.options).onLeave) == null || f.call(p) : (m = (g = this.options).onLeaveBack) == null || m.call(g)), this.wasInside = e, this.lastScrollY = i, this.options.pin && this.updatePin(e), this.updateTriggerMarkerLabelFlip(i);
+    r ? n ? (l = (h = this.options).onEnter) == null || l.call(h) : (u = (c = this.options).onEnterBack) == null || u.call(c) : o && (n ? (f = (p = this.options).onLeave) == null || f.call(p) : (b = (g = this.options).onLeaveBack) == null || b.call(g)), this.wasInside = e, this.lastScrollY = i, this.options.pin && this.updatePin(e), this.updateTriggerMarkerLabelFlip(i);
     const d = this.options.sync ?? !1;
     d === !1 ? r && n && this.playable.restart() : d === !0 && this.playable.seek(t * this.playable.duration);
   }
@@ -2420,7 +2451,7 @@ class he {
     }
   }
   updateDebugMarkers() {
-    const i = pt(), t = window.scrollY, e = $(this.startViewportSpec, i), n = $(this.endViewportSpec, i), r = Math.abs(e - n) < rt;
+    const i = ft(), t = window.scrollY, e = O(this.startViewportSpec, i), n = O(this.endViewportSpec, i), r = Math.abs(e - n) < rt;
     if (this.startMarker && (this.setMarkerPosition(this.startMarker, e, e, 0), this.startMarker.label.textContent = `start: "${this.startViewportLabel}"`), this.endMarker && (this.setMarkerPosition(this.endMarker, n, n, r ? 1 : 0), this.endMarker.label.textContent = `end: "${this.endViewportLabel}"`), this.startTriggerMarker && (this.setMarkerPosition(this.startTriggerMarker, this.startTriggerY, this.startTriggerY - t, 0), this.startTriggerMarker.label.textContent = `start: "${this.startTriggerLabel}"`), this.endTriggerMarker) {
       const o = this.triggerLabelsCollide ? 1 : 0;
       this.setMarkerPosition(this.endTriggerMarker, this.endTriggerY, this.endTriggerY - t, o), this.endTriggerMarker.label.textContent = `end: "${this.endTriggerLabel}"`;
@@ -2432,7 +2463,25 @@ class he {
   }
   destroy() {
     var i, t;
-    window.removeEventListener("scroll", this.onScrollBound), window.removeEventListener("resize", this.onResizeBound), (i = window.visualViewport) == null || i.removeEventListener("resize", this.onResizeBound), (t = this.resizeObserver) == null || t.disconnect(), this.resizeObserver = null, C.remove(this.tickerBound), this.unpinElement(), this.removeDebugMarkers();
+    window.removeEventListener("scroll", this.onScrollBound), window.removeEventListener("resize", this.onResizeBound), (i = window.visualViewport) == null || i.removeEventListener("resize", this.onResizeBound), (t = this.resizeObserver) == null || t.disconnect(), this.resizeObserver = null, v.remove(this.tickerBound), this.unpinElement(), this.removeDebugMarkers();
+  }
+}
+const ot = /* @__PURE__ */ new WeakMap();
+let at = !1;
+function ce(s, i, t) {
+  if (t) {
+    t === "auto" && !at && (at = !0, console.warn(
+      '[six-js] overwrite: "auto" (chỉ huỷ property trùng) chưa được hỗ trợ đầy đủ, tạm thời xử lý như overwrite: true (huỷ toàn bộ tween cũ trên cùng target).'
+    ));
+    for (const e of s) {
+      let n = ot.get(e);
+      n || (n = /* @__PURE__ */ new Set(), ot.set(e, n));
+      for (const o of n)
+        o !== i && o.kill();
+      n.clear(), n.add(i);
+      const r = () => n.delete(i);
+      i.on("complete", r), i.on("reverseComplete", r);
+    }
   }
 }
 const U = {
@@ -2449,11 +2498,11 @@ const U = {
   skewX: 0,
   skewY: 0
 }, F = 180 / Math.PI;
-function ce(s) {
-  const i = window.getComputedStyle(s).transform;
-  return !i || i === "none" ? { ...U } : i.startsWith("matrix3d") ? ue(i) : de(i);
-}
 function de(s) {
+  const i = window.getComputedStyle(s).transform;
+  return !i || i === "none" ? { ...U } : i.startsWith("matrix3d") ? pe(i) : ue(i);
+}
+function ue(s) {
   const i = s.match(/matrix\(([^)]+)\)/);
   if (!i) return { ...U };
   const t = i[1].split(",").map((p) => parseFloat(p.trim())), [e, n, r, o, d, h] = t, l = Math.sqrt(e * e + n * n), c = Math.sqrt(r * r + o * o), u = Math.atan2(n, e) * F;
@@ -2472,20 +2521,20 @@ function de(s) {
     skewY: 0
   };
 }
-function ue(s) {
+function pe(s) {
   const i = s.match(/matrix3d\(([^)]+)\)/);
   if (!i) return { ...U };
-  const t = i[1].split(",").map((x) => parseFloat(x.trim())), e = t[0], n = t[1], r = t[2], o = t[4], d = t[5], h = t[6];
+  const t = i[1].split(",").map((m) => parseFloat(m.trim())), e = t[0], n = t[1], r = t[2], o = t[4], d = t[5], h = t[6];
   t[8], t[9];
-  const l = t[10], c = t[12], u = t[13], p = t[14], f = Math.sqrt(e * e + n * n + r * r), g = Math.sqrt(o * o + d * d + h * h), m = Math.atan2(n, e) * F, b = Math.atan2(-r, Math.sqrt(h * h + l * l)) * F, S = Math.atan2(h, l) * F;
+  const l = t[10], c = t[12], u = t[13], p = t[14], f = Math.sqrt(e * e + n * n + r * r), g = Math.sqrt(o * o + d * d + h * h), b = Math.atan2(n, e) * F, x = Math.atan2(-r, Math.sqrt(h * h + l * l)) * F, S = Math.atan2(h, l) * F;
   return {
     x: c,
     y: u,
     z: p,
-    rotate: m,
+    rotate: b,
     rotateX: S,
-    rotateY: b,
-    rotateZ: m,
+    rotateY: x,
+    rotateZ: b,
     scale: f,
     scaleX: f,
     scaleY: g,
@@ -2493,7 +2542,7 @@ function ue(s) {
     skewY: 0
   };
 }
-function k(s, i, t, e = s) {
+function C(s, i, t, e = s) {
   return {
     type: "numeric",
     isTransform: !0,
@@ -2502,27 +2551,27 @@ function k(s, i, t, e = s) {
     defaultUnit: i,
     getCurrent(n) {
       const r = Qt(n, e);
-      return r ? { num: r.value, unit: r.unit } : { num: ce(n)[t], unit: i };
+      return r ? { num: r.value, unit: r.unit } : { num: de(n)[t], unit: i };
     },
     apply() {
     }
   };
 }
-y("x", k("translateX", "px", "x"));
-y("y", k("translateY", "px", "y"));
-y("z", k("translateZ", "px", "z"));
-y("translateX", k("translateX", "px", "x", "translateX-2"));
-y("translateY", k("translateY", "px", "y", "translateY-2"));
-y("rotate", k("rotate", "deg", "rotate"));
-y("rotateX", k("rotateX", "deg", "rotateX"));
-y("rotateY", k("rotateY", "deg", "rotateY"));
-y("rotateZ", k("rotateZ", "deg", "rotateZ"));
-y("scale", k("scale", "", "scale"));
-y("scaleX", k("scaleX", "", "scaleX"));
-y("scaleY", k("scaleY", "", "scaleY"));
-y("skewX", k("skewX", "deg", "skewX"));
-y("skewY", k("skewY", "deg", "skewY"));
-function E(s, i) {
+y("x", C("translateX", "px", "x"));
+y("y", C("translateY", "px", "y"));
+y("z", C("translateZ", "px", "z"));
+y("translateX", C("translateX", "px", "x", "translateX-2"));
+y("translateY", C("translateY", "px", "y", "translateY-2"));
+y("rotate", C("rotate", "deg", "rotate"));
+y("rotateX", C("rotateX", "deg", "rotateX"));
+y("rotateY", C("rotateY", "deg", "rotateY"));
+y("rotateZ", C("rotateZ", "deg", "rotateZ"));
+y("scale", C("scale", "", "scale"));
+y("scaleX", C("scaleX", "", "scaleX"));
+y("scaleY", C("scaleY", "", "scaleY"));
+y("skewX", C("skewX", "deg", "skewX"));
+y("skewY", C("skewY", "deg", "skewY"));
+function T(s, i) {
   return {
     type: "numeric",
     isTransform: !1,
@@ -2536,24 +2585,23 @@ function E(s, i) {
     }
   };
 }
-y("width", E("width", "px"));
-y("height", E("height", "px"));
-y("top", E("top", "px"));
-y("left", E("left", "px"));
-y("right", E("right", "px"));
-y("bottom", E("bottom", "px"));
-y("borderRadius", E("borderRadius", "px"));
-y("borderWidth", E("borderWidth", "px"));
-y("opacity", E("opacity", ""));
-y("fontSize", E("fontSize", "px"));
-y("letterSpacing", E("letterSpacing", "px"));
+y("width", T("width", "px"));
+y("height", T("height", "px"));
+y("top", T("top", "px"));
+y("left", T("left", "px"));
+y("right", T("right", "px"));
+y("bottom", T("bottom", "px"));
+y("borderWidth", T("borderWidth", "px"));
+y("opacity", T("opacity", ""));
+y("fontSize", T("fontSize", "px"));
+y("letterSpacing", T("letterSpacing", "px"));
 function q(s) {
   return {
     type: "color",
     cssKey: s,
     getCurrent(i) {
       const t = window.getComputedStyle(i)[s];
-      return ut(t);
+      return pt(t);
     },
     apply(i, t) {
       i.style[s] = Gt(t);
@@ -2564,7 +2612,7 @@ y("backgroundColor", q("backgroundColor"));
 y("color", q("color"));
 y("borderColor", q("borderColor"));
 y("background", q("backgroundColor"));
-function pe(s) {
+function fe(s) {
   return {
     type: "discrete",
     cssKey: s,
@@ -2573,7 +2621,7 @@ function pe(s) {
     }
   };
 }
-const fe = [
+const ge = [
   "display",
   "position",
   "visibility",
@@ -2597,8 +2645,8 @@ const fe = [
   "clear",
   "objectFit"
 ];
-fe.forEach((s) => y(s, pe(s)));
-function ft(s) {
+ge.forEach((s) => y(s, fe(s)));
+function K(s) {
   return {
     type: "complex",
     cssKey: s,
@@ -2611,61 +2659,57 @@ function ft(s) {
     }
   };
 }
-y("boxShadow", ft("boxShadow"));
-y("filter", ft("filter"));
+y("boxShadow", K("boxShadow"));
+y("filter", K("filter"));
+y("borderRadius", K("borderRadius"));
 xt();
-let ot = !1;
-function ge() {
-  ot || (qt(), ot = !0);
+let lt = !1;
+function me() {
+  lt || (qt(), lt = !0);
 }
-function me(s) {
+function be(s) {
   return typeof s == "string" ? document.querySelector(s) : Array.isArray(s) ? s[0] ?? null : s;
 }
-const at = /* @__PURE__ */ new WeakMap();
-function be(s, i) {
-  for (const { target: t, keys: e } of s.getTouchedProperties()) {
-    let n = at.get(t);
-    n || (n = /* @__PURE__ */ new Map(), at.set(t, n));
-    for (const r of e) {
-      const o = n.get(r);
-      o && o !== i && o.kill(), n.set(r, i);
-    }
-  }
-}
-function K(s, i, t, e) {
+function Q(s, i, t, e) {
   const {
     onScroll: n,
     delay: r,
-    repeat: o,
-    repeatDelay: d,
-    reverse: h,
-    overwrite: l,
-    pause: c,
-    speed: u,
-    onStart: p,
-    onUpdate: f,
-    onComplete: g,
-    onRepeat: m,
+    paused: o,
+    repeat: d,
+    repeatDelay: h,
+    boomerang: l,
+    overwrite: c,
+    onStart: u,
+    onUpdate: p,
+    onComplete: f,
+    onRepeat: g,
     onReverseComplete: b,
-    ...S
-  } = i, x = new oe(s, S, t, e), w = { delay: r, repeat: o, repeatDelay: d, yoyo: h, speed: u }, v = new ae(x, !1, w);
-  if (p && v.on("start", p), f && v.on("update", f), g && v.on("complete", g), m && v.on("repeat", m), b && v.on("reverseComplete", b), l !== !1 && be(x, v), n) {
-    const Q = me(n.target ?? s);
-    Q ? new he(Q, v, n) : console.warn("[six-js] onScroll: trigger element not found");
-  } else c || v.play();
-  return v;
+    ...x
+  } = i, S = new oe(s, x, t, e), m = new ae(S, {
+    // Có onScroll -> luôn không autoplay (scroll điều khiển). Không thì theo `paused`.
+    autoplay: n ? !1 : !o,
+    delay: r,
+    repeat: d,
+    repeatDelay: h,
+    boomerang: l
+  });
+  if (u && m.on("start", u), p && m.on("update", p), f && m.on("complete", f), g && m.on("repeat", g), b && m.on("reverseComplete", b), ce(S.targetElements, m, c), n) {
+    const w = be(n.target ?? s);
+    w ? new he(w, m, n) : console.warn("[six-js] onScroll: trigger element not found");
+  }
+  return m;
 }
 function xe(s, i) {
-  return K(s, i, "to");
+  return Q(s, i, "to");
 }
 function ye(s, i) {
-  return K(s, i, "from");
+  return Q(s, i, "from");
 }
 function Se(s, i, t) {
-  return K(s, t, "fromTo", i);
+  return Q(s, t, "fromTo", i);
 }
 const Ce = {
-  initElement: ge,
+  initElement: me,
   to: xe,
   from: ye,
   fromTo: Se,

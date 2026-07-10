@@ -20,6 +20,25 @@ import { getDefaults } from "./defaults";
 export interface TweenVars {
   duration?: number;
   ease?: EasingType;
+  /** Giây chờ trước khi chạy lần đầu (không lặp lại mỗi vòng repeat). */
+  delay?: number;
+  /** true: KHÔNG tự chạy khi tạo tween, chờ gọi .play() thủ công. Giống GSAP `paused`. */
+  paused?: boolean;
+  /** Số lần lặp SAU lần chạy đầu. -1 = vô hạn. */
+  repeat?: number;
+  /** Giây tạm dừng giữa các lượt lặp. */
+  repeatDelay?: number;
+  /** Tương đương yoyo của GSAP: mỗi lượt lặp tự đảo chiều thay vì nhảy về đầu. Đặt tên
+   *  "boomerang" để KHÔNG bị nhầm với method .reverse() (tua ngược thủ công, khác hẳn). */
+  boomerang?: boolean;
+  /** true: huỷ toàn bộ tween khác đang chạy trên cùng target. "auto": (tạm thời xử lý
+   *  giống true — xem ghi chú trong overwrite-manager.ts) chỉ huỷ property trùng nhau. */
+  overwrite?: boolean | "auto";
+  onStart?: () => void;
+  onUpdate?: () => void;
+  onComplete?: () => void;
+  onRepeat?: () => void;
+  onReverseComplete?: () => void;
   [key: string]: any;
 }
 
@@ -69,6 +88,12 @@ export class SxTween implements Animatable {
   private easeFn: (t: number) => number;
   private propStates: { key: string; state: PropState }[][] = [];
   private hasTransform: boolean[] = [];
+
+  /** Danh sách phần tử DOM thực sự bị tween này chạm vào — dùng bởi overwrite-manager
+   *  để biết cần huỷ tween nào khi có tween mới ghi đè lên cùng target. */
+  get targetElements(): readonly HTMLElement[] {
+    return this.targets;
+  }
 
   constructor(
     target: string | HTMLElement | HTMLElement[],
@@ -260,13 +285,5 @@ export class SxTween implements Animatable {
         target.style.willChange = "";
       }
     });
-  }
-
-  /** Danh sách (target, property keys) mà tween này đang điều khiển — dùng cho overwrite */
-  getTouchedProperties(): { target: HTMLElement; keys: string[] }[] {
-    return this.targets.map((target, index) => ({
-      target,
-      keys: this.propStates[index].map((s) => s.key),
-    }));
   }
 }

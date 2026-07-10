@@ -2,45 +2,73 @@
 import { ticker } from "./ticker";
 import { Animatable } from "./animatable";
 
-export type PlayableEvent = "complete" | "start" | "update" | "repeat" | "reverseComplete";
+export type PlayableEvent = "start" | "update" | "complete" | "repeat" | "reverseComplete";
 
 export interface PlayableOptions {
-  /** Giây, chờ trước khi bắt đầu chạy thật sự */
+  /** Tự chạy ngay khi tạo (mặc định true). Đặt false khi có onScroll điều khiển thủ công. */
+  autoplay?: boolean;
+  /** Số giây chờ TRƯỚC KHI bắt đầu chạy lần đầu tiên. Chỉ áp dụng 1 lần duy nhất
+   *  (không lặp lại mỗi vòng repeat) — đúng ngữ nghĩa `delay` của GSAP. */
   delay?: number;
-  /** Số lần lặp THÊM sau lần chạy đầu tiên. -1 = vô hạn. Mặc định 0 (không lặp). */
+  /** Số lần lặp lại SAU lần chạy đầu tiên. -1 = lặp vô hạn. Mặc định 0 (không lặp). */
   repeat?: number;
-  /** Giây, khoảng nghỉ giữa các lần lặp */
+  /** Số giây tạm dừng GIỮA các lượt lặp (không áp dụng cho delay ban đầu, không có
+   *  khoảng chờ thừa sau lượt lặp CUỐI CÙNG khi repeat hữu hạn). */
   repeatDelay?: number;
-  /** true: mỗi lần lặp đảo chiều (tương đương yoyo GSAP). false: mỗi lần lặp nhảy về đầu chạy lại xuôi. */
-  yoyo?: boolean;
-  /** Hệ số tốc độ phát lại (tương đương timeScale GSAP). 1 = bình thường, 2 = nhanh gấp đôi, 0.5 = chậm 1 nửa. Mặc định 1. */
-  speed?: number;
+  /** true: tương đương yoyo của GSAP — mỗi lượt lặp tự đảo chiều (0->duration->0->...)
+   *  thay vì nhảy về đầu và chạy xuôi lại. Đặt tên "boomerang" (không phải "reverse")
+   *  để KHÔNG bị nhầm với method .reverse() (tua ngược thủ công, khái niệm khác hẳn). */
+  boomerang?: boolean;
 }
 
+/**
+ * Playable điều khiển thời gian (play/pause/seek/reverse/repeat) cho 1 Animatable
+ * (SxTween, sau này có thể là SxTimeline). Animatable chỉ biết render(localTime).
+ *
+ * Vòng đời 1 lượt phát đầy đủ:
+ *   [delay] -> render 0..duration -> (nếu còn repeat) [repeatDelay] -> lặp lại -> ... -> complete
+ *
+ * Có 2 tầng callback tách biệt:
+ * - animatable.onStart()/onComplete(): hook NỘI BỘ của chính Animatable (vd SxTween dùng
+ *   để bật/tắt will-change), gọi lại mỗi lần thật sự bắt đầu chạy (kể cả resume sau pause).
+ * - emit("start"|"update"|"complete"|"repeat"|"reverseComplete"): sự kiện dành cho NGƯỜI
+ *   DÙNG (map từ onStart/onUpdate/onComplete/onRepeat/onReverseComplete trong TweenVars),
+ *   "start" chỉ bắn đúng 1 LẦN DUY NHẤT trong toàn bộ vòng đời (trừ khi restart()).
+ */
 export class Playable {
   private animatable: Animatable;
-  private options: PlayableOptions;
-
   private elapsed = 0; // giây, luôn trong [0, duration]
   private rate = 1; // 1 = xuôi, -1 = ngược
   private running = false;
+  private dead = false; // đã kill() -> không thể play/reverse/seek lại được nữa
   private listeners: Partial<Record<PlayableEvent, Set<() => void>>> = {};
 
-  private delayRemaining: number;
-  private repeatsLeft: number;
-  private repeatDelayRemaining = 0;
-  private hasStartedOnce = false;
-  private timeScale: number;
+  private readonly delay: number;
+  private readonly repeat: number;
+  private readonly repeatDelay: number;
+  private readonly boomerang: boolean;
 
-  constructor(animatable: Animatable, autoplay = true, options: PlayableOptions = {}) {
+  private repeatsDone = 0;
+  /** Giây còn lại đang trong pha "chờ" (delay ban đầu HOẶC repeatDelay giữa các lượt lặp).
+   *  > 0 nghĩa là animatable tạm thời không render giá trị mới, chỉ đếm ngược. */
+  private waitRemaining: number;
+  /** true nếu tick() ĐÃ từng bắn "start" (đúng 1 lần, trừ khi restart() reset lại). */
+  private hasFiredStart = false;
+  /** Phân biệt "đang chạy ngược vì boomerang tự đảo" và "đang chạy ngược vì user gọi
+   *  .reverse() thủ công" — 2 trường hợp cần xử lý khác nhau khi elapsed chạm mốc 0
+   *  (xem onBackwardBoundary). */
+  private isBoomerangReverse = false;
+
+  constructor(animatable: Animatable, options: PlayableOptions = {}) {
     this.animatable = animatable;
-    this.options = options;
 
-    this.delayRemaining = Math.max(0, options.delay ?? 0);
-    this.repeatsLeft = options.repeat === -1 ? Infinity : Math.max(0, options.repeat ?? 0);
-    this.timeScale = options.speed ?? 1;
+    this.delay = Math.max(0, options.delay ?? 0);
+    this.repeat = options.repeat ?? 0;
+    this.repeatDelay = Math.max(0, options.repeatDelay ?? 0);
+    this.boomerang = options.boomerang ?? false;
+    this.waitRemaining = this.delay;
 
-    if (autoplay) {
+    if (options.autoplay ?? true) {
       this.play();
     } else {
       this.animatable.render(0);
@@ -48,43 +76,44 @@ export class Playable {
   }
 
   private tick = (_time: number, deltaMs: number) => {
-    const deltaSeconds = (deltaMs / 1000) * this.timeScale;
+    const deltaSec = deltaMs / 1000;
 
-    // Giai đoạn delay: chưa render/animate gì, chỉ đếm ngược
-    if (this.delayRemaining > 0) {
-      this.delayRemaining -= deltaSeconds;
+    if (this.waitRemaining > 0) {
+      this.waitRemaining -= deltaSec;
 
-      if (this.delayRemaining > 0) return;
+      if (this.waitRemaining > 0) return; // vẫn còn đang chờ (delay/repeatDelay), chưa làm gì thêm
 
-      // Delay vừa hết -> phần dư (âm) dùng bù luôn vào elapsed cho mượt, không mất 1 frame
-      this.elapsed += -this.delayRemaining * this.rate;
-      this.delayRemaining = 0;
+      // Hết giờ chờ ngay trong frame này -> áp phần dư (overflow) luôn vào animation để
+      // không bị "khựng" mất 1 frame khi delay/repeatDelay kết thúc giữa chừng 1 tick.
+      const overflowSec = -this.waitRemaining;
+      this.waitRemaining = 0;
+
+      this.fireStartIfNeeded();
+      this.elapsed += overflowSec * this.rate;
+    } else {
+      // Không (hoặc không còn) trong pha chờ -> đây có thể là tick ĐẦU TIÊN của 1 tween
+      // không có delay (trường hợp mặc định, delay=0) -> vẫn phải kiểm tra hasFiredStart
+      // ở đây, KHÔNG chỉ trong nhánh chờ ở trên (bug cũ: onStart không bao giờ bắn khi
+      // không truyền delay, vì waitRemaining luôn = 0 nên không bao giờ vào nhánh if trên).
+      this.fireStartIfNeeded();
+      this.elapsed += deltaSec * this.rate;
     }
 
-    // Giai đoạn repeatDelay: đang nghỉ giữa 2 lần lặp, không animate tiếp
-    if (this.repeatDelayRemaining > 0) {
-      this.repeatDelayRemaining -= deltaSeconds;
-      if (this.repeatDelayRemaining > 0) return;
-      this.repeatDelayRemaining = 0;
-    }
+    const dur = this.animatable.duration;
 
-    this.elapsed += deltaSeconds * this.rate;
-
-    const duration = this.animatable.duration;
-
-    if (this.elapsed >= duration) {
-      this.elapsed = duration;
+    if (this.elapsed >= dur) {
+      this.elapsed = dur;
       this.animatable.render(this.elapsed);
       this.emit("update");
-      this.handleBoundReached(true);
+      this.onForwardBoundary();
       return;
     }
 
-    if (this.elapsed <= 0 && this.rate < 0) {
+    if (this.elapsed <= 0) {
       this.elapsed = 0;
-      this.animatable.render(0);
+      this.animatable.render(this.elapsed);
       this.emit("update");
-      this.handleBoundReached(false);
+      this.onBackwardBoundary();
       return;
     }
 
@@ -92,50 +121,98 @@ export class Playable {
     this.emit("update");
   };
 
-  /** forward=true: vừa chạm mốc duration. forward=false: vừa chạm mốc 0 khi đang chạy ngược. */
-  private handleBoundReached(forward: boolean): void {
-    if (this.repeatsLeft > 0) {
-      if (this.repeatsLeft !== Infinity) this.repeatsLeft--;
+  /** Bắn onStart/emit("start") đúng 1 lần duy nhất mỗi vòng đời (reset lại bởi restart()).
+   *  Tách riêng vì cần gọi từ CẢ 2 nhánh của tick() (có delay hoặc không có delay). */
+  private fireStartIfNeeded(): void {
+    if (this.hasFiredStart) return;
 
-      this.emit("repeat");
+    this.hasFiredStart = true;
+    this.animatable.onStart?.();
+    this.emit("start");
+  }
 
-      if (this.options.repeatDelay) {
-        this.repeatDelayRemaining = this.options.repeatDelay;
-      }
+  /** Chạm mốc cuối (duration) trong khi đang phát XUÔI: xử lý repeat/boomerang hoặc hoàn tất. */
+  private onForwardBoundary(): void {
+    const canRepeat = this.repeat === -1 || this.repeatsDone < this.repeat;
 
-      if (this.options.yoyo) {
-        this.rate = forward ? -1 : 1; // đảo chiều, tiếp tục chạy
-      } else {
-        this.elapsed = 0; // không yoyo -> nhảy về đầu, chạy lại xuôi
-        this.rate = 1;
-      }
-
-      return; // vẫn đang running, không stop
+    if (!canRepeat) {
+      this.stop();
+      this.emit("complete");
+      return;
     }
 
+    this.repeatsDone++;
+    this.emit("repeat");
+
+    if (this.boomerang) {
+      // Boomerang: đảo hướng ngay tại duration, KHÔNG nhảy elapsed về 0 -> lượt kế tiếp
+      // tự chạy ngược mượt mà từ duration về 0.
+      this.rate = -1;
+      this.isBoomerangReverse = true;
+    } else {
+      // Không boomerang: nhảy lại đầu, giữ nguyên hướng xuôi (loop kiểu "restart").
+      this.elapsed = 0;
+      this.rate = 1;
+    }
+
+    if (this.repeatDelay > 0) {
+      this.waitRemaining = this.repeatDelay;
+    }
+  }
+
+  /** Chạm mốc đầu (0). Có 2 nguồn gốc khác nhau cần phân biệt: boomerang tự đảo, hay
+   *  user chủ động gọi .reverse() để tua ngược thủ công (không liên quan gì tới
+   *  boomerang/repeat). */
+  private onBackwardBoundary(): void {
+    if (this.isBoomerangReverse) {
+      const canRepeat = this.repeat === -1 || this.repeatsDone < this.repeat;
+
+      if (!canRepeat) {
+        this.stop();
+        this.emit("complete");
+        return;
+      }
+
+      this.repeatsDone++;
+      this.emit("repeat");
+      this.rate = 1; // boomerang: lượt kế tiếp chạy xuôi trở lại
+      this.isBoomerangReverse = false;
+
+      if (this.repeatDelay > 0) {
+        this.waitRemaining = this.repeatDelay;
+      }
+      return;
+    }
+
+    // User chủ động .reverse() và tua hết về 0 -> coi là "hoàn tất theo chiều ngược",
+    // KHÔNG áp dụng repeat/boomerang (đây là override thủ công, không phải 1 phần của vòng lặp).
     this.stop();
-    this.emit(forward ? "complete" : "reverseComplete");
+    this.emit("reverseComplete");
   }
 
   play(): this {
-    if (this.running) return this;
+    if (this.dead || this.running) return this;
 
     this.running = true;
     this.rate = this.rate < 0 ? this.rate : 1;
-
-    this.animatable.onStart?.();
     ticker.add(this.tick);
 
-    if (!this.hasStartedOnce) {
-      this.hasStartedOnce = true;
-      this.emit("start");
+    // Nếu KHÔNG còn trong pha chờ (delay đã qua hoặc bằng 0) thì animatable coi như bắt
+    // đầu chạy ngay bây giờ -> bắn hook nội bộ luôn (emit("start") vẫn chờ tick() xử lý
+    // đúng 1 lần duy nhất, tránh bắn trùng nếu play() được gọi lại nhiều lần khi đang chờ).
+    if (this.waitRemaining <= 0) {
+      this.animatable.onStart?.();
     }
 
     return this;
   }
 
+  /** Tua ngược thủ công (khác với boomerang tự động) — dùng vd cho hiệu ứng hover-out. */
   reverse(): this {
+    if (this.dead) return this;
+
     this.rate = -1;
+    this.isBoomerangReverse = false; // đây là override thủ công, không phải boomerang
 
     if (!this.running) {
       this.running = true;
@@ -147,7 +224,7 @@ export class Playable {
   }
 
   pause(): this {
-    if (!this.running) return this;
+    if (this.dead || !this.running) return this;
 
     this.running = false;
     ticker.remove(this.tick);
@@ -161,8 +238,11 @@ export class Playable {
     this.animatable.onComplete?.();
   }
 
-  /** Tua tới thời điểm bất kỳ (giây), không phụ thuộc trạng thái đang chạy hay không */
+  /** Tua tới thời điểm bất kỳ (giây) trong 1 lượt hiện tại, không phụ thuộc trạng thái
+   *  đang chạy hay không. Không tính tới nhiều vòng repeat (chỉ trong [0, duration]). */
   seek(time: number): this {
+    if (this.dead) return this;
+
     this.elapsed = Math.max(0, Math.min(time, this.animatable.duration));
     this.animatable.render(this.elapsed);
     this.emit("update");
@@ -171,22 +251,48 @@ export class Playable {
   }
 
   restart(): this {
+    if (this.dead) return this;
+
     this.elapsed = 0;
     this.rate = 1;
-    this.delayRemaining = Math.max(0, this.options.delay ?? 0);
-    this.repeatsLeft = this.options.repeat === -1 ? Infinity : Math.max(0, this.options.repeat ?? 0);
-    this.repeatDelayRemaining = 0;
-    this.hasStartedOnce = false;
+    this.repeatsDone = 0;
+    this.hasFiredStart = false;
+    this.isBoomerangReverse = false;
+    this.waitRemaining = this.delay;
     this.animatable.render(0);
     this.play();
 
     return this;
   }
 
-  /** Dừng hẳn, gỡ khỏi ticker, không bắn onComplete (dùng cho overwrite/kill) */
-  kill(): void {
-    this.running = false;
-    ticker.remove(this.tick);
+  /** Đưa tween về đúng trạng thái BAN ĐẦU (elapsed=0, hướng xuôi, đếm repeat/delay reset
+   *  lại từ đầu) và DỪNG LUÔN, khác với restart() (reset xong tự play() ngay). Dùng khi
+   *  muốn "rewind" 1 tween về trạng thái nghỉ mà không muốn nó chạy lại ngay lập tức. */
+  reset(): this {
+    if (this.dead) return this;
+
+    this.pause();
+    this.elapsed = 0;
+    this.rate = 1;
+    this.repeatsDone = 0;
+    this.hasFiredStart = false;
+    this.isBoomerangReverse = false;
+    this.waitRemaining = this.delay;
+    this.animatable.render(0);
+    this.emit("update");
+
+    return this;
+  }
+
+  /** Dừng vĩnh viễn — sau khi kill(), mọi lệnh play/reverse/seek/restart đều là no-op.
+   *  Dùng nội bộ bởi overwrite-manager để huỷ tween cũ khi bị tween mới ghi đè. */
+  kill(): this {
+    if (this.dead) return this;
+
+    this.dead = true;
+    this.pause();
+
+    return this;
   }
 
   on(event: PlayableEvent, cb: () => void): this {
@@ -218,17 +324,7 @@ export class Playable {
     return this.running;
   }
 
-  get speed(): number {
-    return this.timeScale;
-  }
-
-  setSpeed(value: number): this {
-    if (value <= 0) {
-      console.warn(`[six-js] speed must be > 0, got ${value}, ignoring`);
-      return this;
-    }
-
-    this.timeScale = value;
-    return this;
+  get isDead(): boolean {
+    return this.dead;
   }
 }

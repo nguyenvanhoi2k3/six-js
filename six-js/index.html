@@ -11,14 +11,29 @@
 
   <body>
     <div class="container">
-      <div class="box">BOX</div>
+      <div class="box"></div>
+<!-- 
+      <button onclick="anim.play()">play()</button>
+      <button onclick="anim.pause()">pause()</button>
+      <button onclick="anim.play()">resume(play)</button>
+      <button onclick="anim.reverse()">reverse()</button>
+      <button onclick="anim.restart()">restart()</button>
+      <button onclick="anim.seek(1)">seek(1s)</button>
+      <button onclick="anim.speed(2)">2x Speed</button>
+      <button onclick="anim.speed(0.5)">0.5x Speed</button>
+      <button onclick="anim.kill()">kill()</button> -->
     </div>
 
     <script type="module">
       import { six } from "./dist/six-js.es.js";
       six.setDefaults({ ease: "quint-in-out" });
-// Lỗi animate borderRadius tự nhiên đang chạy 1 nửa thì dừng xong nhảy ngay lập tức đến end, rất giật. 
-      const anim2 = six.to(".box", {  duration: 1, borderRadius: "50%",  });
+      const anim = six.to(".box", {
+        x: 600,
+        rotate: 360,
+        duration: 2,
+        repeat: -1,
+        boomerang: true,
+      });
     </script>
 
     <!-- ------------------------------------------------GSAP------------------------------------------------ -->
