@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "WebSearch",
+      "WebFetch(domain:gsap.com)",
+      "PowerShell(Remove-Item -Path \"f:\\\\six-js\\\\six-js\\\\matchmedia-demo.html\" -Confirm:$false)"
+    ]
+  }
+}

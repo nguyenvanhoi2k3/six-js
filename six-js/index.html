@@ -10,37 +10,50 @@
   </head>
 
   <body>
-    <sx-dialog-trigger name="dialog1">Open</sx-dialog-trigger>
-    <sx-dialog
-      name="dialog1"
-      effect="slide-up"
-      position="bottom"
-      breakpoints="{
-      768: {
-        position: 'right',
-        effect: 'slide-left'
-      }
-    }"
-    >
-      <sx-close-cursor class="close-cursor">close</sx-close-cursor>
+    <div style="height: 100vh"></div>
 
-      <div class="content" style="background: #fff; padding: 1rem">
-        <sx-dialog-pull></sx-dialog-pull>
+    <video
+      id="scrub-video"
+      src="./static/video/video_onscroll.mp4"
+      muted
+      playsinline
+      preload="auto"
+      style="width: 100vw; height: 100vh; object-fit: cover; display: block"
+    ></video>
+    <div style="height: 100vh"></div>
 
-        <h2>header</h2>
-        <div>
-          <input type="text" />
-          Lorem ipsum dolor sit amet consectetur, adipisicing elit. Amet,
-          deleniti!
-        </div>
-        <sx-dialog-trigger name="dialog1">Close</sx-dialog-trigger>
-
-      </div>
-    </sx-dialog>
-    <space></space>
     <script type="module">
       import { six } from "./dist/six-js.es.js";
       six.initElements();
+
+      const video = six.getId("scrub-video");
+
+      function initScrub() {
+        six.to(video, {
+          currentTime: video.duration,
+          onScroll: {
+            sticky: true,
+            sync: 0.6,
+            start: "top top",
+            end: "+=2400",
+          },
+        });
+      }
+
+      if (video.readyState >= 1) {
+        initScrub();
+      } else {
+        video.addEventListener("loadedmetadata", initScrub, { once: true });
+        video.addEventListener(
+          "error",
+          () =>
+            console.error(
+              "[demo] video load thất bại, kiểm tra ./scrub-video.mp4 có tồn tại không",
+              video.error,
+            ),
+          { once: true },
+        );
+      }
     </script>
 
     <!-- ------------------------------------------------GSAP------------------------------------------------ -->
@@ -49,7 +62,20 @@
     <script>
       document.addEventListener("DOMContentLoaded", (event) => {
         gsap.registerPlugin(ScrollTrigger);
-        gsap.set(".box", { x: 200, duration:  2 });
+        const video = document.querySelector("video");
+        video.addEventListener("loadedmetadata", () => {
+          gsap.to(video, {
+            currentTime: video.duration,
+            ease: "none",
+            scrollTrigger: {
+              trigger: video,
+              start: "top top",
+              end: "+=3000",
+              scrub: 1,
+              pin: true,
+            },
+          });
+        });
       });
     </script> -->
   </body>

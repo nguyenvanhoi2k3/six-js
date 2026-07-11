@@ -6,6 +6,7 @@ import { ScrollTriggerController, OnScrollOptions } from "./core/scroll-trigger"
 import { applyOverwrite } from "./core/overwrite-manager";
 import { computeStaggerDelay, PlayableGroup, StaggerInput } from "./core/stagger";
 import { SxTimeline, TimelineVars } from "./core/timeline";
+import { media } from "./core/media-scope";
 import { VERSION } from "./version";
 import "./properties";
 
@@ -196,5 +197,6 @@ export const six = {
   from,
   fromTo,
   timeline,
+  media,
   setDefaults,
 };

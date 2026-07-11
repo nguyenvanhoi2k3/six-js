@@ -1,5 +1,6 @@
 import { ticker } from "./ticker";
 import { Animatable } from "./animatable";
+import { getActiveScope } from "./scope-stack";
 
 export type PlayableEvent = "start" | "update" | "complete" | "repeat" | "reverseComplete";
 
@@ -30,6 +31,8 @@ export class Playable {
   private isBoomerangReverse = false;
 
   constructor(animatable: Animatable, options: PlayableOptions = {}) {
+    getActiveScope()?._capture(this);
+
     this.animatable = animatable;
 
     this.delay = Math.max(0, options.delay ?? 0);
@@ -232,8 +235,8 @@ export class Playable {
   kill(): this {
     if (this.dead) return this;
 
-    this.dead = true;
     this.pause();
+    this.dead = true;
 
     return this;
   }

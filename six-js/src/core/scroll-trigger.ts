@@ -235,7 +235,6 @@ export class ScrollTriggerController {
   private rafPending = false;
 
   private pinSpacer: HTMLElement | null = null;
-  private pinState: "before" | "during" | "after" = "before";
   private pinOriginalStyles: Partial<CSSStyleDeclaration> | null = null;
   private pinRectWidth = 0;
   private pinRectHeight = 0;
@@ -313,7 +312,6 @@ export class ScrollTriggerController {
 
     if (this.options.sticky) {
       this.setupPin();
-      this.refreshPinRect();
     }
 
     const measureRect = this.getMeasureRect();
@@ -347,10 +345,6 @@ export class ScrollTriggerController {
     this.updateDebugMarkers();
 
     this.update();
-
-    if (this.options.sticky) {
-      this.applyPinForState(this.pinState);
-    }
   }
 
   private getMeasureRect(): { top: number; height: number } {
@@ -358,13 +352,6 @@ export class ScrollTriggerController {
       return { top: this.pinSpacer.getBoundingClientRect().top, height: this.pinRectHeight };
     }
     return this.triggerEl.getBoundingClientRect();
-  }
-
-  private refreshPinRect(): void {
-    if (this.pinState !== "before") return;
-    const rect = this.triggerEl.getBoundingClientRect();
-    this.pinRectWidth = rect.width;
-    this.pinRectHeight = rect.height;
   }
 
   private computeProgress(): number {
@@ -402,7 +389,7 @@ export class ScrollTriggerController {
     this.lastScrollY = y;
 
     if (this.options.sticky) {
-      this.updatePinState(y);
+      this.applyPinFrame(y);
     }
 
     this.updateTriggerMarkerLabelFlip(y);
@@ -464,7 +451,11 @@ export class ScrollTriggerController {
       left: this.triggerEl.style.left,
       width: this.triggerEl.style.width,
       zIndex: this.triggerEl.style.zIndex,
+      transform: this.triggerEl.style.transform,
+      willChange: this.triggerEl.style.willChange,
     };
+
+    this.triggerEl.style.willChange = "transform";
 
     this.pinSpacer = spacer;
     this.pinRectWidth = rect.width;
@@ -479,54 +470,25 @@ export class ScrollTriggerController {
     this.pinSpacer.style.height = `${this.pinRectHeight + pinDistance}px`;
   }
 
-  private updatePinState(y: number): void {
-    if (!this.pinSpacer) return;
-
-    const nextState: "before" | "during" | "after" = y < this.startY ? "before" : y > this.endY ? "after" : "during";
-
-    if (nextState === this.pinState) return;
-    this.pinState = nextState;
-    this.applyPinForState(nextState);
-  }
-
-  private applyPinForState(state: "before" | "during" | "after"): void {
-    if (state === "before") {
-      this.applyPinBefore();
-    } else if (state === "during") {
-      this.applyPinDuring();
-    } else {
-      this.applyPinAfter();
-    }
-  }
-
-  private applyPinDuring(): void {
+  private applyPinFrame(y: number): void {
     if (!this.pinSpacer) return;
 
     const spacerRect = this.pinSpacer.getBoundingClientRect();
     const viewportOffset = resolveEdgePx(this.startViewportSpec, getViewportHeight());
     const triggerOffset = resolveEdgePx(this.startTriggerSpec, this.pinRectHeight);
-    const topPx = viewportOffset - triggerOffset;
+    const pinnedTop = viewportOffset - triggerOffset;
+
+    let topPx: number;
+    if (y < this.startY) topPx = pinnedTop + (this.startY - y);
+    else if (y > this.endY) topPx = pinnedTop - (y - this.endY);
+    else topPx = pinnedTop;
 
     this.triggerEl.style.position = "fixed";
-    this.triggerEl.style.top = `${topPx}px`;
+    this.triggerEl.style.top = "0px";
     this.triggerEl.style.left = `${spacerRect.left}px`;
     this.triggerEl.style.width = `${this.pinRectWidth}px`;
     this.triggerEl.style.zIndex = "10";
-  }
-
-  private applyPinAfter(): void {
-    const pinDistance = Math.max(0, this.endY - this.startY);
-
-    this.triggerEl.style.position = "absolute";
-    this.triggerEl.style.top = `${pinDistance}px`;
-    this.triggerEl.style.left = "0px";
-    this.triggerEl.style.width = `${this.pinRectWidth}px`;
-    this.triggerEl.style.zIndex = "10";
-  }
-
-  private applyPinBefore(): void {
-    if (!this.pinOriginalStyles) return;
-    Object.assign(this.triggerEl.style, this.pinOriginalStyles);
+    this.triggerEl.style.transform = `translate3d(0, ${topPx}px, 0)`;
   }
 
   private teardownPin(): void {
@@ -539,7 +501,6 @@ export class ScrollTriggerController {
     this.pinSpacer.parentElement?.insertBefore(this.triggerEl, this.pinSpacer);
     this.pinSpacer.remove();
     this.pinSpacer = null;
-    this.pinState = "before";
   }
 
   private setupDebugMarkers(): void {
