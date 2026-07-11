@@ -140,15 +140,17 @@ export class SxTween implements Animatable {
   }
 
   constructor(
-    target: string | HTMLElement | HTMLElement[],
+    target: string | HTMLElement | (HTMLElement | null | undefined)[] | null | undefined,
     vars: TweenVars,
     mode: TweenMode = "to",
     fromVars?: Record<string, any>,
   ) {
     if (typeof target === "string") {
       this.targets = Array.from(document.querySelectorAll(target));
+    } else if (Array.isArray(target)) {
+      this.targets = target.filter((el): el is HTMLElement => el != null);
     } else {
-      this.targets = Array.isArray(target) ? target : [target];
+      this.targets = target ? [target] : [];
     }
 
     if (this.targets.length === 0) {

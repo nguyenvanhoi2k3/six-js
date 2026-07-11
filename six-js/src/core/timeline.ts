@@ -5,6 +5,8 @@ import { OnScrollOptions, ScrollTriggerController } from "./scroll-trigger";
 
 export type TimelinePosition = number | string;
 
+type TimelineTarget = string | HTMLElement | (HTMLElement | null | undefined)[] | null | undefined;
+
 export interface TimelineVars {
   paused?: boolean;
   delay?: number;
@@ -181,7 +183,7 @@ export class SxTimeline {
   }
 
   private buildChildTween(
-    target: string | HTMLElement | HTMLElement[],
+    target: TimelineTarget,
     vars: TweenVars,
     mode: TweenMode,
     fromVars: Record<string, any> | undefined,
@@ -195,24 +197,19 @@ export class SxTimeline {
     return this;
   }
 
-  to(target: string | HTMLElement | HTMLElement[], vars: TweenVars, position?: TimelinePosition): this {
+  to(target: TimelineTarget, vars: TweenVars, position?: TimelinePosition): this {
     return this.buildChildTween(target, vars, "to", undefined, position);
   }
 
-  from(target: string | HTMLElement | HTMLElement[], vars: TweenVars, position?: TimelinePosition): this {
+  from(target: TimelineTarget, vars: TweenVars, position?: TimelinePosition): this {
     return this.buildChildTween(target, vars, "from", undefined, position);
   }
 
-  fromTo(
-    target: string | HTMLElement | HTMLElement[],
-    fromVars: Record<string, any>,
-    toVars: TweenVars,
-    position?: TimelinePosition,
-  ): this {
+  fromTo(target: TimelineTarget, fromVars: Record<string, any>, toVars: TweenVars, position?: TimelinePosition): this {
     return this.buildChildTween(target, toVars, "fromTo", fromVars, position);
   }
 
-  set(target: string | HTMLElement | HTMLElement[], vars: Record<string, any>, position?: TimelinePosition): this {
+  set(target: TimelineTarget, vars: Record<string, any>, position?: TimelinePosition): this {
     return this.buildChildTween(target, { ...vars, duration: 0 }, "to", undefined, position);
   }
 

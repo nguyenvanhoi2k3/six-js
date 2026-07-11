@@ -2,9 +2,9 @@ var Yt = Object.defineProperty;
 var _t = (s, e, t) => e in s ? Yt(s, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : s[e] = t;
 var c = (s, e, t) => _t(s, typeof e != "symbol" ? e + "" : e, t);
 const qt = "0.0.31";
-let ut = !1;
+let pt = !1;
 function Nt() {
-  ut || (ut = !0, console.log(
+  pt || (pt = !0, console.log(
     ` SixJS v${qt}`
   ));
 }
@@ -52,7 +52,7 @@ const O = 1.70158, W = O * 1.525, $ = {
   bounceInOut: (s) => s < 0.5 ? (1 - N(1 - 2 * s)) / 2 : (1 + N(2 * s - 1)) / 2
 }, nt = /* @__PURE__ */ new WeakMap();
 let K = [], Z = null;
-function pt(s, e) {
+function ft(s, e) {
   K.push({ instance: s, type: e }), Z === null && (Z = requestAnimationFrame(Wt));
 }
 function Wt() {
@@ -64,24 +64,24 @@ function Wt() {
   }
 }
 let j = null;
-function Mt() {
+function Rt() {
   return typeof window > "u" ? null : (j || (j = new IntersectionObserver(
     (s) => {
       for (let e = 0; e < s.length; e++) {
         const t = s[e], i = nt.get(t.target);
-        i && (t.isIntersecting ? pt(i, "enter") : pt(i, "leave"));
+        i && (t.isIntersecting ? ft(i, "enter") : ft(i, "leave"));
       }
     },
     { threshold: 0.05 }
   )), j);
 }
-function Rt(s, e) {
+function It(s, e) {
   var t;
-  nt.set(s, e), (t = Mt()) == null || t.observe(s);
+  nt.set(s, e), (t = Rt()) == null || t.observe(s);
 }
 function Q(s) {
   var e;
-  nt.delete(s), (e = Mt()) == null || e.unobserve(s);
+  nt.delete(s), (e = Rt()) == null || e.unobserve(s);
 }
 function Y(s, e) {
   if (s == null) return e;
@@ -118,7 +118,7 @@ const E = class E extends HTMLElement {
       this.style.opacity = "1", this.style.transform = "none";
       return;
     }
-    this.setInitialState(), Rt(this, {
+    this.setInitialState(), It(this, {
       enter: () => this.handleEnter(),
       leave: () => this.handleLeave()
     });
@@ -353,7 +353,7 @@ class Xt extends HTMLElement {
     }
     this.addEventListener("mouseenter", this.onMouseEnter), this.addEventListener("mouseleave", this.onMouseLeave), this.resizeObserver = new ResizeObserver(() => {
       this.scheduleSetup();
-    }), this.resizeObserver.observe(this), Rt(this, {
+    }), this.resizeObserver.observe(this), It(this, {
       enter: () => {
         this.isVisible || (this.isVisible = !0, k.add(this.updateAnimation));
       },
@@ -981,7 +981,7 @@ class se extends HTMLElement {
     }
   }
 }
-class ft {
+class gt {
   static parse(e) {
     if (!e) return null;
     try {
@@ -1219,7 +1219,7 @@ class ne extends HTMLElement {
       effect: p,
       sync: this.getAttribute("sync"),
       lockActive: this.hasAttribute("lock-active")
-    }, this.originalOptions = { ...this.options }, this.breakpointsConfig = ft.parse(
+    }, this.originalOptions = { ...this.options }, this.breakpointsConfig = gt.parse(
       this.getAttribute("breakpoints")
     );
   }
@@ -1265,7 +1265,7 @@ class ne extends HTMLElement {
     if (this.options.loop || i.forEach((f, g) => {
       f.setAttribute("data-real-index", g.toString());
     }), this.breakpointsConfig && this.originalOptions) {
-      this.options = ft.getMatch(
+      this.options = gt.getMatch(
         t,
         JSON.parse(JSON.stringify(this.originalOptions)),
         this.breakpointsConfig
@@ -1784,16 +1784,16 @@ function le() {
 function he() {
   Ut(), Ht(), re(), le();
 }
-const It = /* @__PURE__ */ new Map();
+const Pt = /* @__PURE__ */ new Map();
 function x(s, e) {
-  It.set(s, e);
+  Pt.set(s, e);
 }
 function H(s, e) {
-  const t = It.get(s);
+  const t = Pt.get(s);
   return t ? typeof t == "function" ? t(e) : t : s.startsWith("--") ? ce(s, e) : de(s, e);
 }
 function ce(s, e) {
-  return typeof e == "string" && !Pt(e) ? {
+  return typeof e == "string" && !zt(e) ? {
     type: "discrete",
     cssKey: s,
     apply(t, i) {
@@ -1812,11 +1812,11 @@ function ce(s, e) {
     }
   };
 }
-function Pt(s) {
+function zt(s) {
   return /^-?[\d.]+[a-z%]*$/i.test(s.trim());
 }
 function de(s, e) {
-  return typeof e == "string" && !Pt(e) ? {
+  return typeof e == "string" && !zt(e) ? {
     type: "discrete",
     cssKey: s,
     apply(t, i) {
@@ -1875,13 +1875,13 @@ function pe(s, e, t, i) {
   return { num: d, unit: h };
 }
 const fe = /rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)/i;
-function gt(s) {
+function mt(s) {
   const e = document.createElement("span");
   e.style.color = s, e.style.display = "none", document.body.appendChild(e);
   const t = window.getComputedStyle(e).color;
-  return document.body.removeChild(e), zt(t);
+  return document.body.removeChild(e), Lt(t);
 }
-function zt(s) {
+function Lt(s) {
   const e = s.match(fe);
   return e ? {
     r: parseFloat(e[1]),
@@ -1902,11 +1902,11 @@ function me(s) {
   return `rgba(${Math.round(s.r)}, ${Math.round(s.g)}, ${Math.round(s.b)}, ${s.a})`;
 }
 const tt = /-?[\d.]+/g;
-function mt(s) {
+function bt(s) {
   return (s.match(tt) || []).length;
 }
 function be(s, e, t) {
-  const i = mt(s), r = mt(e), n = i === r && r > 0;
+  const i = bt(s), r = bt(e), n = i === r && r > 0;
   return n || console.warn(`[six-js] "${t}": shape mismatch (${i} vs ${r} numbers), will snap instead of interpolate`), n;
 }
 function ye(s, e, t) {
@@ -1992,7 +1992,7 @@ const Ce = {
   scaleY: 1,
   skewX: 0,
   skewY: 0
-}, bt = /* @__PURE__ */ new WeakMap();
+}, yt = /* @__PURE__ */ new WeakMap();
 function we(s) {
   const e = xe(s);
   return {
@@ -2012,20 +2012,20 @@ function we(s) {
   };
 }
 function ot(s) {
-  let e = bt.get(s);
-  return e || (e = we(s), bt.set(s, e)), e;
+  let e = yt.get(s);
+  return e || (e = we(s), yt.set(s, e)), e;
 }
 function ke(s, e) {
   return ot(s)[e];
 }
-function Lt(s, e, t) {
+function Bt(s, e, t) {
   ot(s)[e] = t;
 }
 function Te(s) {
   const e = ot(s);
   return `translate(${e.xPercent}%, ${e.yPercent}%) translate3d(${e.x}px, ${e.y}px, ${e.z}px) rotate(${e.rotate}deg) rotateX(${e.rotateX}deg) rotateY(${e.rotateY}deg) rotateZ(${e.rotateZ}deg) scale(${e.scale}) scaleX(${e.scaleX}) scaleY(${e.scaleY}) skewX(${e.skewX}deg) skewY(${e.skewY}deg)`;
 }
-function Bt(s, e, t) {
+function Dt(s, e, t) {
   const i = s.style[e];
   s.style[e] = t;
   const r = parseFloat(window.getComputedStyle(s)[e]) || 0;
@@ -2055,13 +2055,13 @@ let et = {};
 function Re(s) {
   et = { ...et, ...s };
 }
-function yt() {
+function xt() {
   return et;
 }
-function xt(s, e, t) {
-  return !e || !t.unit || t.unit === "px" ? t : { num: Bt(s, e === "x" ? "left" : "top", `${t.num}${t.unit}`), unit: "px" };
+function St(s, e, t) {
+  return !e || !t.unit || t.unit === "px" ? t : { num: Dt(s, e === "x" ? "left" : "top", `${t.num}${t.unit}`), unit: "px" };
 }
-class Dt {
+class at {
   constructor(e, t, i = "to", r) {
     c(this, "duration");
     c(this, "targets");
@@ -2069,7 +2069,7 @@ class Dt {
     c(this, "pointWindows", []);
     c(this, "activeWindows", /* @__PURE__ */ new Set());
     c(this, "implicitRefreshers", []);
-    if (typeof e == "string" ? this.targets = Array.from(document.querySelectorAll(e)) : this.targets = Array.isArray(e) ? e : [e], this.targets.length === 0 && console.warn(`[six-js] No elements matched: "${e}"`), t.keyframes) {
+    if (typeof e == "string" ? this.targets = Array.from(document.querySelectorAll(e)) : Array.isArray(e) ? this.targets = e.filter((n) => n != null) : this.targets = e ? [e] : [], this.targets.length === 0 && console.warn(`[six-js] No elements matched: "${e}"`), t.keyframes) {
       const n = Object.keys(t).filter((l) => l !== "duration" && l !== "ease" && l !== "keyframes");
       n.length > 0 && console.warn(
         `[six-js] keyframes: property [${n.join(", ")}] ngoài keyframes sẽ bị BỎ QUA hoàn toàn, không cộng dồn với các mốc bên trong keyframes. Đưa chúng vào 1 mốc trong keyframes nếu muốn animate.`
@@ -2103,7 +2103,7 @@ class Dt {
       };
     }
     if (n.type === "color") {
-      const h = i !== void 0 ? gt(String(i)) : n.getCurrent(e), d = r !== void 0 ? gt(String(r)) : n.getCurrent(e);
+      const h = i !== void 0 ? mt(String(i)) : n.getCurrent(e), d = r !== void 0 ? mt(String(r)) : n.getCurrent(e);
       return { key: t, isTransform: !1, state: { kind: "color", start: h, end: d, apply: n.apply } };
     }
     if (n.type === "complex") {
@@ -2111,8 +2111,8 @@ class Dt {
       return be(h, d, t), { key: t, isTransform: !1, state: { kind: "complex", start: h, end: d, apply: n.apply } };
     }
     let o = i !== void 0 ? F(i, n.defaultUnit) : n.getCurrent(e, t), l = r !== void 0 ? pe(r, o.num, o.unit, n.defaultUnit) : n.getCurrent(e, t), a;
-    if (n.pxAxis && (o = xt(e, n.pxAxis, o), l = xt(e, n.pxAxis, l)), !n.isTransform && l.unit && o.unit && l.unit !== o.unit) {
-      const h = Bt(e, t, `${l.num}${l.unit}`);
+    if (n.pxAxis && (o = St(e, n.pxAxis, o), l = St(e, n.pxAxis, l)), !n.isTransform && l.unit && o.unit && l.unit !== o.unit) {
+      const h = Dt(e, t, `${l.num}${l.unit}`);
       a = `${l.num}${l.unit}`, l = { num: h, unit: o.unit };
     }
     return {
@@ -2148,7 +2148,7 @@ class Dt {
     }));
   }
   buildSingleTrackSet(e, t, i) {
-    const r = yt(), n = this.resolveDuration(e.duration, r), o = this.resolveEase(e.ease ?? r.ease), l = /* @__PURE__ */ new Set();
+    const r = xt(), n = this.resolveDuration(e.duration, r), o = this.resolveEase(e.ease ?? r.ease), l = /* @__PURE__ */ new Set();
     for (const h in e) l.add(h);
     if (i) for (const h in i) l.add(h);
     l.delete("duration"), l.delete("ease"), l.delete("keyframes");
@@ -2173,7 +2173,7 @@ class Dt {
     }), { tracks: a, duration: n };
   }
   buildKeyframeTracks(e, t) {
-    const i = yt(), r = t.duration, n = t.ease ?? i.ease, o = Array.isArray(e) ? this.normalizeArrayKeyframes(e, r, n, i) : this.normalizePercentKeyframes(e, r, n, i);
+    const i = xt(), r = t.duration, n = t.ease ?? i.ease, o = Array.isArray(e) ? this.normalizeArrayKeyframes(e, r, n, i) : this.normalizePercentKeyframes(e, r, n, i);
     o.length < 2 && console.warn(`[six-js] keyframes needs at least 2 points, got ${o.length}`);
     const l = this.targets.map(() => ({})), a = this.targets.map(() => []), h = this.targets.map(() => ({})), d = [];
     let u = 0, p = 0;
@@ -2194,8 +2194,8 @@ class Dt {
             I = G.state, A = G.isTransform;
           }
           l[C][w] = R, f === 0 && this.registerImplicitRefresh(v, w, _, R, I);
-          const P = { startTime: y, endTime: S, easeFn: m.easeFn, state: I }, dt = h[C][w];
-          dt !== void 0 ? a[C][dt].entries.push(P) : (h[C][w] = a[C].length, a[C].push({ key: w, isTransform: A, entries: [P] }));
+          const P = { startTime: y, endTime: S, easeFn: m.easeFn, state: I }, ut = h[C][w];
+          ut !== void 0 ? a[C][ut].entries.push(P) : (h[C][w] = a[C].length, a[C].push({ key: w, isTransform: A, entries: [P] }));
         }
       }), d.push({
         startTime: y,
@@ -2268,7 +2268,7 @@ class Dt {
           continue;
         }
         const f = p.start + (p.end - p.start) * u;
-        p.isTransform && p.transformFn ? (Lt(t, p.transformFn, f), n = !0) : d === 1 && e >= a.endTime && p.snapEnd !== void 0 ? t.style[o.key] = p.snapEnd : p.apply(t, { num: f, unit: p.unit });
+        p.isTransform && p.transformFn ? (Bt(t, p.transformFn, f), n = !0) : d === 1 && e >= a.endTime && p.snapEnd !== void 0 ? t.style[o.key] = p.snapEnd : p.apply(t, { num: f, unit: p.unit });
       }
       n && (t.style.transform = Te(t));
     }), this.updateSegmentCallbacks(e);
@@ -2432,7 +2432,7 @@ function st() {
 function B(s, e) {
   return s.ratio * e + s.offsetPx;
 }
-function St(s) {
+function vt(s) {
   const e = s.trim(), t = e.match(/^(-?[\d.]+)(px)?$/);
   if (t)
     return { ratio: 0, offsetPx: parseFloat(t[1]) };
@@ -2449,7 +2449,7 @@ function St(s) {
   }
   return { ratio: a, offsetPx: h };
 }
-function vt(s, e, t) {
+function Ct(s, e, t) {
   const i = s.match(/^([+-]=)(\d+(\.\d+)?)$/);
   if (i) {
     if (t === void 0)
@@ -2471,7 +2471,7 @@ function vt(s, e, t) {
       triggerSpec: { ratio: 0, offsetPx: 0 }
     };
   }
-  const [r = "top", n = "top"] = s.trim().split(/\s+/), o = St(r), l = St(n), h = window.scrollY + e.top + B(o, e.height), d = B(l, st());
+  const [r = "top", n = "top"] = s.trim().split(/\s+/), o = vt(r), l = vt(n), h = window.scrollY + e.top + B(o, e.height), d = B(l, st());
   return {
     scrollY: h - d,
     viewportSpec: l,
@@ -2511,10 +2511,10 @@ function Le() {
   const e = performance.navigation;
   return (e == null ? void 0 : e.type) === 1 || (e == null ? void 0 : e.type) === 2;
 }
-let Ct = !1;
+let wt = !1;
 function Be() {
-  if (Ct) return;
-  Ct = !0;
+  if (wt) return;
+  wt = !0;
   try {
     "scrollRestoration" in history && (history.scrollRestoration = "manual");
   } catch {
@@ -2532,8 +2532,8 @@ function Be() {
     { passive: !0 }
   );
 }
-const U = 20, wt = 24, De = 20;
-class at {
+const U = 20, kt = 24, De = 20;
+class lt {
   constructor(e, t, i) {
     c(this, "triggerEl");
     c(this, "playable");
@@ -2590,10 +2590,10 @@ class at {
     this.smoothInitialized = !1;
     const e = this.options.start ?? "top bottom", t = this.options.end ?? "bottom top";
     this.options.sticky && (this.setupPin(), this.refreshPinRect());
-    const i = this.getMeasureRect(), r = vt(e, i);
+    const i = this.getMeasureRect(), r = Ct(e, i);
     this.startY = r.scrollY, this.startViewportSpec = r.viewportSpec, this.startViewportLabel = r.viewportLabel, this.startTriggerY = r.documentY, this.startTriggerLabel = r.triggerLabel, this.startTriggerSpec = r.triggerSpec;
-    const n = vt(t, i, this.startY);
-    this.endY = n.scrollY, this.endViewportSpec = n.viewportSpec, this.endViewportLabel = n.viewportLabel, this.endTriggerY = n.documentY, this.endTriggerLabel = n.triggerLabel, this.endY <= this.startY && (console.warn('[six-js] onScroll: "end" resolves before "start", clamping'), this.endY = this.startY + 1), this.triggerLabelsCollide = Math.abs(this.startTriggerY - this.endTriggerY) < wt, this.options.sticky && this.updatePinSpacer(), this.updateDebugMarkers(), this.update(), this.options.sticky && this.applyPinForState(this.pinState);
+    const n = Ct(t, i, this.startY);
+    this.endY = n.scrollY, this.endViewportSpec = n.viewportSpec, this.endViewportLabel = n.viewportLabel, this.endTriggerY = n.documentY, this.endTriggerLabel = n.triggerLabel, this.endY <= this.startY && (console.warn('[six-js] onScroll: "end" resolves before "start", clamping'), this.endY = this.startY + 1), this.triggerLabelsCollide = Math.abs(this.startTriggerY - this.endTriggerY) < kt, this.options.sticky && this.updatePinSpacer(), this.updateDebugMarkers(), this.update(), this.options.sticky && this.applyPinForState(this.pinState);
   }
   getMeasureRect() {
     return this.pinSpacer ? { top: this.pinSpacer.getBoundingClientRect().top, height: this.pinRectHeight } : this.triggerEl.getBoundingClientRect();
@@ -2714,7 +2714,7 @@ class at {
     }
   }
   updateDebugMarkers() {
-    const e = st(), t = window.scrollY, i = B(this.startViewportSpec, e), r = B(this.endViewportSpec, e), n = Math.abs(i - r) < wt;
+    const e = st(), t = window.scrollY, i = B(this.startViewportSpec, e), r = B(this.endViewportSpec, e), n = Math.abs(i - r) < kt;
     if (this.startMarker && (this.setMarkerPosition(this.startMarker, i, i, 0), this.startMarker.label.textContent = `start: "${this.startViewportLabel}"`), this.endMarker && (this.setMarkerPosition(this.endMarker, r, r, n ? 1 : 0), this.endMarker.label.textContent = `end: "${this.endViewportLabel}"`), this.startTriggerMarker && (this.setMarkerPosition(this.startTriggerMarker, this.startTriggerY, this.startTriggerY - t, 0), this.startTriggerMarker.label.textContent = `start: "${this.startTriggerLabel}"`), this.endTriggerMarker) {
       const o = this.triggerLabelsCollide ? 1 : 0;
       this.setMarkerPosition(this.endTriggerMarker, this.endTriggerY, this.endTriggerY - t, o), this.endTriggerMarker.label.textContent = `end: "${this.endTriggerLabel}"`;
@@ -2729,16 +2729,16 @@ class at {
     window.removeEventListener("scroll", this.onScrollBound), window.removeEventListener("resize", this.onResizeBound), (e = window.visualViewport) == null || e.removeEventListener("resize", this.onResizeBound), window.removeEventListener("load", this.onLoadBound), (t = this.resizeObserver) == null || t.disconnect(), this.resizeObserver = null, k.remove(this.tickerBound), this.teardownPin(), this.removeDebugMarkers();
   }
 }
-const kt = /* @__PURE__ */ new WeakMap();
-let Tt = !1;
+const Tt = /* @__PURE__ */ new WeakMap();
+let Et = !1;
 function Fe(s, e, t) {
   if (t) {
-    t === "auto" && !Tt && (Tt = !0, console.warn(
+    t === "auto" && !Et && (Et = !0, console.warn(
       '[six-js] overwrite: "auto" (chỉ huỷ property trùng) chưa được hỗ trợ đầy đủ, tạm thời xử lý như overwrite: true (huỷ toàn bộ tween cũ trên cùng target).'
     ));
     for (const i of s) {
-      let r = kt.get(i);
-      r || (r = /* @__PURE__ */ new Set(), kt.set(i, r));
+      let r = Tt.get(i);
+      r || (r = /* @__PURE__ */ new Set(), Tt.set(i, r));
       for (const o of r)
         o !== e && o.kill();
       r.clear(), r.add(e);
@@ -2871,7 +2871,7 @@ class We {
   onComplete() {
   }
 }
-class lt {
+class ht {
   constructor(e = {}) {
     c(this, "engine", new We());
     c(this, "playable");
@@ -2884,11 +2884,11 @@ class lt {
       boomerang: e.boomerang
     }), e.onStart && this.playable.on("start", e.onStart), e.onUpdate && this.playable.on("update", e.onUpdate), e.onComplete && this.playable.on("complete", e.onComplete), e.onRepeat && this.playable.on("repeat", e.onRepeat), e.onReverseComplete && this.playable.on("reverseComplete", e.onReverseComplete), e.onScroll) {
       const t = e.onScroll.target, i = typeof t == "string" ? document.querySelector(t) : t;
-      i ? new at(i, this.playable, e.onScroll) : console.warn("[six-js] timeline onScroll: trigger element not found, cần chỉ định onScroll.target");
+      i ? new lt(i, this.playable, e.onScroll) : console.warn("[six-js] timeline onScroll: trigger element not found, cần chỉ định onScroll.target");
     }
   }
   buildChildTween(e, t, i, r, n) {
-    const o = { ...this.defaults, ...t }, l = new Dt(e, o, i, r);
+    const o = { ...this.defaults, ...t }, l = new at(e, o, i, r);
     return this.engine.add(l, n), this;
   }
   to(e, t, i) {
@@ -2909,7 +2909,7 @@ class lt {
   }
   add(e, t) {
     let i;
-    return e instanceof lt ? (e.playable.pause(), i = e.engine) : e instanceof it ? (e.pause(), i = e.getAnimatable()) : i = e, this.engine.add(i, t), this;
+    return e instanceof ht ? (e.playable.pause(), i = e.engine) : e instanceof it ? (e.pause(), i = e.getAnimatable()) : i = e, this.engine.add(i, t), this;
   }
   addLabel(e, t) {
     return this.engine.addLabel(e, t), this;
@@ -2966,7 +2966,7 @@ function T(s, e, t) {
       return { num: ke(i, s), unit: e };
     },
     apply(i, r) {
-      Lt(i, s, r.num);
+      Bt(i, s, r.num);
     }
   };
 }
@@ -3016,7 +3016,7 @@ function X(s) {
     cssKey: s,
     getCurrent(e) {
       const t = window.getComputedStyle(e)[s];
-      return zt(t);
+      return Lt(t);
     },
     apply(e, t) {
       e.style[s] = me(t);
@@ -3061,7 +3061,7 @@ const Ve = [
   "objectFit"
 ];
 Ve.forEach((s) => x(s, He(s)));
-function ht(s) {
+function ct(s) {
   return {
     type: "complex",
     cssKey: s,
@@ -3074,22 +3074,33 @@ function ht(s) {
     }
   };
 }
-x("boxShadow", ht("boxShadow"));
-x("filter", ht("filter"));
-x("borderRadius", ht("borderRadius"));
+x("boxShadow", ct("boxShadow"));
+x("filter", ct("filter"));
+x("borderRadius", ct("borderRadius"));
 Nt();
-let Et = !1;
+let At = !1;
 function Xe() {
-  Et || (he(), Et = !0);
-}
-function $t(s) {
-  return typeof s == "string" ? document.querySelector(s) : Array.isArray(s) ? s[0] ?? null : s;
+  At || (he(), At = !0);
 }
 function Ge(s) {
-  return typeof s == "string" ? Array.from(document.querySelectorAll(s)) : Array.isArray(s) ? s : [s];
+  return Array.from(document.querySelectorAll(s));
 }
-function At(s, e, t, i, r, n) {
-  const o = new Dt(s, e, t, i), l = new it(o, {
+function je(s) {
+  const e = s.startsWith("#") ? s.slice(1) : s;
+  return document.getElementById(e);
+}
+function Ue(s, e) {
+  const t = new at(s, { ...e, duration: 0 }, "to");
+  t.render(0), t.onComplete();
+}
+function $t(s) {
+  return typeof s == "string" ? document.querySelector(s) : Array.isArray(s) ? s.find((e) => e != null) ?? null : s ?? null;
+}
+function Ke(s) {
+  return typeof s == "string" ? Array.from(document.querySelectorAll(s)) : Array.isArray(s) ? s.filter((e) => e != null) : s ? [s] : [];
+}
+function Mt(s, e, t, i, r, n) {
+  const o = new at(s, e, t, i), l = new it(o, {
     autoplay: n.onScroll ? !1 : !n.paused,
     delay: (n.delay ?? 0) + r,
     repeat: n.repeat,
@@ -3098,11 +3109,11 @@ function At(s, e, t, i, r, n) {
   });
   if (n.onStart && l.on("start", n.onStart), n.onUpdate && l.on("update", n.onUpdate), n.onComplete && l.on("complete", n.onComplete), n.onRepeat && l.on("repeat", n.onRepeat), n.onReverseComplete && l.on("reverseComplete", n.onReverseComplete), Fe(o.targetElements, l, n.overwrite), n.onScroll) {
     const a = $t(n.onScroll.target ?? s);
-    a ? new at(a, l, n.onScroll) : console.warn("[six-js] onScroll: trigger element not found");
+    a ? new lt(a, l, n.onScroll) : console.warn("[six-js] onScroll: trigger element not found");
   }
   return l;
 }
-function ct(s, e, t, i) {
+function dt(s, e, t, i) {
   const {
     onScroll: r,
     stagger: n,
@@ -3120,41 +3131,44 @@ function ct(s, e, t, i) {
     ...S
   } = e, b = { onScroll: r, delay: o, paused: l, repeat: a, repeatDelay: h, boomerang: d, overwrite: u, onStart: p, onUpdate: f, onComplete: g, onRepeat: m, onReverseComplete: y };
   if (n === void 0)
-    return At(s, S, t, i, 0, b);
-  const v = Ge(s);
+    return Mt(s, S, t, i, 0, b);
+  const v = Ke(s);
   v.length === 0 && console.warn("[six-js] stagger: no elements matched"), Object.values(S).some((A) => typeof A == "function") && console.warn(
     "[six-js] stagger: function value (index, el) => ... luôn nhận index=0 vì mỗi phần tử stagger giờ là 1 tween độc lập, không phải index gốc trong danh sách. Nếu cần giá trị theo index gốc, hãy tự tính mảng giá trị trước thay vì dùng callback."
   );
   const w = v.map((A, P) => Oe(P, v.length, n)), R = r ? { ...b, onScroll: void 0, paused: !0 } : b, _ = !!r && (r.sync === !0 || typeof r.sync == "number"), q = v.map(
-    (A, P) => At(A, S, t, i, _ ? 0 : w[P], R)
+    (A, P) => Mt(A, S, t, i, _ ? 0 : w[P], R)
   ), I = new $e(q, w);
   if (r) {
     const A = $t(r.target ?? s);
-    A ? new at(A, I, r) : console.warn("[six-js] onScroll: trigger element not found");
+    A ? new lt(A, I, r) : console.warn("[six-js] onScroll: trigger element not found");
   }
   return I;
 }
-function je(s, e) {
-  return ct(s, e, "to");
+function Ze(s, e) {
+  return dt(s, e, "to");
 }
-function Ue(s, e) {
-  return ct(s, e, "from");
+function Qe(s, e) {
+  return dt(s, e, "from");
 }
-function Ke(s, e, t) {
-  return ct(s, t, "fromTo", e);
+function Je(s, e, t) {
+  return dt(s, t, "fromTo", e);
 }
-function Ze(s) {
-  return new lt(s);
+function ti(s) {
+  return new ht(s);
 }
-const Je = {
+const ii = {
   initElement: Xe,
-  to: je,
-  from: Ue,
-  fromTo: Ke,
-  timeline: Ze,
+  getClass: Ge,
+  getId: je,
+  set: Ue,
+  to: Ze,
+  from: Qe,
+  fromTo: Je,
+  timeline: ti,
   setDefaults: Re
 };
 export {
   qt as VERSION,
-  Je as six
+  ii as six
 };

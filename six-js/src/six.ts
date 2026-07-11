@@ -19,24 +19,39 @@ function initElement() {
   initialized = true;
 }
 
-function resolveTriggerElement(
-  target: string | HTMLElement | HTMLElement[],
-): HTMLElement | null {
-  if (typeof target === "string") return document.querySelector(target);
-  if (Array.isArray(target)) return target[0] ?? null;
-  return target;
+export type SixTarget = string | HTMLElement | (HTMLElement | null | undefined)[] | null | undefined;
+
+function getClass(selector: string): HTMLElement[] {
+  return Array.from(document.querySelectorAll<HTMLElement>(selector));
 }
 
-function resolveTargetList(target: string | HTMLElement | HTMLElement[]): HTMLElement[] {
+function getId(selector: string): HTMLElement | null {
+  const id = selector.startsWith("#") ? selector.slice(1) : selector;
+  return document.getElementById(id);
+}
+
+function set(target: SixTarget, vars: Record<string, any>): void {
+  const tween = new SxTween(target, { ...vars, duration: 0 }, "to");
+  tween.render(0);
+  tween.onComplete();
+}
+
+function resolveTriggerElement(target: SixTarget): HTMLElement | null {
+  if (typeof target === "string") return document.querySelector(target);
+  if (Array.isArray(target)) return target.find((el): el is HTMLElement => el != null) ?? null;
+  return target ?? null;
+}
+
+function resolveTargetList(target: SixTarget): HTMLElement[] {
   if (typeof target === "string") return Array.from(document.querySelectorAll(target));
-  if (Array.isArray(target)) return target;
-  return [target];
+  if (Array.isArray(target)) return target.filter((el): el is HTMLElement => el != null);
+  return target ? [target] : [];
 }
 
 type FullTweenVars = TweenVars & { onScroll?: OnScrollOptions; stagger?: StaggerInput };
 
 function buildSingleTween(
-  target: string | HTMLElement | HTMLElement[],
+  target: SixTarget,
   restVars: TweenVars,
   mode: TweenMode,
   fromVars: Record<string, any> | undefined,
@@ -88,7 +103,7 @@ function buildSingleTween(
 }
 
 function createTween(
-  target: string | HTMLElement | HTMLElement[],
+  target: SixTarget,
   vars: FullTweenVars,
   mode: TweenMode,
   fromVars?: Record<string, any>,
@@ -156,19 +171,15 @@ function createTween(
   return group;
 }
 
-function to(target: string | HTMLElement | HTMLElement[], vars: FullTweenVars): Playable | PlayableGroup {
+function to(target: SixTarget, vars: FullTweenVars): Playable | PlayableGroup {
   return createTween(target, vars, "to");
 }
 
-function from(target: string | HTMLElement | HTMLElement[], vars: FullTweenVars): Playable | PlayableGroup {
+function from(target: SixTarget, vars: FullTweenVars): Playable | PlayableGroup {
   return createTween(target, vars, "from");
 }
 
-function fromTo(
-  target: string | HTMLElement | HTMLElement[],
-  fromVars: Record<string, any>,
-  toVars: FullTweenVars,
-): Playable | PlayableGroup {
+function fromTo(target: SixTarget, fromVars: Record<string, any>, toVars: FullTweenVars): Playable | PlayableGroup {
   return createTween(target, toVars, "fromTo", fromVars);
 }
 
@@ -178,6 +189,9 @@ function timeline(vars?: TimelineVars): SxTimeline {
 
 export const six = {
   initElement,
+  getClass,
+  getId,
+  set,
   to,
   from,
   fromTo,

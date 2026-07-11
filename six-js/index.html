@@ -11,34 +11,21 @@
 
   <body>
     <div class="container">
-      <img
-        class="img"
-        src="https://cdn.shopify.com/s/files/1/0768/4069/8019/files/SixJS..jpg?v=1783711159"
-        alt=""
-      />
+      <div class="box" id="box"></div>
+      <div class="box"></div>
+      <div class="box"></div>
     </div>
 
     <script type="module">
       import { six } from "./dist/six-js.es.js";
-
-      let tl = six.timeline();
-      tl.set(".img", { x: "-50%", y: "-50%" })
-        .to(".img", {
-          opacity: 1,
-          duration: 0.8,
-        })
-        .to(".img", {
-          width: "100vw",
-          top: "100%",
-          y: "-100%",
-          duration: 1.5,
-          ease: "quintInOut",
-        })
-        .to(".img", {
-          y: "-120vh",
-          duration: 1.5,
-          ease: "quintInOut",
-        });
+      // const boxes = six.getClass(".box");
+      const box = six.getId("box");
+      six.set(box, { background: "yellow" });
+      six.to(box, {
+        rotate: 100,
+        duration: 1.5,
+        ease: "strongInOut"
+      });
     </script>
 
     <!-- ------------------------------------------------GSAP------------------------------------------------ -->
@@ -47,25 +34,7 @@
     <script>
       document.addEventListener("DOMContentLoaded", (event) => {
         gsap.registerPlugin(ScrollTrigger);
-
-        let tl = gsap.timeline();
-        tl.to(".img", {
-          opacity: 1,
-          duration: 0.8,
-        })
-          .to(".img", {
-            width: "100vw",
-            top: "100%",
-            xPercent: -50,
-            yPercent: -100,
-            duration: 1.2,
-            ease: "power2.inOut",
-          })
-          .to(".img", {
-            y: "-120vh",
-            duration: 1.5,
-            ease: "power2.inOut",
-          });
+        gsap.set(".box", { x: 200, duration:  2 });
       });
     </script> -->
   </body>
