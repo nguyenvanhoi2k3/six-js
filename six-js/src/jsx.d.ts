@@ -1,4 +1,6 @@
 // src/jsx.d.ts
+declare module "*.css";
+
 /* ---------- sx-animate ---------- */
 interface SxAnimateAttrs {
   type?: "fade" | "fade-up" | "fade-down" | "fade-left" | "fade-right";
@@ -89,6 +91,8 @@ declare global {
       // dialog
       "sx-dialog": JSX.IntrinsicElements["div"] & SxDialogAttrs;
       "sx-dialog-trigger": JSX.IntrinsicElements["div"] & SxDialogTriggerAttrs;
+      "sx-dialog-pull": JSX.IntrinsicElements["div"] & SxDialogPullAttrs;
+      "sx-close-cursor": JSX.IntrinsicElements["div"];
     }
   }
 
@@ -127,10 +131,35 @@ interface SxDialogAttrs {
   scrollable?: boolean | "true" | "false";
   overlay?: boolean | "true" | "false";
   "overlay-style"?: string;
+  effect?:
+    | "fade"
+    | "zoom"
+    | "zoom-in"
+    | "slide-up"
+    | "slide-down"
+    | "slide-left"
+    | "slide-right"
+    | "flip-x"
+    | "flip-y";
+  position?:
+    | "center"
+    | "top"
+    | "bottom"
+    | "left"
+    | "right"
+    | "top-left"
+    | "top-right"
+    | "bottom-left"
+    | "bottom-right";
+  breakpoints?: string;
 }
 
 interface SxDialogTriggerAttrs {
   name: string;
+}
+
+interface SxDialogPullAttrs {
+  threshold?: number | string;
 }
 
 export {};

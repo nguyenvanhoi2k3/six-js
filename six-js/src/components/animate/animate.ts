@@ -2,6 +2,7 @@
 import { EASINGS, type EasingType } from "../../easing/easing";
 import { observe, unobserve } from "../../core/observer";
 import { parseTimeValue } from "../../core/time";
+import { SafeHTMLElement } from "../../core/safe-element";
 
 type AnimateType =
   | "fade"
@@ -18,16 +19,21 @@ type AnimateOptions = {
   delay: number;
 };
 
-export class SxAnimate extends HTMLElement {
+export class SxAnimate extends SafeHTMLElement {
   private animation?: Animation;
   private options!: AnimateOptions;
 
   private static counter = 0;
   private readonly order = SxAnimate.counter++;
 
-  private static mediaQuery = window.matchMedia(
-    "(prefers-reduced-motion: reduce)",
-  );
+  private static _mediaQuery: MediaQueryList | null = null;
+
+  private static get mediaQuery(): MediaQueryList {
+    if (!this._mediaQuery) {
+      this._mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    }
+    return this._mediaQuery;
+  }
 
   private static get reduceMotion() {
     return this.mediaQuery.matches;

@@ -1,5 +1,8 @@
 // six-js\src\components\slider\slider-progress.ts
-export class SxSliderProgress extends HTMLElement {
+import { setTransformValue, buildTransformString } from "../../properties/transform-state";
+import { SafeHTMLElement } from "../../core/safe-element";
+
+export class SxSliderProgress extends SafeHTMLElement {
   private bar: HTMLDivElement;
 
   constructor() {
@@ -21,10 +24,14 @@ export class SxSliderProgress extends HTMLElement {
 
     if (direction === "vertical") {
       this.bar.style.transformOrigin = "top center";
-      this.bar.style.transform = `scaleY(${clamped})`;
+      setTransformValue(this.bar, "scaleY", clamped);
+      setTransformValue(this.bar, "scaleX", 1);
     } else {
       this.bar.style.transformOrigin = "left center";
-      this.bar.style.transform = `scaleX(${clamped})`;
+      setTransformValue(this.bar, "scaleX", clamped);
+      setTransformValue(this.bar, "scaleY", 1);
     }
+
+    this.bar.style.transform = buildTransformString(this.bar);
   }
 }

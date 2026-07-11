@@ -1,4 +1,3 @@
-import { logVersion } from "./log";
 import { registerComponents } from "./components";
 import { SxTween, TweenVars, TweenMode } from "./core/tween";
 import { Playable } from "./core/playable";
@@ -7,13 +6,14 @@ import { ScrollTriggerController, OnScrollOptions } from "./core/scroll-trigger"
 import { applyOverwrite } from "./core/overwrite-manager";
 import { computeStaggerDelay, PlayableGroup, StaggerInput } from "./core/stagger";
 import { SxTimeline, TimelineVars } from "./core/timeline";
+import { VERSION } from "./version";
 import "./properties";
 
-logVersion();
+console.log(` SixJS v${VERSION}`);
 
 let initialized = false;
 
-function initElement() {
+function initElements() {
   if (initialized) return;
   registerComponents();
   initialized = true;
@@ -188,7 +188,7 @@ function timeline(vars?: TimelineVars): SxTimeline {
 }
 
 export const six = {
-  initElement,
+  initElements,
   getClass,
   getId,
   set,

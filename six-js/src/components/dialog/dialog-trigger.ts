@@ -1,10 +1,11 @@
 // six-js\src\components\modal\modal-trigger.ts
+import { SafeHTMLElement } from '../../core/safe-element';
 
 export interface DialogToggleDetail {
   name: string;
 }
 
-export class SxDialogTrigger extends HTMLElement {
+export class SxDialogTrigger extends SafeHTMLElement {
   connectedCallback() {
     if (!this.hasAttribute("role")) this.setAttribute("role", "button");
     if (!this.hasAttribute("tabindex")) this.setAttribute("tabindex", "0");

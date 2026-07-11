@@ -1,10 +1,12 @@
 // six-js\src\components\marquee\marquee.ts
 import { ticker } from "../../core/ticker";
 import { observe, unobserve } from "../../core/observer";
+import { setTransformValue, buildTransformString } from "../../properties/transform-state";
+import { SafeHTMLElement } from "../../core/safe-element";
 
 export type MarqueeDirection = "left" | "right" | "up" | "down";
 
-export class SxMarquee extends HTMLElement {
+export class SxMarquee extends SafeHTMLElement {
   private inner: HTMLElement | null = null;
   private resizeObserver: ResizeObserver | null = null;
   private setupRafId: number | null = null;
@@ -306,21 +308,16 @@ export class SxMarquee extends HTMLElement {
   };
 
   private applyTransform(val: number) {
-    if (this.inner) {
-      if (this.isVertical) {
-        // Cuộn dọc: dùng trục Y
-        this.inner.style.transform = `translate3d(0,${val}px,0)`;
-      } else {
-        // Cuộn ngang: dùng trục X
-        this.inner.style.transform = `translate3d(${val}px,0,0)`;
-      }
-    }
+    if (!this.inner) return;
+
+    setTransformValue(this.inner, this.isVertical ? "y" : "x", val);
+    this.inner.style.transform = buildTransformString(this.inner);
   }
 }
 
-export class SxMarqueeInner extends HTMLElement {}
+export class SxMarqueeInner extends SafeHTMLElement {}
 
-export class SxMarqueeItem extends HTMLElement {
+export class SxMarqueeItem extends SafeHTMLElement {
   connectedCallback() {
     this.style.cssText = "display:inline-block;flex-shrink:0;";
   }

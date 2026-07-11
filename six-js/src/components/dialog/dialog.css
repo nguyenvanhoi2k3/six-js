@@ -18,7 +18,17 @@ sx-dialog[sx-open] {
   transition: visibility 0s step-start;
 }
 
-sx-dialog .sx-dialog-backdrop {
+/* Position variants */
+sx-dialog[position="top"] { align-items: flex-start; justify-content: center; }
+sx-dialog[position="bottom"] { align-items: flex-end; justify-content: center; }
+sx-dialog[position="left"] { align-items: center; justify-content: flex-start; }
+sx-dialog[position="right"] { align-items: center; justify-content: flex-end; }
+sx-dialog[position="top-left"] { align-items: flex-start; justify-content: flex-start; }
+sx-dialog[position="top-right"] { align-items: flex-start; justify-content: flex-end; }
+sx-dialog[position="bottom-left"] { align-items: flex-end; justify-content: flex-start; }
+sx-dialog[position="bottom-right"] { align-items: flex-end; justify-content: flex-end; }
+
+sx-dialog > .sx-dialog-backdrop {
   position: absolute;
   inset: 0;
   z-index: -1;
@@ -26,17 +36,33 @@ sx-dialog .sx-dialog-backdrop {
   transition: opacity var(--sx-duration) ease;
 }
 
-sx-dialog[sx-open] .sx-dialog-backdrop {
+sx-dialog[sx-open] > .sx-dialog-backdrop {
   opacity: 1;
 }
 
-sx-dialog .sx-dialog-core {
+sx-close-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 2147483647;
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: opacity 0.15s ease;
+}
+
+sx-close-cursor.is-visible {
+  opacity: 1;
+}
+
+sx-dialog > .sx-dialog-core {
   position: relative;
   z-index: 1;
-  max-width: var(--sx-dialog-max-width, 90vw);
-  max-height: var(--sx-dialog-max-height, calc(100vh - 48px));
+  contain: layout;
+  max-width: var(--sx-dialog-max-width, 100%);
+  max-height: var(--sx-dialog-max-height, 100%);
   opacity: 0;
-  transform: scale(0.96) translateY(10px);
+  transform: var(--sx-dialog-from, scale(0.96) translateY(10px));
   transition:
     opacity var(--sx-duration) cubic-bezier(0.4, 0, 0.2, 1),
     transform var(--sx-duration) cubic-bezier(0.4, 0, 0.2, 1);
@@ -47,12 +73,81 @@ sx-dialog .sx-dialog-core {
   overflow-y: auto;
 }
 
-sx-dialog[sx-open] .sx-dialog-core {
+sx-dialog[sx-open] > .sx-dialog-core {
   opacity: 1;
-  transform: scale(1) translateY(0);
+  transform: var(--sx-dialog-to, scale(1) translateY(0));
+}
+
+/* Effect variants */
+sx-dialog[effect="fade"] > .sx-dialog-core {
+  --sx-dialog-from: none;
+  --sx-dialog-to: none;
+}
+
+sx-dialog[effect="zoom"] > .sx-dialog-core {
+  --sx-dialog-from: scale(0.96) translateY(10px);
+  --sx-dialog-to: scale(1) translateY(0);
+}
+
+sx-dialog[effect="zoom-in"] > .sx-dialog-core {
+  --sx-dialog-from: scale(1.08);
+  --sx-dialog-to: scale(1);
+}
+
+sx-dialog[effect="slide-up"] > .sx-dialog-core {
+  --sx-dialog-from: translateY(48px);
+  --sx-dialog-to: translateY(0);
+}
+
+sx-dialog[effect="slide-down"] > .sx-dialog-core {
+  --sx-dialog-from: translateY(-48px);
+  --sx-dialog-to: translateY(0);
+}
+
+sx-dialog[effect="slide-left"] > .sx-dialog-core {
+  --sx-dialog-from: translateX(48px);
+  --sx-dialog-to: translateX(0);
+}
+
+sx-dialog[effect="slide-right"] > .sx-dialog-core {
+  --sx-dialog-from: translateX(-48px);
+  --sx-dialog-to: translateX(0);
+}
+
+sx-dialog[effect="flip-x"] > .sx-dialog-core {
+  --sx-dialog-from: perspective(800px) rotateX(24deg);
+  --sx-dialog-to: perspective(800px) rotateX(0deg);
+}
+
+sx-dialog[effect="flip-y"] > .sx-dialog-core {
+  --sx-dialog-from: perspective(800px) rotateY(24deg);
+  --sx-dialog-to: perspective(800px) rotateY(0deg);
 }
 
 sx-dialog-trigger {
   display: inline-block;
   cursor: pointer;
+}
+
+sx-dialog-pull {
+  display: block;
+  flex-shrink: 0;
+  width: 40px;
+  height: 4px;
+  margin: 8px auto;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.2);
+  cursor: grab;
+  touch-action: none;
+}
+
+sx-dialog-pull:active {
+  cursor: grabbing;
+}
+
+sx-dialog[position="left"] sx-dialog-pull,
+sx-dialog[position="right"] sx-dialog-pull {
+  width: 4px;
+  height: 40px;
+  margin: auto 8px;
 }

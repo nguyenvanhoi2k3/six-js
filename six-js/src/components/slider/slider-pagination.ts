@@ -1,7 +1,9 @@
 // six-js\src\components\slider\slider-pagination.ts
 import { sliderRegistry } from "./slider-registry";
+import { setTransformValue, buildTransformString } from "../../properties/transform-state";
+import { SafeHTMLElement } from "../../core/safe-element";
 
-export class SxSliderPagination extends HTMLElement {
+export class SxSliderPagination extends SafeHTMLElement {
   private renderedSignature = "";
   private innerContainer: HTMLDivElement | null = null;
   private snakeBar: HTMLDivElement | null = null;
@@ -245,7 +247,8 @@ export class SxSliderPagination extends HTMLElement {
 
     if (!isDynamic || total <= this.maxVisibleBullets || !this.innerContainer) {
       if (this.innerContainer) {
-        this.innerContainer.style.transform = "translateX(0px)";
+        setTransformValue(this.innerContainer, "x", 0);
+        this.innerContainer.style.transform = buildTransformString(this.innerContainer);
       }
       return;
     }
@@ -278,6 +281,7 @@ export class SxSliderPagination extends HTMLElement {
     });
 
     const translateX = -startIdx * this.bulletWidthWithGap;
-    this.innerContainer.style.transform = `translateX(${translateX}px)`;
+    setTransformValue(this.innerContainer, "x", translateX);
+    this.innerContainer.style.transform = buildTransformString(this.innerContainer);
   }
 }

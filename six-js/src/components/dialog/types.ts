@@ -1,5 +1,27 @@
 /* six-js\src\components\dialog\types.ts */
 
+export type DialogEffect =
+  | "fade"
+  | "zoom"
+  | "zoom-in"
+  | "slide-up"
+  | "slide-down"
+  | "slide-left"
+  | "slide-right"
+  | "flip-x"
+  | "flip-y";
+
+export type DialogPosition =
+  | "center"
+  | "top"
+  | "bottom"
+  | "left"
+  | "right"
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right";
+
 export interface DialogOptions {
   name: string | null;
   duration: number;
@@ -8,6 +30,8 @@ export interface DialogOptions {
   scrollable: boolean;
   overlay: boolean;
   overlayStyle: string;
+  effect: DialogEffect;
+  position: DialogPosition;
 }
 
 export interface DialogToggleDetail {

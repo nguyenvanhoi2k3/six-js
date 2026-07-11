@@ -10,22 +10,37 @@
   </head>
 
   <body>
-    <div class="container">
-      <div class="box" id="box"></div>
-      <div class="box"></div>
-      <div class="box"></div>
-    </div>
+    <sx-dialog-trigger name="dialog1">Open</sx-dialog-trigger>
+    <sx-dialog
+      name="dialog1"
+      effect="slide-up"
+      position="bottom"
+      breakpoints="{
+      768: {
+        position: 'right',
+        effect: 'slide-left'
+      }
+    }"
+    >
+      <sx-close-cursor class="close-cursor">close</sx-close-cursor>
 
+      <div class="content" style="background: #fff; padding: 1rem">
+        <sx-dialog-pull></sx-dialog-pull>
+
+        <h2>header</h2>
+        <div>
+          <input type="text" />
+          Lorem ipsum dolor sit amet consectetur, adipisicing elit. Amet,
+          deleniti!
+        </div>
+        <sx-dialog-trigger name="dialog1">Close</sx-dialog-trigger>
+
+      </div>
+    </sx-dialog>
+    <space></space>
     <script type="module">
       import { six } from "./dist/six-js.es.js";
-      // const boxes = six.getClass(".box");
-      const box = six.getId("box");
-      six.set(box, { background: "yellow" });
-      six.to(box, {
-        rotate: 100,
-        duration: 1.5,
-        ease: "strongInOut"
-      });
+      six.initElements();
     </script>
 
     <!-- ------------------------------------------------GSAP------------------------------------------------ -->

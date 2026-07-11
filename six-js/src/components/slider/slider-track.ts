@@ -2,8 +2,11 @@
 import { SxSlider } from "./slider";
 import { InertiaPhysics } from "../../core/inertia-physics";
 import { ticker, TickerCallback } from "../../core/ticker";
+import { setTransformValue, buildTransformString } from "../../properties/transform-state";
+import { EASINGS } from "../../easing/easing";
+import { SafeHTMLElement } from "../../core/safe-element";
 
-export class SxSliderTrack extends HTMLElement {
+export class SxSliderTrack extends SafeHTMLElement {
   private sliderCha: SxSlider | null = null;
 
   private isDragging = false;
@@ -426,7 +429,7 @@ export class SxSliderTrack extends HTMLElement {
     const elapsed = now - this.scrollStartTime;
     const rate = Math.min(elapsed / this.scrollDuration, 1);
 
-    const easeRate = 1 - Math.pow(1 - rate, 4);
+    const easeRate = EASINGS.quartOut(rate);
     const target =
       this.scrollFrom + (this.scrollToTarget - this.scrollFrom) * easeRate;
 
@@ -584,7 +587,9 @@ export class SxSliderTrack extends HTMLElement {
 
   public setTransform(value: number) {
     if (!this.sliderCha) return;
-    this.style.transform = `${this.sliderCha.transformFn}(${value}px)`;
+
+    setTransformValue(this, this.sliderCha.transformFn === "translateY" ? "y" : "x", value);
+    this.style.transform = buildTransformString(this);
 
     this.sliderCha.updateProgress(value, this.style.transition);
   }

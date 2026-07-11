@@ -1,7 +1,8 @@
 // six-js\src\components\slider\slider-next.ts
 import { sliderRegistry } from './slider-registry';
+import { SafeHTMLElement } from '../../core/safe-element';
 
-export class SxSliderNext extends HTMLElement {
+export class SxSliderNext extends SafeHTMLElement {
   constructor() {
     super();
     this.addEventListener('click', () => this.handleAction());

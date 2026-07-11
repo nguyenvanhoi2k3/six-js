@@ -4,8 +4,9 @@ import { SxSliderTrack } from "./slider-track";
 import { sliderRegistry } from "./slider-registry";
 import { Breakpoints } from "../../core/breakpoints";
 import { parseTimeValue } from "../../core/time";
+import { SafeHTMLElement } from "../../core/safe-element";
 
-export class SxSlider extends HTMLElement {
+export class SxSlider extends SafeHTMLElement {
   public options!: SliderOptions;
   private originalOptions!: SliderOptions;
   private breakpointsConfig: Record<number, any> | null = null;
