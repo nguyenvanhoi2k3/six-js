@@ -4,7 +4,9 @@
       "Bash(npx tsc *)",
       "WebSearch",
       "WebFetch(domain:gsap.com)",
-      "PowerShell(Remove-Item -Path \"f:\\\\six-js\\\\six-js\\\\matchmedia-demo.html\" -Confirm:$false)"
+      "PowerShell(Remove-Item -Path \"f:\\\\six-js\\\\six-js\\\\matchmedia-demo.html\" -Confirm:$false)",
+      "PowerShell(Set-Location \"F:\\\\six-js\\\\six-js-docs\"; $env:CI = \"true\"; npm create vite@latest . -- --template vanilla-ts --yes)",
+      "Read(//f/six-js/six-js-docs/**)"
     ]
   }
 }

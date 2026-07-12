@@ -8,7 +8,7 @@ interface SxAnimateAttrs {
   easing?: string;
   duration?: number | string;
   delay?: number | string;
-  group?: boolean | "";
+  cascade?: boolean | "";
   replay?: boolean | "";
 }
 

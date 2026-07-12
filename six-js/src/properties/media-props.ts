@@ -8,10 +8,10 @@ registerProperty("currentTime", {
   type: "numeric",
   isTransform: false,
   defaultUnit: "",
-  getCurrent(target): ParsedValue {
+  getCurrent(target: HTMLElement): ParsedValue {
     return { num: isMediaElement(target) ? target.currentTime : 0, unit: "" };
   },
-  apply(target, value: ParsedValue) {
+  apply(target: HTMLElement, value: ParsedValue) {
     if (isMediaElement(target)) target.currentTime = value.num;
   },
 });

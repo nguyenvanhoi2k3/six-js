@@ -1,5 +1,5 @@
 // six-js\src\components\animate\animate.ts
-import { EASINGS, type EasingType } from "../../easing/easing";
+import { EASINGS, toCssEasing, type EasingType } from "../../easing/easing";
 import { observe, unobserve } from "../../core/observer";
 import { parseTimeValue } from "../../core/time";
 import { SafeHTMLElement } from "../../core/safe-element";
@@ -39,30 +39,48 @@ export class SxAnimate extends SafeHTMLElement {
     return this.mediaQuery.matches;
   }
 
-  static groupQueue = new Set<SxAnimate>();
-  static isProcessingGroup = false;
+  private static cascadeQueue = new Map<Element | null, Set<SxAnimate>>();
+  private static isProcessingCascade = false;
 
-  private static scheduleGroup() {
-    if (this.isProcessingGroup || !this.groupQueue.size) return;
+  private cascadeSet?: Set<SxAnimate>;
 
-    this.isProcessingGroup = true;
+  private static enqueueCascade(el: SxAnimate) {
+    const key = el.parentElement;
+
+    let set = this.cascadeQueue.get(key);
+    if (!set) {
+      set = new Set();
+      this.cascadeQueue.set(key, set);
+    }
+
+    set.add(el);
+    el.cascadeSet = set;
+    this.scheduleCascade();
+  }
+
+  private static scheduleCascade() {
+    if (this.isProcessingCascade || !this.cascadeQueue.size) return;
+
+    this.isProcessingCascade = true;
 
     queueMicrotask(() => {
-      this.handleGroup([...this.groupQueue]);
-      this.groupQueue.clear();
-      this.isProcessingGroup = false;
+      for (const items of this.cascadeQueue.values()) {
+        this.handleCascade([...items]);
+      }
+      this.cascadeQueue.clear();
+      this.isProcessingCascade = false;
     });
   }
 
-  static handleGroup(items: SxAnimate[]) {
+  private static handleCascade(items: SxAnimate[]) {
     items.sort((a, b) => a.order - b.order);
     items.forEach((el, index) => {
       el.play(index * 120);
     });
   }
 
-  get isGroup() {
-    return this.hasAttribute("group");
+  get isCascade() {
+    return this.hasAttribute("cascade");
   }
 
   connectedCallback() {
@@ -85,7 +103,8 @@ export class SxAnimate extends SafeHTMLElement {
   disconnectedCallback() {
     this.animation?.cancel();
     unobserve(this);
-    SxAnimate.groupQueue.delete(this);
+    this.cascadeSet?.delete(this);
+    this.cascadeSet = undefined;
   }
 
   private handleEnter() {
@@ -93,9 +112,8 @@ export class SxAnimate extends SafeHTMLElement {
       unobserve(this);
     }
 
-    if (this.isGroup) {
-      SxAnimate.groupQueue.add(this);
-      SxAnimate.scheduleGroup();
+    if (this.isCascade) {
+      SxAnimate.enqueueCascade(this);
     } else {
       this.play();
     }
@@ -125,9 +143,9 @@ export class SxAnimate extends SafeHTMLElement {
     return {
       x,
       y,
-      easing: easing && easing in EASINGS ? easing : "strongInOut",
-      duration: parseTimeValue(this.getAttribute("duration"), 400),
-      delay: parseTimeValue(this.getAttribute("delay"), 0),
+      easing: easing && easing in EASINGS ? easing : "none",
+      duration: parseTimeValue(this.getAttribute("duration"), 500),
+      delay: parseTimeValue(this.getAttribute("delay"), 50),
     };
   }
 
@@ -161,7 +179,7 @@ export class SxAnimate extends SafeHTMLElement {
       {
         duration,
         delay: delay + extraDelay,
-        easing,
+        easing: toCssEasing(easing),
         fill: "both",
       },
     );
