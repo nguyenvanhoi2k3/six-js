@@ -32,3 +32,6 @@ coverage/
 # OS
 .DS_Store
 Thumbs.db
+
+# Sibling repo (separate git repo/remote)
+/six-js-docs/
