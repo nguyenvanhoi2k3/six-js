@@ -10,7 +10,7 @@
   </head>
 
   <body>
-    <div style="height: 100vh"></div>
+    <!-- <div style="height: 100vh"></div>
     <video
       id="scrub-video"
       src="./static/video/video_onscroll.mp4"
@@ -19,7 +19,22 @@
       preload="auto"
       style="width: 100vw; height: 100vh; object-fit: cover; display: block"
     ></video>
-    <div style="height: 100vh"></div>
+    <div style="height: 100vh"></div> -->
+
+    <sx-dialog-trigger name="dialog1">Open</sx-dialog-trigger>
+
+    <sx-dialog name="dialog1" effect="zoom" position="center">
+      <sx-dialog-pull></sx-dialog-pull>
+      <sx-close-cursor>x</sx-close-cursor>
+      <div class="content" style="background: #fff">
+        <h2>Dialog</h2>
+        <div>
+          Lorem ipsum dolor sit amet consectetur, adipisicing elit. Incidunt,
+          dolorum?
+        </div>
+        <sx-dialog-trigger name="dialog1">Đóng</sx-dialog-trigger>
+      </div>
+    </sx-dialog>
 
     <script type="module">
       import { six } from "./dist/six-js.es.js";

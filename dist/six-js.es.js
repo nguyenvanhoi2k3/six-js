@@ -81,7 +81,7 @@ function Kt(s) {
 }
 const dt = /* @__PURE__ */ new WeakMap();
 let it = [], st = null;
-function St(s, e) {
+function vt(s, e) {
   it.push({ instance: s, type: e }), st === null && (st = requestAnimationFrame(Qt));
 }
 function Qt() {
@@ -98,7 +98,7 @@ function Ft() {
     (s) => {
       for (let e = 0; e < s.length; e++) {
         const t = s[e], i = dt.get(t.target);
-        i && (t.isIntersecting ? St(i, "enter") : St(i, "leave"));
+        i && (t.isIntersecting ? vt(i, "enter") : vt(i, "leave"));
       }
     },
     { threshold: 0.05 }
@@ -361,13 +361,13 @@ function ie(s) {
   if (!e) return { ...ut };
   const t = e[1].split(",").map((b) => parseFloat(b.trim())), i = t[0], n = t[1], r = t[2], o = t[4], h = t[5], l = t[6];
   t[8], t[9];
-  const c = t[10], d = t[12], u = t[13], p = t[14], f = Math.sqrt(i * i + n * n + r * r), g = Math.sqrt(o * o + h * h + l * l), m = Math.atan2(n, i) * U, y = Math.atan2(-r, Math.sqrt(l * l + c * c)) * U, S = Math.atan2(l, c) * U;
+  const c = t[10], d = t[12], u = t[13], p = t[14], f = Math.sqrt(i * i + n * n + r * r), g = Math.sqrt(o * o + h * h + l * l), m = Math.atan2(n, i) * U, y = Math.atan2(-r, Math.sqrt(l * l + c * c)) * U, v = Math.atan2(l, c) * U;
   return {
     x: d,
     y: u,
     z: p,
     rotate: m,
-    rotateX: S,
+    rotateX: v,
     rotateY: y,
     rotateZ: m,
     scale: f,
@@ -392,7 +392,7 @@ const se = {
   scaleY: 1,
   skewX: 0,
   skewY: 0
-}, vt = /* @__PURE__ */ new WeakMap();
+}, St = /* @__PURE__ */ new WeakMap();
 function ne(s) {
   const e = te(s);
   return {
@@ -412,8 +412,8 @@ function ne(s) {
   };
 }
 function pt(s) {
-  let e = vt.get(s);
-  return e || (e = ne(s), vt.set(s, e)), e;
+  let e = St.get(s);
+  return e || (e = ne(s), St.set(s, e)), e;
 }
 function re(s, e) {
   return pt(s)[e];
@@ -726,13 +726,13 @@ class ue extends w {
       if (this.snakeTimeout !== null && (clearTimeout(this.snakeTimeout), this.snakeTimeout = null), o[t]) {
         const m = t * 20, y = this.lastActiveIndex * 20;
         if (t > this.lastActiveIndex) {
-          const S = m - y + 10;
-          this.snakeBar.style.left = `${y}px`, this.snakeBar.style.width = `${S}px`, this.snakeTimeout = window.setTimeout(() => {
+          const v = m - y + 10;
+          this.snakeBar.style.left = `${y}px`, this.snakeBar.style.width = `${v}px`, this.snakeTimeout = window.setTimeout(() => {
             this.getAttribute("effect") === "snake" && this.snakeBar && (this.snakeBar.style.left = `${m}px`, this.snakeBar.style.width = "10px");
           }, 150);
         } else if (t < this.lastActiveIndex) {
-          const S = y - m + 10;
-          this.snakeBar.style.left = `${m}px`, this.snakeBar.style.width = `${S}px`, this.snakeTimeout = window.setTimeout(() => {
+          const v = y - m + 10;
+          this.snakeBar.style.left = `${m}px`, this.snakeBar.style.width = `${v}px`, this.snakeTimeout = window.setTimeout(() => {
             this.getAttribute("effect") === "snake" && this.snakeBar && (this.snakeBar.style.width = "10px");
           }, 150);
         } else
@@ -1077,8 +1077,8 @@ class be extends w {
       const m = this.sliderCha.getBoundingClientRect()[this.sliderCha.sizeDim];
       let y = 0;
       if (this.sliderCha.options.autoSize) {
-        const S = this.sliderCha.convertToPx(this.sliderCha.options.gap), b = this.children[i];
-        y = b ? b.getBoundingClientRect()[this.sliderCha.sizeDim] + S : 0;
+        const v = this.sliderCha.convertToPx(this.sliderCha.options.gap), b = this.children[i];
+        y = b ? b.getBoundingClientRect()[this.sliderCha.sizeDim] + v : 0;
       } else
         y = this.sliderCha.getSlideSizeWithGap();
       h = m / 2 - y / 2;
@@ -1210,10 +1210,10 @@ class ye extends w {
           r = o / f;
           let g = 0;
           if (this.options.centered) {
-            let S = this.options.autoSize ? this.getRectSize(
+            let v = this.options.autoSize ? this.getRectSize(
               this.track.children[d]
             ) + this.convertToPx(this.options.gap) : this.getSlideSizeWithGap();
-            g = o / 2 - S / 2;
+            g = o / 2 - v / 2;
           }
           n = (-p + u + g - t) / f, n = (n % 1 + 1) % 1;
         } else
@@ -1525,8 +1525,8 @@ class ye extends w {
     if (n === 0) return;
     const r = i ? this.options.autoSize ? this.originalSlidesCount : this.options.perView : 0, o = (b) => {
       if (!i) return b;
-      let v = (b - r) % n;
-      return v < 0 && (v += n), v;
+      let S = (b - r) % n;
+      return S < 0 && (S += n), S;
     }, h = this.options.centered ? 0 : Math.floor(this.options.perView / 2), l = o(this.currentIndex);
     this.lastFiredIndex !== l && (this.lastFiredIndex = l, this.dispatchEvent(
       new CustomEvent("sx-change", {
@@ -1536,9 +1536,9 @@ class ye extends w {
     const c = o(this.currentIndex - 1), d = o(this.currentIndex + 1), u = o(this.currentIndex + h), p = this.isFirstHeightMeasure;
     p && (this.isFirstHeightMeasure = !1);
     let f = null;
-    p && (f = document.createElement("style"), f.innerHTML = "sx-slider-slide, sx-slider-slide * { transition: none !important; }", this.appendChild(f), this.offsetHeight), this.options.lockActive && !this.isClickRouting && !p || t.forEach((b, v) => {
+    p && (f = document.createElement("style"), f.innerHTML = "sx-slider-slide, sx-slider-slide * { transition: none !important; }", this.appendChild(f), this.offsetHeight), this.options.lockActive && !this.isClickRouting && !p || t.forEach((b, S) => {
       b.removeAttribute("sx-slide-active"), b.removeAttribute("sx-slide-prev"), b.removeAttribute("sx-slide-next"), b.removeAttribute("sx-slide-center");
-      let C = o(v);
+      let C = o(S);
       b.setAttribute("aria-label", `${C + 1}/${n}`), C === l && b.setAttribute("sx-slide-active", ""), C === c && b.setAttribute("sx-slide-prev", ""), C === d && b.setAttribute("sx-slide-next", ""), C === u && b.setAttribute("sx-slide-center", "");
     }), this.updateAutoHeight(), this.updateNavigation();
     const g = i ? n - 1 : this.getRealMaxIndex(), m = this.getResolvedPerMove();
@@ -1551,16 +1551,16 @@ class ye extends w {
     } else
       for (let b = 0; b <= g; b++)
         y.push(b);
-    let S = y.indexOf(l);
-    if (S === -1) {
+    let v = y.indexOf(l);
+    if (v === -1) {
       for (let b = y.length - 1; b >= 0; b--)
         if (l >= y[b]) {
-          S = b;
+          v = b;
           break;
         }
     }
-    this.updatePagination(y, S), this.options.sync && (this.isClickRouting || !this.options.lockActive) && this.options.sync.split(",").map((v) => v.trim()).forEach((v) => {
-      const C = q.get(v);
+    this.updatePagination(y, v), this.options.sync && (this.isClickRouting || !this.options.lockActive) && this.options.sync.split(",").map((S) => S.trim()).forEach((S) => {
+      const C = q.get(S);
       C && C.syncFromController(l);
     }), p && f && requestAnimationFrame(() => {
       f == null || f.remove();
@@ -1875,7 +1875,7 @@ const P = {
       const i = this.closeCursorEl;
       this.closeCursorEl = null, i.remove();
     }
-    this.movingCloseCursor = !0, document.body.appendChild(t), this.movingCloseCursor = !1, this.closeCursorEl = t;
+    this.name ? t.setAttribute("name", this.name) : t.removeAttribute("name"), this.movingCloseCursor = !0, document.body.appendChild(t), this.movingCloseCursor = !1, this.closeCursorEl = t;
   }
   unregisterCloseCursor(t) {
     this.movingCloseCursor || this.closeCursorEl === t && (this.closeCursorEl = null);
@@ -2008,9 +2008,15 @@ a(E, "DRAG_MAP", {
   "bottom-right": { axis: "y", sign: 1 }
 }), a(E, "baseZIndex", 9999), a(E, "openStack", []);
 let ot = E;
-class Se extends w {
+class ve extends w {
   constructor() {
     super(...arguments);
+    a(this, "dialogEl", null);
+    a(this, "observer", null);
+    a(this, "syncActiveState", () => {
+      var t;
+      (t = this.dialogEl) != null && t.hasAttribute("sx-open") ? this.setAttribute("sx-active", "") : this.removeAttribute("sx-active");
+    });
     a(this, "handleKeyDown", (t) => {
       (t.key === "Enter" || t.key === " ") && (t.preventDefault(), this.toggleDialog());
     });
@@ -2024,13 +2030,20 @@ class Se extends w {
     });
   }
   connectedCallback() {
-    this.hasAttribute("role") || this.setAttribute("role", "button"), this.hasAttribute("tabindex") || this.setAttribute("tabindex", "0"), this.addEventListener("click", this.toggleDialog), this.addEventListener("keydown", this.handleKeyDown);
+    this.hasAttribute("role") || this.setAttribute("role", "button"), this.hasAttribute("tabindex") || this.setAttribute("tabindex", "0"), this.addEventListener("click", this.toggleDialog), this.addEventListener("keydown", this.handleKeyDown), this.observeDialog();
   }
   disconnectedCallback() {
-    this.removeEventListener("click", this.toggleDialog), this.removeEventListener("keydown", this.handleKeyDown);
+    var t;
+    this.removeEventListener("click", this.toggleDialog), this.removeEventListener("keydown", this.handleKeyDown), (t = this.observer) == null || t.disconnect(), this.observer = null, this.dialogEl = null;
+  }
+  observeDialog() {
+    const t = this.getAttribute("name");
+    t && (this.dialogEl = Array.from(document.querySelectorAll("sx-dialog")).find(
+      (i) => i.getAttribute("name") === t
+    ) ?? null, this.dialogEl && (this.syncActiveState(), this.observer = new MutationObserver(this.syncActiveState), this.observer.observe(this.dialogEl, { attributes: !0, attributeFilter: ["sx-open"] })));
   }
 }
-class ve extends w {
+class Se extends w {
   constructor() {
     super(...arguments);
     a(this, "dialogEl", null);
@@ -2081,7 +2094,7 @@ class Ce extends w {
   }
 }
 function ke() {
-  customElements.get("sx-dialog") || customElements.define("sx-dialog", ot), customElements.get("sx-dialog-trigger") || customElements.define("sx-dialog-trigger", Se), customElements.get("sx-dialog-pull") || customElements.define("sx-dialog-pull", ve), customElements.get("sx-close-cursor") || customElements.define("sx-close-cursor", Ce);
+  customElements.get("sx-dialog") || customElements.define("sx-dialog", ot), customElements.get("sx-dialog-trigger") || customElements.define("sx-dialog-trigger", ve), customElements.get("sx-dialog-pull") || customElements.define("sx-dialog-pull", Se), customElements.get("sx-close-cursor") || customElements.define("sx-close-cursor", Ce);
 }
 function we() {
   he(), Zt(), xe(), ke();
@@ -2374,28 +2387,28 @@ class ft {
     const h = this.targets.map(() => ({})), l = this.targets.map(() => []), c = this.targets.map(() => ({})), d = [];
     let u = 0, p = 0;
     for (let f = 0; f < o.length - 1; f++) {
-      const g = o[f], m = o[f + 1], y = u + m.delay, S = y + m.duration;
-      u = S, p = Math.max(p, S);
+      const g = o[f], m = o[f + 1], y = u + m.delay, v = y + m.duration;
+      u = v, p = Math.max(p, v);
       const b = /* @__PURE__ */ new Set();
-      for (const v in m.props) b.add(v);
-      this.targets.forEach((v, C) => {
+      for (const S in m.props) b.add(S);
+      this.targets.forEach((S, C) => {
         for (const k of b) {
-          const L = D(m.props[k], C, v), V = k in g.props ? D(g.props[k], C, v) : k in h[C] ? h[C][k] : void 0, X = G(k, L);
+          const L = D(m.props[k], C, S), V = k in g.props ? D(g.props[k], C, S) : k in h[C] ? h[C][k] : void 0, X = G(k, L);
           let B, M = !1;
           if (X.type === "discrete")
             B = { kind: "discrete", value: String(L), apply: X.apply };
           else {
-            const J = this.resolveProp(v, k, V, L);
+            const J = this.resolveProp(S, k, V, L);
             if (!J) continue;
             B = J.state, M = J.isTransform;
           }
-          h[C][k] = L, f === 0 && this.registerImplicitRefresh(v, k, V, L, B);
-          const O = { startTime: y, endTime: S, easeFn: m.easeFn, state: B }, xt = c[C][k];
+          h[C][k] = L, f === 0 && this.registerImplicitRefresh(S, k, V, L, B);
+          const O = { startTime: y, endTime: v, easeFn: m.easeFn, state: B }, xt = c[C][k];
           xt !== void 0 ? l[C][xt].entries.push(O) : (c[C][k] = l[C].length, l[C].push({ key: k, isTransform: M, entries: [O] }));
         }
       }), d.push({
         startTime: y,
-        endTime: S,
+        endTime: v,
         onStart: m.onSegmentStart,
         onUpdate: m.onSegmentUpdate,
         onComplete: m.onSegmentComplete
@@ -2406,9 +2419,9 @@ class ft {
   normalizeArrayKeyframes(e, t, i, n) {
     const r = [{ duration: 0, delay: 0, easeFn: F.linear, props: {} }], o = e.filter((c) => c.duration === void 0).length, h = e.reduce((c, d) => c + (d.duration ?? 0), 0), l = t !== void 0 ? o > 0 ? Math.max(0, t - h) / o : 0 : n.duration ?? 0.5;
     for (const c of e) {
-      const { duration: d, ease: u, delay: p, onStart: f, onUpdate: g, onComplete: m, ...y } = c, S = this.resolveDuration(d ?? l, n), b = this.resolveEase(u ?? i);
+      const { duration: d, ease: u, delay: p, onStart: f, onUpdate: g, onComplete: m, ...y } = c, v = this.resolveDuration(d ?? l, n), b = this.resolveEase(u ?? i);
       r.push({
-        duration: S,
+        duration: v,
         delay: p ?? 0,
         easeFn: b,
         props: y,
@@ -2814,11 +2827,11 @@ class gt {
     }));
   }
   update() {
-    var l, c, d, u, p, f, g, m, y, S, b, v;
+    var l, c, d, u, p, f, g, m, y, v, b, S;
     const e = window.scrollY, t = this.computeProgress(), i = e >= this.startY && e <= this.endY, n = e >= this.lastScrollY, r = i && !this.wasInside, o = !i && this.wasInside;
     r ? n ? (c = (l = this.options).onEnter) == null || c.call(l) : (u = (d = this.options).onEnterBack) == null || u.call(d) : o && (n ? (f = (p = this.options).onLeave) == null || f.call(p) : (m = (g = this.options).onLeaveBack) == null || m.call(g)), this.wasInside = i, this.lastScrollY = e, this.options.sticky && this.applyPinFrame(e), this.updateTriggerMarkerLabelFlip(e);
     const h = this.options.sync ?? !1;
-    h === !1 ? r && n && ((S = (y = this.playable).play) == null || S.call(y)) : h === !0 && this.playable.seek(t * this.playable.duration), (v = (b = this.options).onUpdate) == null || v.call(b);
+    h === !1 ? r && n && ((v = (y = this.playable).play) == null || v.call(y)) : h === !0 && this.playable.seek(t * this.playable.duration), (S = (b = this.options).onUpdate) == null || S.call(b);
   }
   tickSmooth(e) {
     var o, h, l, c;
@@ -3445,16 +3458,16 @@ function yt(s, e, t, i) {
     onComplete: g,
     onRepeat: m,
     onReverseComplete: y,
-    ...S
+    ...v
   } = e, b = { onScroll: n, delay: o, paused: h, repeat: l, repeatDelay: c, boomerang: d, overwrite: u, onStart: p, onUpdate: f, onComplete: g, onRepeat: m, onReverseComplete: y };
   if (r === void 0)
-    return Dt(s, S, t, i, 0, b);
-  const v = ci(s);
-  v.length === 0 && console.warn("[six-js] stagger: no elements matched"), Object.values(S).some((M) => typeof M == "function") && console.warn(
+    return Dt(s, v, t, i, 0, b);
+  const S = ci(s);
+  S.length === 0 && console.warn("[six-js] stagger: no elements matched"), Object.values(v).some((M) => typeof M == "function") && console.warn(
     "[six-js] stagger: function value (index, el) => ... luôn nhận index=0 vì mỗi phần tử stagger giờ là 1 tween độc lập, không phải index gốc trong danh sách. Nếu cần giá trị theo index gốc, hãy tự tính mảng giá trị trước thay vì dùng callback."
   );
-  const k = v.map((M, O) => Xe(O, v.length, r)), L = n ? { ...b, onScroll: void 0, paused: !0 } : b, V = !!n && (n.sync === !0 || typeof n.sync == "number"), X = v.map(
-    (M, O) => Dt(M, S, t, i, V ? 0 : k[O], L)
+  const k = S.map((M, O) => Xe(O, S.length, r)), L = n ? { ...b, onScroll: void 0, paused: !0 } : b, V = !!n && (n.sync === !0 || typeof n.sync == "number"), X = S.map(
+    (M, O) => Dt(M, v, t, i, V ? 0 : k[O], L)
   ), B = new He(X, k);
   if (n) {
     const M = Ht(n.target ?? s);

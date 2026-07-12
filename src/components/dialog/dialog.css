@@ -58,9 +58,9 @@ sx-close-cursor.is-visible {
 sx-dialog > .sx-dialog-core {
   position: relative;
   z-index: 1;
-  contain: layout;
   max-width: var(--sx-dialog-max-width, 100%);
   max-height: var(--sx-dialog-max-height, 100%);
+  border-radius: var(--sx-dialog-radius, 0px);
   opacity: 0;
   transform: var(--sx-dialog-from, scale(0.96) translateY(10px));
   transition:

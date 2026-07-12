@@ -177,6 +177,12 @@ export class SxDialog extends SafeHTMLElement {
       old.remove();
     }
 
+    if (this.name) {
+      el.setAttribute('name', this.name);
+    } else {
+      el.removeAttribute('name');
+    }
+
     this.movingCloseCursor = true;
     document.body.appendChild(el);
     this.movingCloseCursor = false;
