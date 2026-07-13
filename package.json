@@ -1,9 +1,12 @@
 {
   "name": "@six-js/core",
   "author": "Hội Nguyễn",
-  "version": "0.0.32",
+  "version": "0.0.33",
   "type": "module",
   "sideEffects": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "./dist/six-js.umd.js",
   "keywords": [
     "javascript",
@@ -19,6 +22,10 @@
       "import": "./dist/six-js.es.js",
       "require": "./dist/six-js.umd.js"
     },
+    "./split-text": {
+      "types": "./dist/plugins/split-text/index.d.ts",
+      "import": "./dist/split-text.es.js"
+    },
     "./style.css": "./dist/style.css"
   },
   "files": [
@@ -26,7 +33,7 @@
   ],
   "scripts": {
     "gen-version": "node -e \"const fs = require('fs'); const pkg = require('./package.json'); fs.writeFileSync('./src/version.ts', `export const VERSION = '${pkg.version}';\\n`);\"",
-    "build": "npm run gen-version && vite build",
+    "build": "npm run gen-version && vite build && vite build --config vite.umd.config.ts",
     "dev": "npm run gen-version && vite build --watch"
   },
   "devDependencies": {

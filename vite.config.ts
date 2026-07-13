@@ -9,10 +9,17 @@ export default defineConfig({
     minify: "esbuild",
     cssCodeSplit: false,
     lib: {
-      entry: resolve(__dirname, "src/index.ts"),
-      name: "SixJS",
-      formats: ["es", "umd"],
-      fileName: (format) => `six-js.${format}.js`,
+      entry: {
+        index: resolve(__dirname, "src/index.ts"),
+        "split-text": resolve(__dirname, "src/plugins/split-text/index.ts"),
+      },
+      formats: ["es"],
+      fileName: (format, entryName) => `${entryName === "index" ? "six-js" : entryName}.${format}.js`,
+    },
+    rollupOptions: {
+      output: {
+        chunkFileNames: "shared/[name].js",
+      },
     },
   },
   plugins: [

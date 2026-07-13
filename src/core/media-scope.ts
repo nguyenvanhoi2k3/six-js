@@ -182,8 +182,8 @@ export class SxMediaScope implements ScopeCapture {
   }
 }
 
-export function media(query: string, handler: SingleHandler): SxMediaScope;
-export function media<T extends MediaQueryMap>(queries: T, handler: MapHandler<T>): SxMediaScope;
-export function media(queries: string | MediaQueryMap, handler: (matches: any, scope: SxMediaScope) => void | (() => void)): SxMediaScope {
+export function matchMedia(query: string, handler: SingleHandler): SxMediaScope;
+export function matchMedia<T extends MediaQueryMap>(queries: T, handler: MapHandler<T>): SxMediaScope;
+export function matchMedia(queries: string | MediaQueryMap, handler: (matches: any, scope: SxMediaScope) => void | (() => void)): SxMediaScope {
   return new SxMediaScope(queries, handler);
 }
