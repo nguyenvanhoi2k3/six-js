@@ -21,6 +21,7 @@ export class SxSlider extends SafeHTMLElement {
   private isFirstHeightMeasure = true;
 
   private isClickRouting = false;
+  private slideOffsetsCache: number[] | null = null;
 
   public get sizeDim(): "width" | "height" {
     return this.options.direction === "vertical" ? "height" : "width";
@@ -44,6 +45,12 @@ export class SxSlider extends SafeHTMLElement {
     return this.options.leftPadding;
   }
 
+  public getCloneCount(): number {
+    return this.options.autoSize
+      ? this.originalSlidesCount
+      : this.options.perView;
+  }
+
   public updateProgress(translate: number, trackTransition: string) {
     let scrollRatio = 0;
     let baseRatio = 0;
@@ -63,9 +70,7 @@ export class SxSlider extends SafeHTMLElement {
     } else {
       const originalCount = this.originalSlidesCount;
       if (originalCount > 0 && this.track) {
-        const cloneCount = this.options.autoSize
-          ? originalCount
-          : this.options.perView;
+        const cloneCount = this.getCloneCount();
         const startPadPx = parseFloat(this.startPadding) || 0;
 
         let clonesSize = 0;
@@ -87,9 +92,8 @@ export class SxSlider extends SafeHTMLElement {
           let shiftBase = 0;
           if (this.options.centered) {
             let firstSlideSize = this.options.autoSize
-              ? this.getRectSize(
-                  this.track.children[cloneCount] as HTMLElement,
-                ) + this.convertToPx(this.options.gap)
+              ? this.getOffsetForIndex(cloneCount + 1) -
+                this.getOffsetForIndex(cloneCount)
               : this.getSlideSizeWithGap();
             shiftBase = containerSize / 2 - firstSlideSize / 2;
           }
@@ -377,9 +381,7 @@ export class SxSlider extends SafeHTMLElement {
       slide.setAttribute("data-real-index", idx.toString());
     });
 
-    const cloneCount = this.options.autoSize
-      ? this.originalSlidesCount
-      : this.options.perView;
+    const cloneCount = this.getCloneCount();
 
     for (let i = 0; i < cloneCount; i++) {
       const targetSlide = originalSlides[originalSlides.length - 1 - i];
@@ -394,6 +396,8 @@ export class SxSlider extends SafeHTMLElement {
       clone.setAttribute("data-clone", "next");
       this.track.appendChild(clone);
     }
+
+    this.invalidateOffsetsCache();
   }
 
   private destroyLoopClones() {
@@ -402,6 +406,7 @@ export class SxSlider extends SafeHTMLElement {
     const existingClones = this.track.querySelectorAll("[data-clone]");
     existingClones.forEach((clone) => clone.remove());
     this.originalSlidesCount = 0;
+    this.invalidateOffsetsCache();
   }
 
   private formatUnit(val: any): string {
@@ -567,6 +572,7 @@ export class SxSlider extends SafeHTMLElement {
       this.track.style.justifyContent = "";
     }
 
+    this.invalidateOffsetsCache();
     this.track.updatePosition(true);
     this.updateSlideAttributes();
   }
@@ -607,18 +613,31 @@ export class SxSlider extends SafeHTMLElement {
     return Math.max(1, count);
   }
 
+  private invalidateOffsetsCache() {
+    this.slideOffsetsCache = null;
+  }
+
+  private buildOffsetsCache(): number[] {
+    const slides = this.track
+      ? (Array.from(this.track.children) as HTMLElement[])
+      : [];
+    const gapPx = this.convertToPx(this.options.gap);
+    const offsets: number[] = [0];
+
+    for (let i = 0; i < slides.length; i++) {
+      offsets.push(offsets[i] + this.getRectSize(slides[i]) + gapPx);
+    }
+    return offsets;
+  }
+
   public getOffsetForIndex(index: number): number {
     if (!this.track) return 0;
-    const slides = Array.from(this.track.children) as HTMLElement[];
-    const gapPx = this.convertToPx(this.options.gap);
-    let offset = 0;
-
-    for (let i = 0; i < index; i++) {
-      if (slides[i]) {
-        offset += this.getRectSize(slides[i]) + gapPx;
-      }
+    if (!this.slideOffsetsCache) {
+      this.slideOffsetsCache = this.buildOffsetsCache();
     }
-    return offset;
+    const offsets = this.slideOffsetsCache;
+    const clampedIndex = Math.max(0, Math.min(index, offsets.length - 1));
+    return offsets[clampedIndex];
   }
 
   public getMaxTranslate(): number {
@@ -652,9 +671,7 @@ export class SxSlider extends SafeHTMLElement {
 
     if (this.options.centered && !this.options.autoCentered) {
       let firstSlideSize = this.options.autoSize
-        ? (this.track.children[0]
-            ? this.getRectSize(this.track.children[0] as HTMLElement)
-            : 0) + gapPx
+        ? this.getOffsetForIndex(1) - this.getOffsetForIndex(0)
         : this.getSlideSizeWithGap();
       maxBound = startPadPx + containerSize / 2 - firstSlideSize / 2;
 
@@ -663,9 +680,7 @@ export class SxSlider extends SafeHTMLElement {
         ? this.getOffsetForIndex(lastIdx)
         : lastIdx * this.getSlideSizeWithGap();
       let lastSlideSize = this.options.autoSize
-        ? (this.track.children[lastIdx]
-            ? this.getRectSize(this.track.children[lastIdx] as HTMLElement)
-            : 0) + gapPx
+        ? this.getOffsetForIndex(lastIdx + 1) - offsetToStart
         : this.getSlideSizeWithGap();
       minBound =
         startPadPx + containerSize / 2 - (offsetToStart + lastSlideSize / 2);
@@ -683,11 +698,7 @@ export class SxSlider extends SafeHTMLElement {
     const realSlideCount = isLoop ? this.originalSlidesCount : slides.length;
     if (realSlideCount === 0) return;
 
-    const cloneCount = isLoop
-      ? this.options.autoSize
-        ? this.originalSlidesCount
-        : this.options.perView
-      : 0;
+    const cloneCount = isLoop ? this.getCloneCount() : 0;
 
     const getRealIdx = (idx: number) => {
       if (!isLoop) return idx;
@@ -726,6 +737,11 @@ export class SxSlider extends SafeHTMLElement {
       this.offsetHeight;
     }
 
+    slides.forEach((slide, index) => {
+      const realIndex = getRealIdx(index);
+      slide.setAttribute("aria-label", `${realIndex + 1}/${realSlideCount}`);
+    });
+
     if (!(this.options.lockActive && !this.isClickRouting && !isInitial)) {
       slides.forEach((slide, index) => {
         slide.removeAttribute("sx-slide-active");
@@ -733,9 +749,7 @@ export class SxSlider extends SafeHTMLElement {
         slide.removeAttribute("sx-slide-next");
         slide.removeAttribute("sx-slide-center");
 
-        let realIndex = getRealIdx(index);
-        slide.setAttribute("aria-label", `${realIndex + 1}/${realSlideCount}`);
-
+        const realIndex = getRealIdx(index);
         if (realIndex === targetActiveReal)
           slide.setAttribute("sx-slide-active", "");
         if (realIndex === targetPrevReal)
@@ -749,9 +763,9 @@ export class SxSlider extends SafeHTMLElement {
     }
 
     this.updateAutoHeight();
-    this.updateNavigation();
 
     const maxIdx = isLoop ? realSlideCount - 1 : this.getRealMaxIndex();
+    this.updateNavigation(isLoop ? undefined : maxIdx);
     const resolvedPerMove = this.getResolvedPerMove();
     let bulletIndexes: number[] = [];
 
@@ -816,9 +830,7 @@ export class SxSlider extends SafeHTMLElement {
 
     const getRealIdx = (idx: number) => {
       if (!isLoop) return idx;
-      const cCount = this.options.autoSize
-        ? this.originalSlidesCount
-        : this.options.perView;
+      const cCount = this.getCloneCount();
       let rIdx = (idx - cCount) % realSlideCount;
       if (rIdx < 0) rIdx += realSlideCount;
       return rIdx;
@@ -827,9 +839,7 @@ export class SxSlider extends SafeHTMLElement {
     if (getRealIdx(this.currentIndex) === realIndex) return;
 
     if (isLoop) {
-      const cCount = this.options.autoSize
-        ? this.originalSlidesCount
-        : this.options.perView;
+      const cCount = this.getCloneCount();
       const baseTarget = realIndex + cCount;
       const N = this.originalSlidesCount;
       const totalSlides = slides.length;
@@ -883,7 +893,7 @@ export class SxSlider extends SafeHTMLElement {
       startScanIndex = Math.max(0, startScanIndex);
     }
 
-    const clonesToMeasure: HTMLElement[] = [];
+    let maxHeight = 0;
 
     for (let i = 0; i < visibleCount; i++) {
       let slideIndex = startScanIndex + i;
@@ -897,39 +907,16 @@ export class SxSlider extends SafeHTMLElement {
       }
 
       const slide = slides[slideIndex];
-      if (slide) {
-        const clone = slide.cloneNode(true) as HTMLElement;
-        clone.style.position = "absolute";
-        clone.style.visibility = "hidden";
-        clone.style.pointerEvents = "none";
-        clone.style.transition = "none";
-        clone.style[this.sizeDim] =
-          `${slide.getBoundingClientRect()[this.sizeDim]}px`;
+      if (!slide) continue;
 
-        const cloneChild = clone.firstElementChild as HTMLElement;
-        if (cloneChild) {
-          cloneChild.style.transition = "none";
-        }
-
-        this.track.appendChild(clone);
-        clonesToMeasure.push(clone);
-      }
-    }
-
-    let maxHeight = 0;
-    clonesToMeasure.forEach((clone) => {
-      const cloneChild = clone.firstElementChild as HTMLElement;
-      const height = cloneChild
-        ? cloneChild.getBoundingClientRect().height
-        : clone.getBoundingClientRect().height;
+      const child = slide.firstElementChild as HTMLElement;
+      const height = child
+        ? child.getBoundingClientRect().height
+        : slide.getBoundingClientRect().height;
       if (height > maxHeight) {
         maxHeight = height;
       }
-    });
-
-    clonesToMeasure.forEach((clone) => {
-      this.track?.removeChild(clone);
-    });
+    }
 
     if (maxHeight > 0) {
       this.track.style.height = `${maxHeight}px`;
@@ -944,11 +931,7 @@ export class SxSlider extends SafeHTMLElement {
     const realSlideCount = isLoop ? this.originalSlidesCount : slides.length;
     if (realSlideCount === 0) return 0;
 
-    const cloneCount = isLoop
-      ? this.options.autoSize
-        ? this.originalSlidesCount
-        : this.options.perView
-      : 0;
+    const cloneCount = isLoop ? this.getCloneCount() : 0;
 
     let realIdx = isLoop
       ? (this.currentIndex - cloneCount) % realSlideCount
@@ -958,8 +941,17 @@ export class SxSlider extends SafeHTMLElement {
     return realIdx;
   }
 
+  public getRawIndex(): number {
+    return this.currentIndex;
+  }
+
   public setCurrentIndex(val: number) {
     this.currentIndex = val;
+    this.updateSlideAttributes();
+  }
+
+  public shiftCurrentIndex(delta: number) {
+    this.currentIndex += delta;
     this.updateSlideAttributes();
   }
 
@@ -967,19 +959,23 @@ export class SxSlider extends SafeHTMLElement {
     if (!this.track || this.track.children.length === 0) return 0;
     const totalSlides = this.track.children.length;
     const { min: minBound } = this.getBoundaries();
+    const slideSizeWithGap = this.options.autoSize
+      ? 0
+      : this.getSlideSizeWithGap();
+    const containerSize = this.options.centered
+      ? this.getBoundingClientRect()[this.sizeDim]
+      : 0;
 
     for (let i = 0; i < totalSlides; i++) {
       let offsetToStart = this.options.autoSize
         ? this.getOffsetForIndex(i)
-        : i * this.getSlideSizeWithGap();
+        : i * slideSizeWithGap;
       let currentSlideSize = this.options.autoSize
-        ? this.getRectSize(this.track.children[i] as HTMLElement) +
-          this.convertToPx(this.options.gap)
-        : this.getSlideSizeWithGap();
+        ? this.getOffsetForIndex(i + 1) - offsetToStart
+        : slideSizeWithGap;
 
       let expectedTranslate = parseFloat(this.startPadding) || 0;
       if (this.options.centered) {
-        const containerSize = this.getBoundingClientRect()[this.sizeDim];
         expectedTranslate +=
           containerSize / 2 - (offsetToStart + currentSlideSize / 2);
       } else {
@@ -1003,7 +999,9 @@ export class SxSlider extends SafeHTMLElement {
   public next() {
     if (!this.track) return;
     const moveBy = this.getResolvedPerMove();
-    const remainder = ((this.currentIndex % moveBy) + moveBy) % moveBy;
+    const alignOffset = this.options.loop ? this.getCloneCount() : 0;
+    const remainder =
+      (((this.currentIndex - alignOffset) % moveBy) + moveBy) % moveBy;
     const step = remainder !== 0 ? moveBy - remainder : moveBy;
 
     if (this.options.loop) {
@@ -1025,7 +1023,9 @@ export class SxSlider extends SafeHTMLElement {
   public prev() {
     if (!this.track) return;
     const moveBy = this.getResolvedPerMove();
-    const remainder = ((this.currentIndex % moveBy) + moveBy) % moveBy;
+    const alignOffset = this.options.loop ? this.getCloneCount() : 0;
+    const remainder =
+      (((this.currentIndex - alignOffset) % moveBy) + moveBy) % moveBy;
     const step = remainder !== 0 ? remainder : moveBy;
 
     if (this.options.loop) {
@@ -1049,9 +1049,7 @@ export class SxSlider extends SafeHTMLElement {
     if (isClick) this.isClickRouting = true;
 
     if (this.options.loop) {
-      const cloneCount = this.options.autoSize
-        ? this.originalSlidesCount
-        : this.options.perView;
+      const cloneCount = this.getCloneCount();
 
       const baseTarget = index + cloneCount;
       const N = this.originalSlidesCount;
@@ -1091,7 +1089,10 @@ export class SxSlider extends SafeHTMLElement {
     const startPadPx = parseFloat(this.startPadding) || 0;
     const containerSize = this.getBoundingClientRect()[this.sizeDim];
     const slides = Array.from(this.track.children) as HTMLElement[];
-    const gapPx = this.convertToPx(this.options.gap);
+    const slideSizeWithGap = this.options.autoSize
+      ? 0
+      : this.getSlideSizeWithGap();
+    const bounds = !this.options.loop ? this.getBoundaries() : null;
 
     let closestIndex = 0;
     let minDiff = Infinity;
@@ -1103,11 +1104,10 @@ export class SxSlider extends SafeHTMLElement {
 
       if (this.options.autoSize) {
         offsetToStart = this.getOffsetForIndex(i);
-        currentSlideSize = this.getRectSize(slides[i]) + gapPx;
+        currentSlideSize = this.getOffsetForIndex(i + 1) - offsetToStart;
       } else {
-        const slideSize = this.getSlideSizeWithGap();
-        offsetToStart = i * slideSize;
-        currentSlideSize = slideSize;
+        offsetToStart = i * slideSizeWithGap;
+        currentSlideSize = slideSizeWithGap;
       }
 
       let expectedTranslate = startPadPx;
@@ -1119,8 +1119,8 @@ export class SxSlider extends SafeHTMLElement {
         expectedTranslate -= offsetToStart;
       }
 
-      if (!this.options.loop) {
-        const { max: maxBound, min: minBound } = this.getBoundaries();
+      if (bounds) {
+        const { max: maxBound, min: minBound } = bounds;
         if (this.options.centered && this.options.autoCentered) {
           expectedTranslate = Math.max(
             minBound,
@@ -1161,7 +1161,7 @@ export class SxSlider extends SafeHTMLElement {
     }
   }
 
-  public updateNavigation() {
+  public updateNavigation(precomputedMaxIndex?: number) {
     let prevBtns = Array.from(this.querySelectorAll("sx-slider-prev"));
     let nextBtns = Array.from(this.querySelectorAll("sx-slider-next"));
 
@@ -1192,7 +1192,7 @@ export class SxSlider extends SafeHTMLElement {
       prevBtns.forEach((b) => b.removeAttribute("sx-disabled"));
     }
 
-    const maxIndex = this.getRealMaxIndex();
+    const maxIndex = precomputedMaxIndex ?? this.getRealMaxIndex();
     if (this.currentIndex >= maxIndex) {
       nextBtns.forEach((b) => b.setAttribute("sx-disabled", ""));
     } else {

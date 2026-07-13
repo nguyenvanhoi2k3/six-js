@@ -121,10 +121,7 @@ export class SxSliderTrack extends SafeHTMLElement {
       this.sliderCha.removeEventListener("wheel", this.boundWheel);
     }
 
-    window.removeEventListener("mousemove", this.boundDragMove);
-    window.removeEventListener("mouseup", this.boundDragEnd);
-    window.removeEventListener("touchmove", this.boundDragMove);
-    window.removeEventListener("touchend", this.boundDragEnd);
+    this.detachWindowDragListeners();
 
     this.wheelInertia.stop();
     this.cancelMomentumScroll();
@@ -134,20 +131,28 @@ export class SxSliderTrack extends SafeHTMLElement {
     if (!this.sliderCha) return;
 
     this.sliderCha.addEventListener("mousedown", this.boundDragStart);
-    window.addEventListener("mousemove", this.boundDragMove);
-    window.addEventListener("mouseup", this.boundDragEnd);
-
     this.sliderCha.addEventListener("touchstart", this.boundDragStart, {
       passive: true,
     });
+    this.sliderCha.addEventListener("wheel", this.boundWheel, {
+      passive: false,
+    });
+  }
+
+  private attachWindowDragListeners() {
+    window.addEventListener("mousemove", this.boundDragMove);
+    window.addEventListener("mouseup", this.boundDragEnd);
     window.addEventListener("touchmove", this.boundDragMove, {
       passive: false,
     });
     window.addEventListener("touchend", this.boundDragEnd);
+  }
 
-    this.sliderCha.addEventListener("wheel", this.boundWheel, {
-      passive: false,
-    });
+  private detachWindowDragListeners() {
+    window.removeEventListener("mousemove", this.boundDragMove);
+    window.removeEventListener("mouseup", this.boundDragEnd);
+    window.removeEventListener("touchmove", this.boundDragMove);
+    window.removeEventListener("touchend", this.boundDragEnd);
   }
 
   private onWheel(event: WheelEvent) {
@@ -210,6 +215,8 @@ export class SxSliderTrack extends SafeHTMLElement {
   private dragStart(event: MouseEvent | TouchEvent) {
     if (!this.sliderCha || this.sliderCha.options.drag === "false") return;
     if (this.isResetting) return;
+
+    this.attachWindowDragListeners();
 
     this.sliderCha.stopAutoplay();
     this.cancelMomentumScroll();
@@ -279,6 +286,7 @@ export class SxSliderTrack extends SafeHTMLElement {
   private dragEnd() {
     if (!this.isDragging || !this.sliderCha) return;
     this.isDragging = false;
+    this.detachWindowDragListeners();
 
     const options = this.sliderCha.options;
     const now = performance.now();
@@ -310,19 +318,14 @@ export class SxSliderTrack extends SafeHTMLElement {
         const startPadPx = parseFloat(this.sliderCha.startPadding) || 0;
 
         this.sliderCha.alignIndexToFreeTranslation(destination);
-        const targetIdx = this.sliderCha.getCurrentIndex();
+        const targetIdx = this.sliderCha.getRawIndex();
 
         let offsetToStart = options.autoSize
           ? this.sliderCha.getOffsetForIndex(targetIdx)
           : targetIdx * this.sliderCha.getSlideSizeWithGap();
 
-        const targetSlide = this.children[targetIdx] as
-          | HTMLElement
-          | undefined;
         let currentSlideSize = options.autoSize
-          ? (targetSlide
-              ? targetSlide.getBoundingClientRect()[this.sliderCha.sizeDim]
-              : 0) + this.sliderCha.convertToPx(options.gap)
+          ? this.sliderCha.getOffsetForIndex(targetIdx + 1) - offsetToStart
           : this.sliderCha.getSlideSizeWithGap();
 
         if (options.centered) {
@@ -411,7 +414,7 @@ export class SxSliderTrack extends SafeHTMLElement {
       this.currentTranslate = destination;
       this.setTransform(this.currentTranslate);
       this.prevTranslate = this.currentTranslate;
-      if (this.sliderCha?.options.loop) this.checkLoopBoundsInstant();
+      this.sliderCha?.alignIndexToFreeTranslation(this.currentTranslate);
       if (callback) callback();
       return;
     }
@@ -505,9 +508,7 @@ export class SxSliderTrack extends SafeHTMLElement {
     if (!this.sliderCha || !this.sliderCha.options.loop) return;
 
     const originalCount = this.sliderCha.originalSlidesCount;
-    const cloneCount = this.sliderCha.options.autoSize
-      ? originalCount
-      : this.sliderCha.options.perView;
+    const cloneCount = this.sliderCha.getCloneCount();
     const startPaddingPx = parseFloat(this.sliderCha.startPadding) || 0;
 
     let originalTrackSize = 0;
@@ -530,11 +531,9 @@ export class SxSliderTrack extends SafeHTMLElement {
         this.sliderCha.getBoundingClientRect()[this.sliderCha.sizeDim];
       let firstSlideSize = 0;
       if (this.sliderCha.options.autoSize) {
-        const gapPx = this.sliderCha.convertToPx(this.sliderCha.options.gap);
-        const targetSlide = this.children[cloneCount] as HTMLElement;
-        firstSlideSize = targetSlide
-          ? targetSlide.getBoundingClientRect()[this.sliderCha.sizeDim] + gapPx
-          : 0;
+        firstSlideSize =
+          this.sliderCha.getOffsetForIndex(cloneCount + 1) -
+          this.sliderCha.getOffsetForIndex(cloneCount);
       } else {
         firstSlideSize = this.sliderCha.getSlideSizeWithGap();
       }
@@ -577,9 +576,7 @@ export class SxSliderTrack extends SafeHTMLElement {
 
       this.setTransform(this.currentTranslate);
 
-      this.sliderCha.setCurrentIndex(
-        this.sliderCha.getCurrentIndex() + indexShift,
-      );
+      this.sliderCha.shiftCurrentIndex(indexShift);
 
       this.isResetting = false;
     }
@@ -607,7 +604,7 @@ export class SxSliderTrack extends SafeHTMLElement {
     }
 
     const startPaddingPx = parseFloat(this.sliderCha.startPadding) || 0;
-    const currentIndex = this.sliderCha.getCurrentIndex();
+    const currentIndex = this.sliderCha.getRawIndex();
 
     let targetTranslate = startPaddingPx;
     let offsetToStart = 0;
@@ -615,12 +612,8 @@ export class SxSliderTrack extends SafeHTMLElement {
 
     if (options.autoSize) {
       offsetToStart = this.sliderCha.getOffsetForIndex(currentIndex);
-      const slides = Array.from(this.children) as HTMLElement[];
-      const gapPx = this.sliderCha.convertToPx(options.gap);
-      currentSlideSize = slides[currentIndex]
-        ? slides[currentIndex].getBoundingClientRect()[this.sliderCha.sizeDim] +
-          gapPx
-        : 0;
+      currentSlideSize =
+        this.sliderCha.getOffsetForIndex(currentIndex + 1) - offsetToStart;
     } else {
       const slideSize = this.sliderCha.getSlideSizeWithGap();
       offsetToStart = currentIndex * slideSize;
@@ -651,7 +644,7 @@ export class SxSliderTrack extends SafeHTMLElement {
 
     if (options.loop) {
       const originalCount = this.sliderCha.originalSlidesCount;
-      const cloneCount = options.autoSize ? originalCount : options.perView;
+      const cloneCount = this.sliderCha.getCloneCount();
 
       if (
         currentIndex >= cloneCount + originalCount ||

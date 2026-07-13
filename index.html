@@ -21,28 +21,31 @@
     ></video>
     <div style="height: 100vh"></div> -->
 
-    <sx-dialog-trigger name="dialog1">Open</sx-dialog-trigger>
-
-    <sx-dialog
-      name="dialog1"
-      effect="zoom"
-      breakpoints="{
-        567: {
-          position: 'right',
-          effect: 'slide-left'
-        }
-      }"
-    >
-      <sx-close-cursor>x</sx-close-cursor>
-      <div class="content" style="background: #fff">
-        <h2>Dialog</h2>
-        <div>
-          Lorem ipsum dolor sit amet consectetur, adipisicing elit. Incidunt,
-          dolorum?
-        </div>
-        <sx-dialog-trigger name="dialog1">Đóng</sx-dialog-trigger>
-      </div>
-    </sx-dialog>
+    <sx-slider per-view="3" drag="free" loop gap="16">
+      <sx-slider-track>
+        <sx-slider-slide>
+          <div class="slide">Slide 1</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide">Slide 2</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide">Slide 3</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide">Slide 4</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide">Slide 5</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide">Slide 6</div>
+        </sx-slider-slide>
+      </sx-slider-track>
+      <sx-slider-prev class="nav prev">Prev</sx-slider-prev>
+      <sx-slider-next class="nav next">Next</sx-slider-next>
+      <sx-slider-pagination class="pagination"></sx-slider-pagination>
+    </sx-slider>
 
     <script type="module">
       import { six } from "./dist/six-js.es.js";
