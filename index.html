@@ -23,8 +23,16 @@
 
     <sx-dialog-trigger name="dialog1">Open</sx-dialog-trigger>
 
-    <sx-dialog name="dialog1" effect="zoom" position="center">
-      <sx-dialog-pull></sx-dialog-pull>
+    <sx-dialog
+      name="dialog1"
+      effect="zoom"
+      breakpoints='{
+        567: {
+          position: "right",
+          effect: "slide-left"
+        }
+      }'
+    >
       <sx-close-cursor>x</sx-close-cursor>
       <div class="content" style="background: #fff">
         <h2>Dialog</h2>
