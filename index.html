@@ -10,75 +10,105 @@
   </head>
 
   <body>
-    <!-- <div style="height: 100vh"></div>
-    <video
-      id="scrub-video"
-      src="./static/video/video_onscroll.mp4"
-      muted
-      playsinline
-      preload="auto"
-      style="width: 100vw; height: 100vh; object-fit: cover; display: block"
-    ></video>
-    <div style="height: 100vh"></div> -->
+    <sx-dialog-trigger name="1">open</sx-dialog-trigger>
+    <sx-dialog position="right" effect="slide-left" name="1">
+      <div style="background: #fff;">
+        <sx-animate>heading</sx-animate>
+      </div>
+    </sx-dialog>
+    <div class="container">
+      <h1 class="title">
+        Build beautiful web animations with
+        <strong>six.js</strong>
+        🚀✨
+      </h1>
 
-    <sx-slider per-view="3" drag="free" loop gap="16">
-      <sx-slider-track>
-        <sx-slider-slide>
-          <div class="slide">Slide 1</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide">Slide 2</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide">Slide 3</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide">Slide 4</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide">Slide 5</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide">Slide 6</div>
-        </sx-slider-slide>
-      </sx-slider-track>
-      <sx-slider-prev class="nav prev">Prev</sx-slider-prev>
-      <sx-slider-next class="nav next">Next</sx-slider-next>
-      <sx-slider-pagination class="pagination"></sx-slider-pagination>
-    </sx-slider>
+      <div class="buttons">
+        <button id="chars">Chars</button>
+        <button id="words">Words</button>
+        <button id="lines">Lines</button>
+        <button id="all">Chars + Words + Lines</button>
+
+        <button id="maskChars">Mask Chars</button>
+        <button id="maskWords">Mask Words</button>
+        <button id="maskLines">Mask Lines</button>
+
+        <button id="revert">Revert</button>
+      </div>
+    </div>
 
     <script type="module">
-      import { six } from "./dist/six-js.es.js";
+      import { six, splitText } from "./dist/six-js.es.js";
       six.initElements();
+      // animate in modal
+      let split;
 
-      const video = six.getId("scrub-video");
+      function run(type, mask = null) {
+        console.log("RUN:", type, mask);
+        split?.revert();
 
-      function initScrub() {
-        six.to(video, {
-          currentTime: video.duration,
-          onScroll: {
-            sticky: true,
-            sync: 0.6,
-            start: "top top",
-            end: "+=2400",
+        split = splitText(".title", {
+          type,
+
+          mask,
+
+          autoSplit: true,
+
+          charsClass: "char++",
+
+          wordsClass: "word++",
+
+          linesClass: "line++",
+
+          onSplit(self) {
+            console.clear();
+
+            console.log("chars", self.chars);
+            console.log("words", self.words);
+            console.log("lines", self.lines);
+
+            let targets;
+
+            if (type.includes("chars")) targets = self.chars;
+            else if (type.includes("words")) targets = self.words;
+            else targets = self.lines;
+
+            six.set(targets, {
+              y: "120%",
+              opacity: 0,
+            });
+
+            return six.to(targets, {
+              y: "0%",
+              opacity: 1,
+              duration: 0.8,
+              ease: "expoOut",
+              stagger: 0.08,
+            });
           },
         });
       }
+      document.getElementById("chars").onclick = () => run("chars");
 
-      if (video.readyState >= 1) {
-        initScrub();
-      } else {
-        video.addEventListener("loadedmetadata", initScrub, { once: true });
-        video.addEventListener(
-          "error",
-          () =>
-            console.error(
-              "[demo] video load thất bại, kiểm tra ./scrub-video.mp4 có tồn tại không",
-              video.error,
-            ),
-          { once: true },
-        );
-      }
+      document.getElementById("words").onclick = () => run("words");
+
+      document.getElementById("lines").onclick = () => run("lines");
+
+      document.getElementById("all").onclick = () => run("chars,words,lines");
+
+      document.getElementById("maskChars").onclick = () =>
+        run("chars", "chars");
+
+      document.getElementById("maskWords").onclick = () =>
+        run("words", "words");
+
+      document.getElementById("maskLines").onclick = () =>
+        run("lines", "lines");
+
+      document.getElementById("revert").onclick = () => split?.revert();
+
+      // chạy demo lần đầu
+      run("chars,words,lines");
     </script>
 
     <!-- ------------------------------------------------GSAP------------------------------------------------ -->
