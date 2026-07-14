@@ -1,0 +1,257 @@
+import { formatColor, parseColor, RGBA } from "./color";
+import { getTransformCache, TransformKey } from "./transform-cache";
+
+export interface ParsedValue {
+  value: number;
+  unit: string;
+}
+
+export interface NumericHandler {
+  kind: "numeric";
+  isTransform: boolean;
+  transformKey?: TransformKey;
+  defaultUnit: string;
+  get(target: Element): ParsedValue;
+  set(target: Element, value: ParsedValue): void;
+}
+
+export interface ColorHandler {
+  kind: "color";
+  get(target: Element): RGBA;
+  set(target: Element, value: RGBA): void;
+}
+
+export interface ComplexHandler {
+  kind: "complex";
+  get(target: Element): string;
+  set(target: Element, value: string): void;
+}
+
+export interface DiscreteHandler {
+  kind: "discrete";
+  get(target: Element): string;
+  set(target: Element, value: string): void;
+}
+
+export type PropertyHandler = NumericHandler | ColorHandler | ComplexHandler | DiscreteHandler;
+
+const TRANSFORM_ALIASES: Record<string, TransformKey> = {
+  x: "x",
+  y: "y",
+  z: "z",
+  xPercent: "xPercent",
+  yPercent: "yPercent",
+  rotation: "rotation",
+  rotate: "rotation",
+  rotationX: "rotationX",
+  rotateX: "rotationX",
+  rotationY: "rotationY",
+  rotateY: "rotationY",
+  scaleX: "scaleX",
+  scaleY: "scaleY",
+  skewX: "skewX",
+  skewY: "skewY",
+};
+
+const ANGLE_TRANSFORM_KEYS = new Set<TransformKey>(["rotation", "rotationX", "rotationY", "skewX", "skewY"]);
+const PERCENT_TRANSFORM_KEYS = new Set<TransformKey>(["xPercent", "yPercent"]);
+
+const COLOR_PROPS = new Set(["backgroundColor", "color", "borderColor", "outlineColor", "fill", "stroke", "stopColor"]);
+
+const COMPLEX_PROPS = new Set(["boxShadow", "textShadow", "borderRadius", "clipPath", "filter", "backgroundPosition", "backgroundSize", "objectPosition"]);
+
+const UNITLESS_PROPS = new Set(["opacity", "zIndex", "flexGrow", "flexShrink", "order", "fontWeight"]);
+
+function isNumericLike(value: unknown): boolean {
+  if (typeof value === "number") return true;
+  if (typeof value !== "string") return false;
+  const v = value.trim();
+  return /^[+-]?[\d.]+[a-z%]*$/i.test(v) || /^[+-]=/.test(v);
+}
+
+export function parseNumeric(value: string | number, fallbackUnit = ""): ParsedValue {
+  if (typeof value === "number") return { value, unit: fallbackUnit };
+  const match = String(value).trim().match(/^([+-]?[\d.]+)([a-z%]*)$/i);
+  if (!match) return { value: 0, unit: fallbackUnit };
+  return { value: parseFloat(match[1]), unit: match[2] || fallbackUnit };
+}
+
+function styleValue(target: Element, prop: string): string {
+  const inline = (target as HTMLElement).style?.[prop as never] as unknown as string;
+  if (inline) return inline;
+  if (typeof getComputedStyle === "undefined") return "";
+  return (getComputedStyle(target as HTMLElement) as unknown as Record<string, string>)[prop] || "";
+}
+
+function transformHandler(key: TransformKey): NumericHandler {
+  const defaultUnit = ANGLE_TRANSFORM_KEYS.has(key) ? "deg" : PERCENT_TRANSFORM_KEYS.has(key) ? "%" : "px";
+  return {
+    kind: "numeric",
+    isTransform: true,
+    transformKey: key,
+    defaultUnit,
+    get(target) {
+      return { value: getTransformCache(target)[key], unit: defaultUnit };
+    },
+    set(target, value) {
+      getTransformCache(target)[key] = value.value;
+    },
+  };
+}
+
+function colorHandler(prop: string): ColorHandler {
+  return {
+    kind: "color",
+    get(target) {
+      return parseColor(styleValue(target, prop) || "rgba(0,0,0,0)");
+    },
+    set(target, value) {
+      (target as HTMLElement).style[prop as never] = formatColor(value) as never;
+    },
+  };
+}
+
+function complexHandler(prop: string): ComplexHandler {
+  return {
+    kind: "complex",
+    get(target) {
+      return styleValue(target, prop);
+    },
+    set(target, value) {
+      (target as HTMLElement).style[prop as never] = value as never;
+    },
+  };
+}
+
+function cssVariableHandler(prop: string, sampleValue: unknown): PropertyHandler {
+  const current = typeof getComputedStyle !== "undefined" ? getComputedStyle(document.documentElement).getPropertyValue(prop).trim() : "";
+
+  if (isNumericLike(sampleValue) || isNumericLike(current)) {
+    return {
+      kind: "numeric",
+      isTransform: false,
+      defaultUnit: "",
+      get(target) {
+        return parseNumeric(getComputedStyle(target as HTMLElement).getPropertyValue(prop).trim());
+      },
+      set(target, value) {
+        (target as HTMLElement).style.setProperty(prop, `${value.value}${value.unit}`);
+      },
+    };
+  }
+
+  return {
+    kind: "discrete",
+    get(target) {
+      return getComputedStyle(target as HTMLElement).getPropertyValue(prop).trim();
+    },
+    set(target, value) {
+      (target as HTMLElement).style.setProperty(prop, value);
+    },
+  };
+}
+
+function genericStyleHandler(prop: string, sampleValue: unknown): PropertyHandler {
+  const unit = UNITLESS_PROPS.has(prop) ? "" : "px";
+
+  if (isNumericLike(sampleValue)) {
+    return {
+      kind: "numeric",
+      isTransform: false,
+      defaultUnit: unit,
+      get(target) {
+        const raw = styleValue(target, prop);
+        return isNumericLike(raw) ? parseNumeric(raw, unit) : { value: 0, unit };
+      },
+      set(target, value) {
+        (target as HTMLElement).style[prop as never] = (unit === "" ? `${value.value}` : `${value.value}${value.unit}`) as never;
+      },
+    };
+  }
+
+  return {
+    kind: "discrete",
+    get(target) {
+      return styleValue(target, prop);
+    },
+    set(target, value) {
+      (target as HTMLElement).style[prop as never] = value as never;
+    },
+  };
+}
+
+function attributeHandler(prop: string, sampleValue: unknown): PropertyHandler {
+  const numeric = isNumericLike(sampleValue);
+  if (numeric) {
+    return {
+      kind: "numeric",
+      isTransform: false,
+      defaultUnit: "",
+      get(target) {
+        return parseNumeric(target.getAttribute(prop) ?? "0");
+      },
+      set(target, value) {
+        target.setAttribute(prop, String(value.value));
+      },
+    };
+  }
+  return {
+    kind: "discrete",
+    get(target) {
+      return target.getAttribute(prop) ?? "";
+    },
+    set(target, value) {
+      target.setAttribute(prop, value);
+    },
+  };
+}
+
+function plainPropertyHandler(prop: string, sampleValue: unknown): PropertyHandler {
+  if (isNumericLike(sampleValue)) {
+    return {
+      kind: "numeric",
+      isTransform: false,
+      defaultUnit: "",
+      get(target) {
+        return { value: Number((target as unknown as Record<string, unknown>)[prop]) || 0, unit: "" };
+      },
+      set(target, value) {
+        (target as unknown as Record<string, unknown>)[prop] = value.value;
+      },
+    };
+  }
+  return {
+    kind: "discrete",
+    get(target) {
+      return String((target as unknown as Record<string, unknown>)[prop] ?? "");
+    },
+    set(target, value) {
+      (target as unknown as Record<string, unknown>)[prop] = value;
+    },
+  };
+}
+
+/** Resolves how to read/write `prop` on `target`. `sampleValue` (the end value from tween vars) helps decide numeric vs discrete when the current DOM state alone is ambiguous (e.g. `width: "auto"` animating to `200`). */
+export function resolveHandler(target: Element, prop: string, sampleValue?: unknown): PropertyHandler {
+  const transformKey = TRANSFORM_ALIASES[prop];
+  if (transformKey) return transformHandler(transformKey);
+
+  if (COLOR_PROPS.has(prop)) return colorHandler(prop);
+  if (COMPLEX_PROPS.has(prop)) return complexHandler(prop);
+  if (prop.startsWith("--")) return cssVariableHandler(prop, sampleValue);
+
+  const style = (target as HTMLElement).style;
+  if (style && prop in style) return genericStyleHandler(prop, sampleValue);
+
+  // Only a genuine plain number property (scrollTop, currentTime, volume, ...) is handled by
+  // direct field assignment - an existing-but-non-numeric property (e.g. SVGAnimatedLength
+  // objects like `cx`/`cy` on SVG shapes) falls through to setAttribute instead, since naively
+  // overwriting such an object with a raw number would be wrong.
+  if (prop in target && typeof (target as unknown as Record<string, unknown>)[prop] === "number") {
+    return plainPropertyHandler(prop, sampleValue ?? (target as unknown as Record<string, unknown>)[prop]);
+  }
+
+  if (typeof target.setAttribute === "function") return attributeHandler(prop, sampleValue);
+
+  return plainPropertyHandler(prop, sampleValue);
+}
