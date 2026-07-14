@@ -1,171 +1,161 @@
-export type TickerCallback = (
-  time: number,
-  delta: number,
-  frame: number,
-) => void;
+export type TickerListener = (time: number, deltaMs: number, frame: number) => void;
 
-export class SxTicker {
-  private _listeners = new Set<TickerCallback>();
+const now = (): number => (typeof performance !== "undefined" ? performance.now() : Date.now());
 
-  private _time = 0;
-  private _delta = 0; 
-  private _frame = 0;
+/**
+ * Single shared rAF-driven clock. Only one listener is ever registered in steady state -
+ * the root Timeline's update function (see core/root.ts) - everything else receives time
+ * via recursive Animation.render() calls, not by registering its own ticker callback.
+ */
+export class Ticker {
+  private listeners: TickerListener[] = [];
+  private i = 0; // live cursor into `listeners` during dispatch, adjusted by remove()
 
-  private _start = this._now();
-  private _last = this._start;
+  private frame = 0;
+  private timeMs = 0;
+  private deltaMs = 0;
 
-  private _lagThreshold = 500;
-  private _adjustedLag = 33;
+  private startTime = now();
+  private lastUpdate = this.startTime;
 
-  private _gap = 1000 / 240;
-  private _nextTime = this._gap;
+  private lagThreshold = 500;
+  private adjustedLag = 33;
 
-  private _id: number | null = null;
+  private gap = 1000 / 240;
+  private nextTime = this.gap;
 
-  private _now(): number {
-    return typeof performance !== "undefined" ? performance.now() : Date.now();
+  private rafId: number | null = null;
+  private manual: boolean;
+
+  /** `{ manual: true }` disables real rAF scheduling entirely - useful for deterministic tests/SSR, driven only via `tick()`. */
+  constructor(opts: { manual?: boolean } = {}) {
+    this.manual = !!opts.manual;
   }
 
-  private _request(cb: FrameRequestCallback): number {
-    if (typeof requestAnimationFrame !== "undefined") {
-      return requestAnimationFrame(cb);
-    }
-
+  private request(cb: () => void): number {
+    if (typeof requestAnimationFrame === "function") return requestAnimationFrame(cb);
     return setTimeout(cb, 16) as unknown as number;
   }
 
-  private _cancel(id: number): void {
-    if (typeof cancelAnimationFrame !== "undefined") {
-      cancelAnimationFrame(id);
-      return;
-    }
-
-    clearTimeout(id);
+  private cancel(id: number): void {
+    if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(id);
+    else clearTimeout(id);
   }
 
-  private _tick = () => {
-    const now = this._now();
-
-    let elapsed = now - this._last;
-
-    if (elapsed > this._lagThreshold || elapsed < 0) {
-      this._start += elapsed - this._adjustedLag;
-    }
-
-    this._last += elapsed;
-
-    const elapsedSinceStart = this._last - this._start;
-    const overlap = elapsedSinceStart - this._nextTime;
-
-    if (overlap > 0) {
-      this._frame++;
-
-      this._delta = elapsedSinceStart - this._time * 1000;
-      this._time = elapsedSinceStart / 1000;
-
-      this._nextTime += overlap >= this._gap ? overlap + 4 : this._gap;
-
-      const listeners = [...this._listeners];
-
-      for (const listener of listeners) {
-        listener(this._time, this._delta, this._frame);
-      }
-    }
-
-    if (this._listeners.size === 0) {
-      this.sleep();
-      return;
-    }
-
-    this._id = this._request(this._tick);
+  private loop = (): void => {
+    if (this.manual) return;
+    this.advance(now() - this.lastUpdate);
+    if (this.rafId !== null) this.rafId = this.request(this.loop);
   };
 
-  private _wake(): void {
-    if (this._id !== null) return;
+  private advance(elapsed: number): void {
+    if (elapsed > this.lagThreshold || elapsed < 0) {
+      this.startTime += elapsed - this.adjustedLag;
+    }
+    this.lastUpdate += elapsed;
 
-    const now = this._now();
+    const elapsedSinceStart = this.lastUpdate - this.startTime;
+    const overlap = elapsedSinceStart - this.nextTime;
 
-    this._start = now - this._time * 1000;
-    this._last = now;
+    if (overlap < 0) return;
 
-    this._tick(); 
+    this.frame++;
+    this.deltaMs = elapsedSinceStart - this.timeMs * 1000;
+    this.timeMs = elapsedSinceStart / 1000;
+    this.nextTime += overlap >= this.gap ? overlap + 4 : this.gap;
+
+    this.dispatch();
   }
 
-  add(fn: TickerCallback): TickerCallback {
-    this._listeners.add(fn);
+  private dispatch(): void {
+    const time = this.timeMs;
+    const delta = this.deltaMs;
+    const frame = this.frame;
 
-    this._wake();
-
-    return fn;
-  }
-
-  addOnce(fn: TickerCallback): TickerCallback {
-    const callback: TickerCallback = (time, delta, frame) => {
-      this.remove(callback);
-      fn(time, delta, frame);
-    };
-
-    this.add(callback);
-
-    return callback;
-  }
-
-  remove(fn: TickerCallback): void {
-    this._listeners.delete(fn);
-
-    if (this._listeners.size === 0) {
-      this.sleep();
+    for (this.i = 0; this.i < this.listeners.length; this.i++) {
+      this.listeners[this.i](time, delta, frame);
     }
   }
 
-  clear(): void {
-    this._listeners.clear();
-    this.sleep();
+  add(listener: TickerListener): TickerListener {
+    if (!this.listeners.includes(listener)) {
+      this.listeners.push(listener);
+      this.wake();
+    }
+    return listener;
+  }
+
+  remove(listener: TickerListener): void {
+    const index = this.listeners.indexOf(listener);
+    if (index === -1) return;
+
+    this.listeners.splice(index, 1);
+    if (index <= this.i) this.i--;
+  }
+
+  /** Restarts the internal clock (used on wake so a long sleep doesn't register as lag) and starts the rAF loop. */
+  wake(): void {
+    if (this.manual || this.rafId !== null) return;
+
+    const n = now();
+    this.startTime = n - this.timeMs * 1000;
+    this.lastUpdate = n;
+    this.rafId = this.request(this.loop);
   }
 
   sleep(): void {
-    if (this._id !== null) {
-      this._cancel(this._id);
-      this._id = null;
+    if (this.rafId !== null) {
+      this.cancel(this.rafId);
+      this.rafId = null;
     }
   }
 
-  fps(fps: number): void {
-    fps = Math.max(1, fps);
+  /** Forces one synchronous step, bypassing rAF and the overlap-gap gate entirely. Intended for a `{ manual: true }` ticker. */
+  tick(deltaMs = 1000 / 60): void {
+    this.frame++;
+    this.deltaMs = deltaMs;
+    this.timeMs += deltaMs / 1000;
+    this.lastUpdate = now();
+    this.startTime = this.lastUpdate - this.timeMs * 1000;
+    this.nextTime = this.timeMs * 1000 + this.gap;
 
-    this._gap = 1000 / fps;
-    this._nextTime = this._time * 1000 + this._gap;
+    this.dispatch();
+  }
+
+  fps(fps: number): void {
+    const f = Math.max(1, fps);
+    this.gap = 1000 / f;
+    this.nextTime = this.timeMs * 1000 + this.gap;
   }
 
   lagSmoothing(threshold = 500, adjustedLag = 33): void {
-    this._lagThreshold = threshold || Infinity;
-
-    this._adjustedLag = Math.min(adjustedLag, this._lagThreshold);
+    this.lagThreshold = threshold || Infinity;
+    this.adjustedLag = Math.min(adjustedLag, this.lagThreshold);
   }
 
   deltaRatio(fps = 60): number {
-    return this._delta / (1000 / fps);
+    return this.deltaMs / (1000 / fps);
   }
 
   get time(): number {
-    return this._time;
+    return this.timeMs;
   }
 
   get delta(): number {
-    return this._delta;
+    return this.deltaMs;
   }
 
-  get frame(): number {
-    return this._frame;
+  get currentFrame(): number {
+    return this.frame;
   }
 
-  get active(): boolean {
-    return this._id !== null;
+  get isAwake(): boolean {
+    return this.rafId !== null;
   }
 
-  get listeners(): number {
-    return this._listeners.size;
+  get listenerCount(): number {
+    return this.listeners.length;
   }
 }
 
-export const ticker = new SxTicker();
+export const ticker = new Ticker();
