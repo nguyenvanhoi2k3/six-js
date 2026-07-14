@@ -10,128 +10,36 @@
   </head>
 
   <body>
-    <sx-dialog-trigger name="1">open</sx-dialog-trigger>
-    <sx-dialog position="right" effect="slide-left" name="1">
-      <div style="background: #fff;">
-        <sx-animate>heading</sx-animate>
-      </div>
-    </sx-dialog>
+    <div class="space"></div>
     <div class="container">
-      <h1 class="title">
-        Build beautiful web animations with
-        <strong>six.js</strong>
-        🚀✨
-      </h1>
-
-      <div class="buttons">
-        <button id="chars">Chars</button>
-        <button id="words">Words</button>
-        <button id="lines">Lines</button>
-        <button id="all">Chars + Words + Lines</button>
-
-        <button id="maskChars">Mask Chars</button>
-        <button id="maskWords">Mask Words</button>
-        <button id="maskLines">Mask Lines</button>
-
-        <button id="revert">Revert</button>
+      <div class="track">
+        <span class="char">Lorem</span>
+        <span class="char">ipsum</span>
+        <span class="char">dolor</span>
+        <span class="char">sit</span>
+        <span class="char">amet</span>
+        <span class="char">consectetur</span>
+        <span class="char">adipiscing</span>
+        <span class="char">elit</span>
+        <span class="char">sed</span>
+        <span class="char">do</span>
+        <span class="char">eiusmod</span>
+        <span class="char">tempor</span>
+        <span class="char">incididunt</span>
+        <span class="char">ut</span>
+        <span class="char">labore</span>
       </div>
     </div>
-
-    <script type="module">
-      import { six } from "./dist/six-js.es.js";
-      import { splitText } from "./dist/split-text.es.js";
-      six.initElements();
-      let split;
-
-      function run(type, mask = null) {
-        console.log("RUN:", type, mask);
-        split?.revert();
-
-        split = splitText(".title", {
-          type,
-
-          mask,
-
-          autoSplit: true,
-
-          charsClass: "char++",
-
-          wordsClass: "word++",
-
-          linesClass: "line++",
-
-          onSplit(self) {
-            console.clear();
-
-            console.log("chars", self.chars);
-            console.log("words", self.words);
-            console.log("lines", self.lines);
-
-            let targets;
-
-            if (type.includes("chars")) targets = self.chars;
-            else if (type.includes("words")) targets = self.words;
-            else targets = self.lines;
-
-            six.set(targets, {
-              y: "120%",
-              opacity: 0,
-            });
-
-            return six.to(targets, {
-              y: "0%",
-              opacity: 1,
-              duration: 0.8,
-              ease: "expoOut",
-              stagger: 0.08,
-            });
-          },
-        });
-      }
-      document.getElementById("chars").onclick = () => run("chars");
-
-      document.getElementById("words").onclick = () => run("words");
-
-      document.getElementById("lines").onclick = () => run("lines");
-
-      document.getElementById("all").onclick = () => run("chars,words,lines");
-
-      document.getElementById("maskChars").onclick = () =>
-        run("chars", "chars");
-
-      document.getElementById("maskWords").onclick = () =>
-        run("words", "words");
-
-      document.getElementById("maskLines").onclick = () =>
-        run("lines", "lines");
-
-      document.getElementById("revert").onclick = () => split?.revert();
-
-      // chạy demo lần đầu
-      run("chars,words,lines");
-    </script>
+    <div class="space"></div>
 
     <!-- ------------------------------------------------GSAP------------------------------------------------ -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/ScrollTrigger.min.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", (event) => {
         gsap.registerPlugin(ScrollTrigger);
-        const video = document.querySelector("video");
-        video.addEventListener("loadedmetadata", () => {
-          gsap.to(video, {
-            currentTime: video.duration,
-            ease: "none",
-            scrollTrigger: {
-              trigger: video,
-              start: "top top",
-              end: "+=3000",
-              scrub: 1,
-              pin: true,
-            },
-          });
-        });
       });
-    </script> -->
+    </script>
   </body>
 </html>

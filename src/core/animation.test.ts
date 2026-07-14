@@ -10,7 +10,7 @@ interface RenderCall {
 class StubAnimation extends Animation {
   renders: RenderCall[] = [];
 
-  protected _renderIteration(localTime: number, reversed: boolean, iteration: number): void {
+  protected _renderIteration(localTime: number, reversed: boolean, iteration: number, _suppressEvents: boolean, _force: boolean): void {
     this.renders.push({ localTime, reversed, iteration });
   }
 }

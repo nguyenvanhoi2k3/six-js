@@ -101,19 +101,26 @@ export abstract class Animation implements ListNode<Animation> {
     if (clamped < 0) clamped = 0;
     else if (this._repeat >= 0 && clamped > tDur) clamped = tDur;
 
-    if (!force && this._initted && clamped === prevTotalTime) return;
+    const firstRender = !this._initted;
+    if (!force && !firstRender && clamped === prevTotalTime) return;
 
-    if (!this._initted) {
+    if (firstRender) {
       this._initted = true;
       this._onInit();
     }
 
     const cycle = resolveCycle(clamped - this._delay, this._dur, this._repeat, this._repeatDelay, this._yoyo);
+    // Recomputed even when nothing "changed" numerically, because the same local time can be
+    // reached from a different iteration (e.g. an outer timeline repeating a nested one whose
+    // own local time coincidentally lines up again) - `iterationChanged` is what lets a
+    // container force its children to re-render in that case instead of wrongly no-op'ing.
+    const prevCycle = firstRender ? cycle : resolveCycle(prevTotalTime - this._delay, this._dur, this._repeat, this._repeatDelay, this._yoyo);
+    const iterationChanged = cycle.iteration !== prevCycle.iteration;
 
     this._tTime = clamped;
     this._time = cycle.time;
 
-    this._renderIteration(cycle.time, cycle.reversed, cycle.iteration, suppressEvents);
+    this._renderIteration(cycle.time, cycle.reversed, cycle.iteration, suppressEvents, force || iterationChanged);
 
     if (suppressEvents) return;
 
@@ -127,10 +134,7 @@ export abstract class Animation implements ListNode<Animation> {
       this.emit("start");
     }
 
-    if (clamped > prevTotalTime) {
-      const prevCycle = resolveCycle(prevTotalTime - this._delay, this._dur, this._repeat, this._repeatDelay, this._yoyo);
-      if (cycle.iteration !== prevCycle.iteration) this.emit("repeat");
-    }
+    if (clamped > prevTotalTime && iterationChanged) this.emit("repeat");
 
     this.emit("update");
 
@@ -141,8 +145,18 @@ export abstract class Animation implements ListNode<Animation> {
     }
   }
 
-  /** Applies this animation's own visual state for `localTime` (0..duration, already yoyo-flipped). */
-  protected abstract _renderIteration(localTime: number, reversed: boolean, iteration: number, suppressEvents: boolean): void;
+  /**
+   * Applies this animation's own visual state for `localTime` (0..duration, already yoyo-flipped).
+   * `force` means "re-render even if a child's own local time looks unchanged" - propagate it to
+   * any children (Timeline does; a leaf Tween has none and can ignore it).
+   */
+  protected abstract _renderIteration(
+    localTime: number,
+    reversed: boolean,
+    iteration: number,
+    suppressEvents: boolean,
+    force: boolean,
+  ): void;
 
   /** Hook for subclasses that need to do one-time setup on first render (e.g. Tween building its PropertyTracks). */
   protected _onInit(): void {}
