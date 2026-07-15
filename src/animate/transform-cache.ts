@@ -104,8 +104,13 @@ function round(n: number): number {
 
 /**
  * Composes the cache into a single CSS transform string. `translate3d` (vs plain `translate`)
- * is only used while `use3D` is true (the caller passes this only while a tween is actively
- * mid-flight) so elements aren't left on a GPU compositor layer once at rest.
+ * is preferred while `use3D` is true (the caller passes this only while a tween is actively
+ * mid-flight) so elements aren't left on a GPU compositor layer once at rest - BUT a non-zero
+ * `z` is always rendered via `translate3d` regardless of `use3D`, never silently dropped: `z`
+ * is part of the element's actual final state (e.g. a tween ending at `z: 100`), whereas
+ * `use3D` is purely a compositing-performance hint for the common `z === 0` case, not a license
+ * to lose real data. Demoting a nonzero-`z` element to plain `translate()` at rest was a real
+ * bug - the element's z-offset visibly snapped away the instant a tween settled.
  */
 export function composeTransform(cache: TransformCache, use3D: boolean): string {
   const parts: string[] = [];
@@ -115,7 +120,11 @@ export function composeTransform(cache: TransformCache, use3D: boolean): string 
   }
 
   if (cache.x || cache.y || cache.z) {
-    parts.push(use3D ? `translate3d(${round(cache.x)}px, ${round(cache.y)}px, ${round(cache.z)}px)` : `translate(${round(cache.x)}px, ${round(cache.y)}px)`);
+    parts.push(
+      use3D || cache.z
+        ? `translate3d(${round(cache.x)}px, ${round(cache.y)}px, ${round(cache.z)}px)`
+        : `translate(${round(cache.x)}px, ${round(cache.y)}px)`,
+    );
   }
 
   if (cache.rotation) parts.push(`rotate(${round(cache.rotation)}deg)`);

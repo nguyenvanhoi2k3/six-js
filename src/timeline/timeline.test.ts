@@ -137,6 +137,64 @@ describe("Timeline - rendering drives children via the coordinate transform", ()
     tl.totalTime(1.5, true);
     expect(a.totalTime()).toBe(0.5);
   });
+
+  it("resuming a paused child continues from where it froze, not jumping ahead by the paused duration", () => {
+    // Real bug: the parent (e.g. the always-ticking root timeline) keeps advancing while a
+    // child is paused. Without re-anchoring the child's startTime on resume, the very next
+    // render recomputes its totalTime from the fixed (start, parentLocalTime) formula and it
+    // snaps straight to wherever that formula now points - here, straight to fully complete.
+    const tl = new Timeline();
+    const a = new StubLeaf();
+    a.duration(2);
+    tl.add(a);
+
+    tl.totalTime(0.5, true);
+    a.pause();
+    tl.totalTime(1.5, true); // parent advances 1s while frozen
+    expect(a.totalTime()).toBe(0.5);
+
+    a.play();
+    tl.totalTime(2.0, true); // parent advances another 0.5s after resuming
+    expect(a.totalTime()).toBe(1.0); // 0.5 (frozen) + 0.5 (elapsed since resume), not 2.0
+  });
+
+  it("resuming a child whose scheduled start the timeline hasn't reached yet leaves it waiting for that slot", () => {
+    const tl = new Timeline();
+    const a = new StubLeaf();
+    a.duration(1);
+    tl.add(a, 5); // scheduled to start at parent-local-time 5
+
+    a.pause(); // paused before the timeline has ever reached it
+    tl.totalTime(2, true);
+    a.play();
+    tl.totalTime(4, true);
+    expect(a.totalTime()).toBe(0); // still hasn't started - not pulled forward to "now"
+
+    tl.totalTime(5.5, true);
+    expect(a.totalTime()).toBe(0.5); // starts on schedule once the timeline actually reaches it
+  });
+
+  it("resuming a child created paused whose start the timeline has already passed begins it fresh from now (the ScrollTrigger pattern)", () => {
+    // This is the shape every ScrollTrigger-driven, non-scrub animation is created in:
+    // `vars.animation.pause()` runs immediately (attached to the root timeline at "now"),
+    // and `.play()` is called much later, once the user actually scrolls into range. By then
+    // the (always-advancing) root timeline's playhead is long past the child's original
+    // `_start`, even though the child itself never progressed at all (totalTime stayed 0).
+    const tl = new Timeline({ defaultPosition: "now", unbounded: true }); // matches rootTimeline's own construction
+    const a = new StubLeaf();
+    a.duration(1);
+
+    tl.totalTime(0, true);
+    tl.add(a); // _start = tl's current local time (0)
+    a.pause();
+
+    tl.totalTime(3, true); // the timeline (e.g. root) keeps advancing while frozen
+    expect(a.totalTime()).toBe(0);
+
+    a.play();
+    tl.totalTime(3.4, true); // 0.4s after resuming
+    expect(a.totalTime()).toBeCloseTo(0.4); // animates fresh from 0, not clamped-complete at 1
+  });
 });
 
 describe("Timeline - nested timelines keep full lifecycle capability", () => {

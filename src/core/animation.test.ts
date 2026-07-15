@@ -123,6 +123,26 @@ describe("Animation - play/pause/timeScale/reverse", () => {
   });
 });
 
+describe("Animation - restart(includeDelay)", () => {
+  it("by default (includeDelay: false) skips the delay, starting from the active portion immediately", () => {
+    const a = new StubAnimation({ delay: 1 });
+    a.duration(1);
+    a.totalTime(2, true); // fully played through delay + active duration
+
+    a.restart();
+    expect(a.totalTime()).toBe(1); // _delay, i.e. the boundary where the active portion begins - not re-waiting
+  });
+
+  it("includeDelay: true replays the delay from the true beginning", () => {
+    const a = new StubAnimation({ delay: 1 });
+    a.duration(1);
+    a.totalTime(2, true);
+
+    a.restart(true);
+    expect(a.totalTime()).toBe(0);
+  });
+});
+
 describe("Animation - repeat/yoyo cycling via totalTime", () => {
   it("fires repeat when crossing an iteration boundary while advancing", () => {
     const a = new StubAnimation({ repeat: 2 });

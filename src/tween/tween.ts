@@ -13,6 +13,13 @@ export type TweenTarget = Element | Element[] | ArrayLike<Element> | string | nu
 export interface TweenVars extends AnimationVars {
   duration?: number;
   ease?: string | EaseFn;
+  /**
+   * NOT YET IMPLEMENTED - accepted and typed (matching the originally planned architecture,
+   * see `LEGACY_CLEANUP.md`'s sibling doc / the approved Phase 1 plan's `tween/overwrite.ts`)
+   * but currently has zero effect: no active-tween-per-target registry exists, so setting this
+   * silently does nothing rather than erroring. Documented as a real Phase 1 gap in CLAUDE.md -
+   * don't assume it works without checking there first.
+   */
   overwrite?: boolean | "auto";
   keyframes?: KeyframesInput;
   [prop: string]: unknown;

@@ -77,6 +77,21 @@ describe("composeTransform", () => {
     const cache = { ...identity, x: 5, rotation: 10, scaleX: 2, scaleY: 2 };
     expect(composeTransform(cache, false)).toBe("translate(5px, 0px) rotate(10deg) scale(2, 2)");
   });
+
+  it("never drops a nonzero z at rest (use3D: false) - always uses translate3d when z is set", () => {
+    // Real bug: at rest (use3D false, e.g. a completed tween), a nonzero z was silently
+    // dropped because the "not use3D" branch rendered plain translate(x, y) - which has no
+    // z component at all - instead of translate3d(x, y, z). The element's z-offset visibly
+    // snapped away the instant the tween settled.
+    const cache = { ...identity, x: 10, y: 20, z: 50 };
+    const result = composeTransform(cache, false);
+    expect(result).toContain("translate3d(10px, 20px, 50px)");
+  });
+
+  it("still uses plain translate() at rest when z is genuinely zero", () => {
+    const cache = { ...identity, x: 10, y: 20 };
+    expect(composeTransform(cache, false)).toBe("translate(10px, 20px)");
+  });
 });
 
 describe("getTransformCache", () => {

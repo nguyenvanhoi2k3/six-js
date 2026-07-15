@@ -25,6 +25,16 @@ export interface AnimationVars {
 export interface AnimationParent {
   _removeChild(child: Animation): void;
   _uncache(): void;
+  /**
+   * Called when a child transitions from paused back to playing. A container's own local time
+   * keeps advancing while a child is paused (nothing re-freezes it - it's simply skipped during
+   * rendering), so without this hook the child's fixed `_start` would make it resume by jumping
+   * straight to wherever `(currentLocalTime - _start) * timeScale` now lands - effectively
+   * skipping ahead by however long it was paused, instead of continuing from where it left off.
+   * Optional because a parentless (or not-yet-parented) Animation has nothing external advancing
+   * its time while paused, so no compensation is needed.
+   */
+  _childResumed?(child: Animation): void;
 }
 
 let uid = 0;
@@ -274,7 +284,9 @@ export abstract class Animation implements ListNode<Animation> {
 
   paused(value?: boolean): boolean | this {
     if (value === undefined) return this._ts === 0;
+    const resuming = value === false && this._ts === 0;
     this._ts = value ? 0 : this._rts;
+    if (resuming) this.parent?._childResumed?.(this);
     return this;
   }
 
@@ -299,7 +311,11 @@ export abstract class Animation implements ListNode<Animation> {
 
   restart(includeDelay = false): this {
     this._hasStarted = false;
-    this.totalTime(includeDelay ? -this._delay : 0, true);
+    // totalTime 0 IS the start of the delay window on this animation's own axis (delay occupies
+    // [0, _delay); the active portion is [_delay, _tDur) - see the render() doc comment). So
+    // "skip the delay" (the default, matching GSAP) means jumping straight to _delay, not 0;
+    // "replay the delay" (includeDelay: true) means going back to the true beginning, 0.
+    this.totalTime(includeDelay ? 0 : this._delay, true);
     return this.play();
   }
 

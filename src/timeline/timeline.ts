@@ -126,6 +126,33 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
     this.remove(child);
   }
 
+  /**
+   * Re-anchors `child.startTime()` so that THIS timeline's current local time maps back to
+   * exactly the totalTime the child was frozen at - see the long comment on
+   * `AnimationParent._childResumed` for why this is needed at all.
+   *
+   * Skipped only if the timeline's playhead hasn't even reached the child's ORIGINALLY
+   * scheduled start yet - that's a child still waiting its turn in a sequenced timeline (e.g.
+   * paused immediately after `.add(child, 5)`, before the timeline has played anywhere near
+   * position 5), which should keep waiting for that scheduled slot rather than being pulled
+   * forward. Checking `child.totalTime() > 0` instead (whether it had "already progressed")
+   * would get the single most common real-world case backwards: a `paused: true` tween
+   * attached to the always-on root timeline (e.g. every ScrollTrigger-driven animation, which
+   * is created paused and `.play()`d later) has `_start` fixed at its creation moment and a
+   * frozen totalTime of exactly 0 - by the time it's resumed, the root's playhead is already
+   * long past that `_start`, so it unambiguously HAS "reached" it and must be repositioned to
+   * begin now, even though it never progressed even slightly beforehand.
+   */
+  _childResumed(child: Animation): void {
+    if (this._lastRenderedLocal < (child.startTime() as number)) return;
+
+    const childTotalTime = child.totalTime() as number;
+    const ts = child.timeScale() as number;
+    const tDur = child.totalDuration() as number;
+    const offset = ts >= 0 ? 0 : tDur;
+    child.startTime(this._lastRenderedLocal - (childTotalTime - offset) / ts);
+  }
+
   /** Cascades to every child before detaching itself from its own parent (if any). */
   kill(): this {
     for (const child of forwards(this)) {
