@@ -1,8 +1,9 @@
-import { describe, expect, it } from "vitest";
-import { six } from "./six";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { six, ScrollTrigger } from "./six";
 import { rootTimeline } from "../core/root";
 import { Tween } from "../tween/tween";
 import { Timeline } from "../timeline/timeline";
+import { invalidateReads } from "../scroll-trigger/observer";
 
 // rootTimeline is a real module-level singleton shared across every test in the process, so
 // each test captures its OWN starting point and only advances forward relative to it, rather
@@ -158,5 +159,48 @@ describe("six.context", () => {
     ctx.revert();
 
     expect(tween?.parent).toBeNull();
+  });
+});
+
+describe("six.to - scrollTrigger", () => {
+  afterEach(() => {
+    ScrollTrigger.getAll().forEach((st) => st.kill());
+    vi.restoreAllMocks();
+  });
+
+  function mockRect(target: Element, top: number, height: number): void {
+    vi.spyOn(target, "getBoundingClientRect").mockReturnValue({
+      top,
+      height,
+      bottom: top + height,
+      left: 0,
+      right: 0,
+      width: 0,
+      x: 0,
+      y: top,
+      toJSON: () => ({}),
+    });
+  }
+
+  function scrollTo(y: number): void {
+    vi.spyOn(window, "scrollY", "get").mockReturnValue(y);
+    invalidateReads();
+    window.dispatchEvent(new Event("scroll"));
+  }
+
+  it("defaults scrollTrigger.trigger to the tween's own target and pauses it until scrubbed", () => {
+    const a = el();
+    a.style.opacity = "0";
+    mockRect(a, 0, 100);
+    vi.spyOn(window, "innerHeight", "get").mockReturnValue(800);
+    scrollTo(0);
+
+    const tween = six.to(a, { opacity: 1, duration: 1, ease: "none", scrollTrigger: { scrub: true } }) as Tween;
+    expect(tween.paused()).toBe(true);
+
+    // default start/end: "top bottom" -> -800, "bottom top" -> 100, span 900
+    scrollTo(-800 + 450);
+    expect(tween.totalProgress()).toBeCloseTo(0.5, 2);
+    expect(a.style.opacity).toBe("0.5");
   });
 });

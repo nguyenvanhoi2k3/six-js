@@ -4,16 +4,33 @@ import { StaggerInput, computeStaggerDelay } from "../timeline/stagger";
 import { rootTimeline } from "../core/root";
 import { GlobalDefaults, setDefaults } from "../core/defaults";
 import { Context, context } from "../core/context";
+import { ScrollTrigger, ScrollTriggerVars } from "../scroll-trigger/scroll-trigger";
 
 export type SixTarget = TweenTarget;
-export type SixTweenVars = TweenVars & { stagger?: StaggerInput };
+
+/** `scrollTrigger.trigger` defaults to the tween/timeline's own target(s) when omitted. */
+export type SixScrollTriggerVars = Omit<ScrollTriggerVars, "animation" | "trigger"> & { trigger?: Element | string };
+export type SixTweenVars = TweenVars & { stagger?: StaggerInput; scrollTrigger?: SixScrollTriggerVars };
+
+function resolveTrigger(target: SixTarget, override?: Element | string): Element | string {
+  if (override) return override;
+  if (typeof target === "string" || target instanceof Element) return target;
+  return resolveTargets(target)[0];
+}
+
+function attachScrollTrigger(target: SixTarget, vars: SixScrollTriggerVars | undefined, animation: Tween | Timeline): void {
+  if (!vars) return;
+  const trigger = resolveTrigger(target, vars.trigger);
+  ScrollTrigger.create({ ...vars, trigger, animation });
+}
 
 function createTween(target: SixTarget, vars: SixTweenVars, mode: TweenMode, fromVars?: Record<string, unknown>): Tween | Timeline {
-  const { stagger, ...rest } = vars;
+  const { stagger, scrollTrigger, ...rest } = vars;
 
   if (stagger === undefined) {
     const tween = new Tween(target, rest, mode, fromVars);
     rootTimeline.add(tween);
+    attachScrollTrigger(target, scrollTrigger, tween);
     return tween;
   }
 
@@ -27,6 +44,7 @@ function createTween(target: SixTarget, vars: SixTweenVars, mode: TweenMode, fro
   });
 
   rootTimeline.add(group);
+  attachScrollTrigger(target, scrollTrigger, group);
   return group;
 }
 
@@ -48,9 +66,19 @@ function set(target: SixTarget, vars: Record<string, unknown>): Tween {
   return tween;
 }
 
-function timeline(vars?: TimelineVars): Timeline {
-  const tl = new Timeline(vars);
+export type SixTimelineVars = TimelineVars & { scrollTrigger?: SixScrollTriggerVars };
+
+function timeline(vars?: SixTimelineVars): Timeline {
+  const { scrollTrigger, ...rest } = vars ?? {};
+  const tl = new Timeline(rest);
   rootTimeline.add(tl);
+  if (scrollTrigger) {
+    if (!scrollTrigger.trigger) {
+      console.warn("[six] timeline({ scrollTrigger }) requires an explicit trigger - a Timeline has no target to default to");
+    } else {
+      ScrollTrigger.create({ ...scrollTrigger, trigger: scrollTrigger.trigger, animation: tl });
+    }
+  }
   return tl;
 }
 
@@ -68,4 +96,5 @@ export const six = {
   context,
 };
 
-export type { Context, GlobalDefaults, Tween, Timeline, TweenVars, TimelineVars };
+export { ScrollTrigger };
+export type { Context, GlobalDefaults, Tween, Timeline, TweenVars, TimelineVars, ScrollTriggerVars };
