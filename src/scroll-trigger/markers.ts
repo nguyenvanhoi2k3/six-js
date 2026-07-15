@@ -4,31 +4,39 @@ export interface MarkerHandle {
   remove(): void;
 }
 
-/** Debug-only start/end line visuals, isolated so this stays out of production bundles that never enable `markers: true`. */
+function createLine(color: string, text: string, align: "left" | "right"): { line: HTMLElement; label: HTMLElement } {
+  const line = document.createElement("div");
+  line.style.cssText = `position:absolute;left:0;width:100%;border-top:2px dashed ${color};z-index:999999;pointer-events:none;`;
+
+  const label = document.createElement("span");
+  label.textContent = text;
+  // Below the line, not above (translateY(-100%) would push it) - a marker positioned near the
+  // very top of the document would otherwise have its label pushed off-screen above y=0.
+  label.style.cssText = `position:absolute;${align}:0;top:2px;background:${color};color:#000;font:11px monospace;padding:2px 6px;white-space:nowrap;`;
+  line.appendChild(label);
+
+  return { line, label };
+}
+
+/** Debug-only start/end line visuals (with visible "start"/"end" text labels, matching GSAP's own markers), isolated so this stays out of production bundles that never enable `markers: true`. */
 export function createMarkers(label: string): MarkerHandle {
-  const startLine = document.createElement("div");
-  const endLine = document.createElement("div");
+  const start = createLine("#4ade80", `${label ? `${label} ` : ""}start`, "left");
+  const end = createLine("#f87171", `${label ? `${label} ` : ""}end`, "right");
 
-  const style = (el: HTMLElement, color: string): void => {
-    el.style.cssText = `position:absolute;left:0;width:100%;border-top:2px dashed ${color};z-index:999999;pointer-events:none;`;
-  };
+  start.line.setAttribute("data-six-marker", `${label}-start`);
+  end.line.setAttribute("data-six-marker", `${label}-end`);
 
-  style(startLine, "#4ade80");
-  style(endLine, "#f87171");
-  startLine.setAttribute("data-six-marker", `${label}-start`);
-  endLine.setAttribute("data-six-marker", `${label}-end`);
-
-  document.body.appendChild(startLine);
-  document.body.appendChild(endLine);
+  document.body.appendChild(start.line);
+  document.body.appendChild(end.line);
 
   return {
     update(startY: number, endY: number) {
-      startLine.style.top = `${startY}px`;
-      endLine.style.top = `${endY}px`;
+      start.line.style.top = `${startY}px`;
+      end.line.style.top = `${endY}px`;
     },
     remove() {
-      startLine.remove();
-      endLine.remove();
+      start.line.remove();
+      end.line.remove();
     },
   };
 }

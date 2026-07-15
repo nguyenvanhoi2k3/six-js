@@ -14,6 +14,8 @@ export interface ScrollTriggerVars {
   scrub?: boolean | number;
   pin?: boolean | Element | string;
   markers?: boolean;
+  /** Shown on the debug markers (`markers: true`) instead of a bare instance number - matches GSAP's `id` option. */
+  id?: string;
   animation?: Animation;
   onEnter?: (self: ScrollTrigger) => void;
   onLeave?: (self: ScrollTrigger) => void;
@@ -104,7 +106,7 @@ export class ScrollTrigger {
       }
     }
 
-    if (vars.markers) this.markerHandle = createMarkers(String(instances.length));
+    if (vars.markers) this.markerHandle = createMarkers(vars.id ?? String(instances.length));
 
     instances.push(this);
 
