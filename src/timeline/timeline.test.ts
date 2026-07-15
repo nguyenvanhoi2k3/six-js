@@ -108,7 +108,7 @@ describe("Timeline - rendering drives children via the coordinate transform", ()
 
     tl.totalTime(1, true);
     expect(a.renders.at(-1)?.localTime).toBe(1);
-    expect(b.renders.at(-1)?.localTime).toBe(0); // not yet started, clamped to 0
+    expect(b.renders).toHaveLength(0); // not yet reached - deliberately untouched (see Timeline._renderIteration)
 
     tl.totalTime(3, true);
     expect(a.renders.at(-1)?.localTime).toBe(2); // finished, holds at its end

@@ -3,6 +3,8 @@ import { getDefaults } from "../core/defaults";
 import { EaseFn, resolveEase } from "../easing/easing";
 import { applyTrack, buildTracks, PropertyTrack, TweenMode } from "./property-track";
 import { getTransformCache, renderTransform } from "../animate/transform-cache";
+import { buildKeyframeTimeline, KeyframesInput } from "./keyframes";
+import { Timeline } from "../timeline/timeline";
 
 export type { TweenMode } from "./property-track";
 
@@ -12,10 +14,11 @@ export interface TweenVars extends AnimationVars {
   duration?: number;
   ease?: string | EaseFn;
   overwrite?: boolean | "auto";
+  keyframes?: KeyframesInput;
   [prop: string]: unknown;
 }
 
-function resolveTargets(input: TweenTarget): Element[] {
+export function resolveTargets(input: TweenTarget): Element[] {
   if (input == null) return [];
   if (typeof input === "string") {
     const found = Array.from(document.querySelectorAll(input));
@@ -26,7 +29,12 @@ function resolveTargets(input: TweenTarget): Element[] {
   return Array.from(input).filter((el): el is Element => el instanceof Element);
 }
 
-/** The leaf animation unit: interpolates PropertyTracks (built via animate/registry) across its own eased ratio. */
+/**
+ * The leaf animation unit. Normally interpolates PropertyTracks (built via animate/registry)
+ * across its own eased ratio; when `vars.keyframes` is given it instead composes (has-a, not
+ * is-a) an internal Timeline of `.fromTo()` segments and simply drives that from render() -
+ * see tween/keyframes.ts.
+ */
 export class Tween extends Animation {
   private targets: Element[];
   private mode: TweenMode;
@@ -34,6 +42,7 @@ export class Tween extends Animation {
   private rawFromVars?: Record<string, unknown>;
   private ease: EaseFn;
   private tracks: PropertyTrack[] = [];
+  private keyframeTimeline: Timeline | null = null;
 
   constructor(target: TweenTarget, vars: TweenVars, mode: TweenMode = "to", fromVars?: Record<string, unknown>) {
     super(vars);
@@ -45,7 +54,13 @@ export class Tween extends Animation {
     this.rawVars = vars;
     this.rawFromVars = fromVars;
     this.ease = resolveEase(vars.ease ?? defaults.ease);
-    this.duration(vars.duration ?? defaults.duration);
+
+    if (vars.keyframes) {
+      this.keyframeTimeline = buildKeyframeTimeline(this.targets, vars);
+      this.duration(this.keyframeTimeline.totalDuration() as number);
+    } else {
+      this.duration(vars.duration ?? defaults.duration);
+    }
 
     // Render the initial (t=0) visual state immediately and silently, so e.g. a `.from()`
     // tween's starting values are visible right away rather than waiting for the next tick.
@@ -57,10 +72,19 @@ export class Tween extends Animation {
   }
 
   protected _onInit(): void {
-    this.tracks = buildTracks(this.targets, this.rawVars, this.mode, this.rawFromVars);
+    if (!this.keyframeTimeline) {
+      this.tracks = buildTracks(this.targets, this.rawVars, this.mode, this.rawFromVars);
+    }
   }
 
   protected _renderIteration(localTime: number): void {
+    if (this.keyframeTimeline) {
+      // Per-segment lifecycle events (onStart/onComplete of individual keyframe stops) are not
+      // exposed in Phase 1 - only the outer Tween's own events fire, handled by Animation.render().
+      this.keyframeTimeline.render(localTime, true, true);
+      return;
+    }
+
     const dur = this.duration() as number;
     const progress = dur ? localTime / dur : 1;
     const eased = this.ease(progress);

@@ -40,6 +40,7 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
   private _lastChild: Animation | null = null;
   private _cursor = 0;
   private _lastAdded: Animation | null = null;
+  private _lastRenderedLocal = 0;
   private readonly _labels = new Map<string, number>();
   private readonly _defaultPositionMode: "sequence" | "now";
   private readonly _unbounded: boolean;
@@ -104,6 +105,10 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
 
     this._cursor = Math.max(this._cursor, start + (child.totalDuration() as number));
     this._lastAdded = child;
+    // Widen the "already rendered" low-water mark back to this child's start, so the next
+    // render's crossing-range check (see _renderIteration) is guaranteed to include it even if
+    // it lands behind the timeline's current playhead.
+    this._lastRenderedLocal = Math.min(this._lastRenderedLocal, start);
     this._uncache();
     return this;
   }
@@ -203,8 +208,25 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
   // ---- rendering ----
 
   protected _renderIteration(localTime: number, _reversed: boolean, _iteration: number, suppressEvents: boolean, force: boolean): void {
+    // Only touch children whose own [start, end] overlaps the span just crossed (lastLocal..
+    // localTime, in either direction - covers both a normal small per-frame step AND a big
+    // direct seek in one call). This matters whenever two children share a render target with
+    // DIFFERENT values (e.g. chained keyframe segments, or two `.to()` calls on the same
+    // property at different positions): rendering every child unconditionally every frame would
+    // let an untouched, still-in-the-future child's own clamped-to-its-start write stomp an
+    // active child's just-computed value, since both target the same DOM property and the
+    // future child simply happens to iterate later in start-time order.
+    const lo = Math.min(this._lastRenderedLocal, localTime);
+    const hi = Math.max(this._lastRenderedLocal, localTime);
+    this._lastRenderedLocal = localTime;
+
     for (const child of forwards(this)) {
       if (child.paused()) continue; // frozen - leave its totalTime exactly as it was
+
+      const start = child.startTime() as number;
+      const end = child.endTime();
+      if (end < lo || start > hi) continue; // fully outside the range this render pass covers
+
       child.render(toChildTotalTime(localTime, child), suppressEvents, force);
     }
   }
