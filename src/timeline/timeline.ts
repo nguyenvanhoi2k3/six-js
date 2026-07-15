@@ -1,7 +1,10 @@
 import { Animation, AnimationParent, AnimationVars } from "../core/animation";
 import { forwards, insertSorted, ListHandle, removeNode } from "../core/linked-list";
+import { PositionContext, resolvePosition as resolvePositionString, TimelinePosition } from "./position-parser";
+import { computeStaggerDelay, StaggerInput } from "./stagger";
+import { resolveTargets, Tween, TweenMode, TweenTarget, TweenVars } from "../tween/tween";
 
-export type TimelinePosition = number;
+export type { TimelinePosition } from "./position-parser";
 
 export interface TimelineVars extends AnimationVars {
   /**
@@ -14,7 +17,11 @@ export interface TimelineVars extends AnimationVars {
   defaultPosition?: "sequence" | "now";
   /** If true, totalDuration is always Infinity so children are never clamped by the timeline's own span. Root timeline only. */
   unbounded?: boolean;
+  /** Default vars merged (lowest precedence) into every `.to()/.from()/.fromTo()` added to this timeline. */
+  defaults?: TweenVars;
 }
+
+export type TimelineTweenVars = TweenVars & { stagger?: StaggerInput };
 
 /**
  * (parentLocalTime, child) -> child's own totalTime, expressed purely via Animation's public API
@@ -32,13 +39,17 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
   private _firstChild: Animation | null = null;
   private _lastChild: Animation | null = null;
   private _cursor = 0;
+  private _lastAdded: Animation | null = null;
+  private readonly _labels = new Map<string, number>();
   private readonly _defaultPositionMode: "sequence" | "now";
   private readonly _unbounded: boolean;
+  private readonly _childDefaults: TweenVars;
 
   constructor(vars: TimelineVars = {}) {
     super(vars);
     this._defaultPositionMode = vars.defaultPosition ?? "sequence";
     this._unbounded = vars.unbounded ?? false;
+    this._childDefaults = vars.defaults ?? {};
     if (this._unbounded) {
       this._dur = Infinity;
       this._tDur = Infinity;
@@ -70,9 +81,17 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
     return this._defaultPositionMode === "now" ? this._tTime : this._cursor;
   }
 
+  private positionContext(): PositionContext {
+    return {
+      end: this.defaultPosition(),
+      prevStart: this._lastAdded ? (this._lastAdded.startTime() as number) : 0,
+      prevEnd: this._lastAdded ? this._lastAdded.endTime() : 0,
+      getLabel: (name) => this._labels.get(name),
+    };
+  }
+
   resolvePosition(position?: TimelinePosition): number {
-    if (position === undefined) return this.defaultPosition();
-    return Math.max(0, position);
+    return resolvePositionString(position, this.positionContext());
   }
 
   add(child: Animation, position?: TimelinePosition): this {
@@ -84,6 +103,7 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
     insertSorted(this, child, (c) => c.startTime() as number);
 
     this._cursor = Math.max(this._cursor, start + (child.totalDuration() as number));
+    this._lastAdded = child;
     this._uncache();
     return this;
   }
@@ -103,6 +123,61 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
 
   getChildren(): Animation[] {
     return [...forwards(this)];
+  }
+
+  // ---- labels ----
+
+  addLabel(name: string, position?: TimelinePosition): this {
+    this._labels.set(name, this.resolvePosition(position));
+    return this;
+  }
+
+  getLabelTime(name: string): number | undefined {
+    return this._labels.get(name);
+  }
+
+  // ---- tween sugar ----
+
+  private addTweens(target: TweenTarget, vars: TimelineTweenVars, mode: TweenMode, fromVars: Record<string, unknown> | undefined, position?: TimelinePosition): this {
+    const { stagger, ...rest } = vars;
+    const merged: TweenVars = { ...this._childDefaults, ...rest };
+
+    if (stagger === undefined) {
+      this.add(new Tween(target, merged, mode, fromVars), position);
+      return this;
+    }
+
+    const elements = resolveTargets(target);
+    const start = this.resolvePosition(position);
+    const baseDelay = merged.delay ?? 0;
+
+    elements.forEach((el, index) => {
+      const staggerDelay = computeStaggerDelay(index, elements.length, stagger);
+      this.add(new Tween(el, { ...merged, delay: baseDelay + staggerDelay }, mode, fromVars), start);
+    });
+
+    return this;
+  }
+
+  to(target: TweenTarget, vars: TimelineTweenVars, position?: TimelinePosition): this {
+    return this.addTweens(target, vars, "to", undefined, position);
+  }
+
+  from(target: TweenTarget, vars: TimelineTweenVars, position?: TimelinePosition): this {
+    return this.addTweens(target, vars, "from", undefined, position);
+  }
+
+  fromTo(target: TweenTarget, fromVars: Record<string, unknown>, toVars: TimelineTweenVars, position?: TimelinePosition): this {
+    return this.addTweens(target, toVars, "fromTo", fromVars, position);
+  }
+
+  set(target: TweenTarget, vars: Record<string, unknown>, position?: TimelinePosition): this {
+    return this.addTweens(target, { ...vars, duration: 0 }, "to", undefined, position);
+  }
+
+  call(fn: () => void, position?: TimelinePosition): this {
+    this.add(new Tween(null, { duration: 0, onStart: fn }), position);
+    return this;
   }
 
   // ---- duration ----

@@ -68,12 +68,15 @@ describe("Animation - basic rendering", () => {
     expect(a.time()).toBe(0);
   });
 
-  it("does not re-render when totalTime is unchanged", () => {
+  it("still re-renders when totalTime is set to the same value again", () => {
+    // deliberately NOT optimized away (see the comment in Animation.render()): a sibling under
+    // the same parent can touch the same target between two renders that coincidentally compute
+    // the same totalTime for this animation, so value-equality alone isn't a safe skip signal.
     const a = new StubAnimation();
     a.duration(2);
     a.totalTime(1);
     a.totalTime(1);
-    expect(a.renders).toHaveLength(1);
+    expect(a.renders).toHaveLength(2);
   });
 
   it("progress()/totalProgress() read and write as fractions", () => {

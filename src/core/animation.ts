@@ -68,6 +68,8 @@ export abstract class Animation implements ListNode<Animation> {
   protected _initted = false;
   protected _dirty = true;
   protected _hasStarted = false;
+  /** Raw (pre-clamp) totalTime from the previous render() call - see the zero-duration handling in render(). */
+  protected _rawPrev = -1;
 
   private listeners: Partial<Record<AnimationEvent, Set<() => void>>> = {};
 
@@ -102,18 +104,23 @@ export abstract class Animation implements ListNode<Animation> {
     else if (this._repeat >= 0 && clamped > tDur) clamped = tDur;
 
     const firstRender = !this._initted;
-    if (!force && !firstRender && clamped === prevTotalTime) return;
 
     if (firstRender) {
       this._initted = true;
       this._onInit();
     }
 
+    // Deliberately NOT skipping the render when `clamped === prevTotalTime`: siblings under the
+    // same parent can share a target (e.g. a zero-duration `.set()` positioned where a sibling
+    // tween also writes), so two DIFFERENT logical render passes can coincidentally compute the
+    // SAME totalTime for this animation even though something else touched the shared target in
+    // between. Skipping on value-equality alone caused exactly that: a `.set()` correctly wrote
+    // its value once at construction, a later timeline render recomputed the identical totalTime
+    // for it and was wrongly treated as a no-op, leaving a sibling's subsequent write as the
+    // (wrong) final DOM state. `force` (used by Timeline to react to ITS OWN iteration changing)
+    // and `firstRender` no longer need special-casing here as a result - every render() call
+    // does the full pass.
     const cycle = resolveCycle(clamped - this._delay, this._dur, this._repeat, this._repeatDelay, this._yoyo);
-    // Recomputed even when nothing "changed" numerically, because the same local time can be
-    // reached from a different iteration (e.g. an outer timeline repeating a nested one whose
-    // own local time coincidentally lines up again) - `iterationChanged` is what lets a
-    // container force its children to re-render in that case instead of wrongly no-op'ing.
     const prevCycle = firstRender ? cycle : resolveCycle(prevTotalTime - this._delay, this._dur, this._repeat, this._repeatDelay, this._yoyo);
     const iterationChanged = cycle.iteration !== prevCycle.iteration;
 
@@ -122,25 +129,35 @@ export abstract class Animation implements ListNode<Animation> {
 
     this._renderIteration(cycle.time, cycle.reversed, cycle.iteration, suppressEvents, force || iterationChanged);
 
+    const rawPrev = this._rawPrev;
+    this._rawPrev = totalTime;
+
     if (suppressEvents) return;
 
-    const isBefore = clamped <= 0;
-    const isAfter = this._repeat >= 0 && clamped >= tDur;
-    const wasAfter = this._repeat >= 0 && prevTotalTime >= tDur;
-    const wasBefore = prevTotalTime <= 0;
+    // A zero-total-duration animation (e.g. `.set()`/`.call()`) always clamps to totalTime 0,
+    // so `clamped` can't distinguish "not reached yet" from "reached" the way it can for a
+    // normal-duration animation - use the RAW (pre-clamp) totalTime's sign instead, which still
+    // reflects which side of 0 the parent's playhead is actually on.
+    const zeroDur = tDur === 0;
+    const isBefore = zeroDur ? totalTime < 0 : clamped <= 0;
+    const isAfter = zeroDur ? totalTime >= 0 : this._repeat >= 0 && clamped >= tDur;
+    const wasBefore = zeroDur ? rawPrev < 0 : prevTotalTime <= 0;
+    const wasAfter = zeroDur ? rawPrev >= 0 : this._repeat >= 0 && prevTotalTime >= tDur;
+    const movingForward = zeroDur ? totalTime > rawPrev : clamped > prevTotalTime;
+    const movingBackward = zeroDur ? totalTime < rawPrev : clamped < prevTotalTime;
 
     if (!this._hasStarted && !isBefore) {
       this._hasStarted = true;
       this.emit("start");
     }
 
-    if (clamped > prevTotalTime && iterationChanged) this.emit("repeat");
+    if (movingForward && iterationChanged) this.emit("repeat");
 
     this.emit("update");
 
-    if (clamped > prevTotalTime && !wasAfter && isAfter) {
+    if (movingForward && !wasAfter && isAfter) {
       this.emit("complete");
-    } else if (clamped < prevTotalTime && !wasBefore && isBefore) {
+    } else if (movingBackward && !wasBefore && isBefore) {
       this.emit("reverseComplete");
     }
   }
