@@ -169,7 +169,7 @@ describe("ScrollTrigger - integration", () => {
     expect(onUpdate).toHaveBeenCalledTimes(3);
   });
 
-  it("plays a paused animation on enter and reverses it on leaveBack (toggle mode, no scrub)", () => {
+  it("plays a paused animation when entering forward (toggle mode, no scrub)", () => {
     const trigger = document.createElement("div");
     mockRect(trigger, 500, 100);
     mockViewportHeight(800);
@@ -184,6 +184,37 @@ describe("ScrollTrigger - integration", () => {
 
     scrollTo(550);
     expect(animation.paused()).toBe(false);
+  });
+
+  it("does nothing to the animation on enterBack/leave/leaveBack by default (matches GSAP's default toggleActions 'play none none none')", () => {
+    const trigger = document.createElement("div");
+    mockRect(trigger, 500, 100);
+    mockViewportHeight(800);
+    scrollTo(0);
+
+    const target = document.createElement("div");
+    target.style.opacity = "0";
+    const animation = new Tween(target, { opacity: 1, duration: 1, ease: "none" });
+
+    new ScrollTrigger({ trigger, start: "top top", end: "bottom top", animation });
+    // start = 500, end = 600 (see the onEnter/onLeave test above for the derivation)
+
+    scrollTo(550); // enter forward -> plays
+    expect(animation.paused()).toBe(false);
+    animation.progress(1); // let it finish, as if the duration had elapsed
+    expect(animation.reversed()).toBe(false);
+
+    scrollTo(700); // leave forward -> "none": must not reverse or otherwise touch it
+    expect(animation.reversed()).toBe(false);
+    expect(animation.progress()).toBe(1);
+
+    scrollTo(550); // enterBack -> "none"
+    expect(animation.reversed()).toBe(false);
+    expect(animation.progress()).toBe(1);
+
+    scrollTo(0); // leaveBack -> "none": must NOT auto-reverse it back toward 0
+    expect(animation.reversed()).toBe(false);
+    expect(animation.progress()).toBe(1);
   });
 
   it("drives an animation's progress directly in scrub mode", () => {

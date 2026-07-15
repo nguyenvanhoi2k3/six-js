@@ -189,15 +189,27 @@ export class ScrollTrigger {
       this.pinHandle.setPhase(scrollY < this.startY ? "before" : scrollY > this.endY ? "after" : "during");
     }
 
+    // Default toggle behavior (no scrub) matches GSAP's default `toggleActions: "play none none
+    // none"` - only crossing the start going FORWARD plays the animation; entering backward,
+    // leaving forward, and leaving backward do nothing to it by default (they still fire their
+    // callbacks). This is deliberately NOT "play/reverse on every crossing" - that's a common
+    // enough alternative that GSAP supports it via an explicit, configurable `toggleActions`
+    // string, but it is not what happens when you don't specify one, and a scroll-reveal
+    // animation that undoes itself every time the user scrolls back past the trigger is a
+    // surprising, usually-unwanted default. Full `toggleActions` string support (independently
+    // configuring all 4 crossings) is not implemented - documented Phase 1 scope cut.
     if (inside && !wasInside) {
-      if (goingForward) this.vars.onEnter?.(this);
-      else this.vars.onEnterBack?.(this);
-      if (!this.scrubController) this.vars.animation?.play();
+      if (goingForward) {
+        this.vars.onEnter?.(this);
+        if (!this.scrubController) this.vars.animation?.play();
+      } else {
+        this.vars.onEnterBack?.(this);
+      }
     } else if (!inside && wasInside) {
-      if (goingForward) this.vars.onLeave?.(this);
-      else {
+      if (goingForward) {
+        this.vars.onLeave?.(this);
+      } else {
         this.vars.onLeaveBack?.(this);
-        if (!this.scrubController) this.vars.animation?.reverse();
       }
     }
 
