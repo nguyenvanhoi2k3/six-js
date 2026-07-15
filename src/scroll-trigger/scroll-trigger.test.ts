@@ -194,4 +194,29 @@ describe("ScrollTrigger - integration", () => {
     expect(() => new ScrollTrigger({ trigger, pin: 0.7 as unknown as true })).not.toThrow();
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("pin must be true"));
   });
+
+  it("pins a 'center center' trigger at its natural vertically-centered position, not the viewport top", () => {
+    // regression test for a real reported bug: pin always used `top: 0`, so anything pinned via
+    // a non-"top top" start snapped to the viewport's top edge instead of staying where it
+    // naturally sat (e.g. vertically centered) when the pin began.
+    const trigger = document.createElement("div");
+    document.body.appendChild(trigger); // setupPin() needs a real parent to insert its spacer before
+    const triggerHeight = 150;
+    const viewportHeight = 800;
+    mockRect(trigger, 0, triggerHeight); // rect.top = 0 at scrollY = 0 (set below)
+    mockViewportHeight(viewportHeight);
+    scrollTo(0);
+
+    const st = new ScrollTrigger({ trigger, start: "center center", end: "+=500", pin: true });
+
+    // naturalDocTop (rect.top(0) + scrollY(0)) = 0; startY = 0 + 0.5*150 - 0.5*800 = -325
+    // expected pinnedTop = naturalDocTop - startY = 0 - (-325) = 325 (vertically centers a
+    // 150px-tall element in an 800px viewport: (800-150)/2 = 325)
+    scrollTo(-325); // scroll to exactly startY so the trigger is pinned
+    expect(trigger.style.position).toBe("fixed");
+    expect(trigger.style.top).toBe("325px");
+
+    st.kill();
+    trigger.remove();
+  });
 });

@@ -63,6 +63,33 @@ describe("setupPin", () => {
     expect(pinEl.style.position).toBe("absolute");
   });
 
+  it("naturalDocTop reflects the element's rect.top plus the scroll position at setup time", () => {
+    const parent = document.createElement("div");
+    const pinEl = document.createElement("div");
+    parent.appendChild(pinEl);
+    mockRect(pinEl, 120, 0, 300, 150); // viewport-relative top of 120
+    vi.spyOn(window, "scrollY", "get").mockReturnValue(400);
+
+    const handle = setupPin(pinEl);
+
+    expect(handle.naturalDocTop).toBe(520); // 120 + 400
+  });
+
+  it("uses the pinnedTop set via setPinnedTop() during the 'during' phase - NOT always 0", () => {
+    // this is the exact bug a user hit: a "center center" trigger needs the element to stay
+    // wherever it naturally sat in the viewport (e.g. vertically centered), not snap to y=0.
+    const parent = document.createElement("div");
+    const pinEl = document.createElement("div");
+    parent.appendChild(pinEl);
+    mockRect(pinEl, 0, 0, 300, 150);
+
+    const handle = setupPin(pinEl);
+    handle.setPinnedTop(213.5);
+    handle.setPhase("during");
+
+    expect(pinEl.style.top).toBe("213.5px");
+  });
+
   it("shares one spacer across multiple setupPin() calls on the same element (reference counted)", () => {
     const parent = document.createElement("div");
     const pinEl = document.createElement("div");

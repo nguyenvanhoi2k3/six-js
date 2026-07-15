@@ -118,6 +118,14 @@ export function addResizeListener(listener: Listener): void {
   if (!resizeAttached && typeof window !== "undefined") {
     resizeAttached = true;
     window.addEventListener("resize", handleResize);
+    // A ScrollTrigger's first refresh() (during construction) can run before images/fonts below
+    // the trigger finish loading, measuring against a document that's still going to grow -
+    // positions computed from that measurement end up wrong once the remaining content loads in.
+    // Re-run once load fires (skipped if it already has - a late listener on an already-fired
+    // one-time event never runs).
+    if (typeof document !== "undefined" && document.readyState !== "complete") {
+      window.addEventListener("load", handleResize, { once: true });
+    }
   }
 }
 

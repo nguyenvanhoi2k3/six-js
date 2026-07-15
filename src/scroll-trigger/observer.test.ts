@@ -112,4 +112,22 @@ describe("observer - resize listeners", () => {
     window.dispatchEvent(new Event("resize"));
     expect(listener).toHaveBeenCalledOnce(); // no further calls after removal
   });
+
+  it("also re-runs resize listeners once on window 'load' if the document isn't complete yet", async () => {
+    // the module-level "have we attached the window listeners yet" flag only lets this happen
+    // once per module instance, and jsdom's document.readyState is already "complete" by the
+    // time a normal test runs - so get a fresh module instance and force readyState to simulate
+    // a script that runs before images/fonts have finished loading.
+    vi.resetModules();
+    vi.spyOn(document, "readyState", "get").mockReturnValue("loading");
+
+    const fresh = await import("./observer");
+    const listener = vi.fn();
+    fresh.addResizeListener(listener);
+
+    window.dispatchEvent(new Event("load"));
+    expect(listener).toHaveBeenCalledOnce();
+
+    fresh.removeResizeListener(listener);
+  });
 });

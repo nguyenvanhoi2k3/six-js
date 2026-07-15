@@ -1,8 +1,12 @@
 export type PinPhase = "before" | "during" | "after";
 
 export interface PinHandle {
+  /** The pinned element's natural (unpinned) document-absolute top - callers use this to compute the correct fixed-position offset (see setPinnedTop). */
+  readonly naturalDocTop: number;
   /** Reserves scroll distance in the spacer for the pinned duration (on top of the element's own natural size). */
   setDistance(distancePx: number): void;
+  /** The viewport-relative `top` to use while pinned (`position: fixed`) - NOT always 0. For a trigger pinned via e.g. "center center", the element must stay wherever it naturally sat in the viewport when the pin started, not snap to the top edge. */
+  setPinnedTop(topPx: number): void;
   setPhase(phase: PinPhase): void;
   revert(): void;
 }
@@ -11,6 +15,8 @@ interface PinCacheEntry {
   spacer: HTMLElement;
   refCount: number;
   rect: DOMRect;
+  /** rect.top + the scroll position at setup time - the element's natural top in DOCUMENT (not viewport) coordinates. */
+  docTop: number;
   distance: number;
   originalStyles: { position: string; top: string; left: string; width: string; margin: string; transform: string };
 }
@@ -39,6 +45,7 @@ export function setupPin(pinEl: HTMLElement): PinHandle {
       spacer,
       refCount: 0,
       rect,
+      docTop: rect.top + window.scrollY,
       distance: 0,
       originalStyles: {
         position: pinEl.style.position,
@@ -54,6 +61,7 @@ export function setupPin(pinEl: HTMLElement): PinHandle {
 
   entry.refCount++;
   const e = entry;
+  let pinnedTop = 0;
 
   const applyBefore = (): void => {
     pinEl.style.position = e.originalStyles.position;
@@ -65,7 +73,7 @@ export function setupPin(pinEl: HTMLElement): PinHandle {
 
   const applyDuring = (): void => {
     pinEl.style.position = "fixed";
-    pinEl.style.top = "0px";
+    pinEl.style.top = `${pinnedTop}px`;
     pinEl.style.left = `${e.rect.left}px`;
     pinEl.style.width = `${e.rect.width}px`;
     pinEl.style.margin = "0";
@@ -80,9 +88,15 @@ export function setupPin(pinEl: HTMLElement): PinHandle {
   };
 
   return {
+    get naturalDocTop() {
+      return e.docTop;
+    },
     setDistance(distancePx: number) {
       e.distance = Math.max(0, distancePx);
       e.spacer.style.height = `${e.rect.height + e.distance}px`;
+    },
+    setPinnedTop(topPx: number) {
+      pinnedTop = topPx;
     },
     setPhase(phase: PinPhase) {
       if (phase === "before") applyBefore();

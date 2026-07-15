@@ -154,6 +154,12 @@ export class ScrollTrigger {
         console.warn(`[six] ScrollTrigger: pin must be true, a CSS selector, or an Element - got ${JSON.stringify(this.vars.pin)}, ignoring`);
       } else {
         this.pinHandle ??= setupPin(pinTarget as HTMLElement);
+        // The element must stay exactly where it naturally sat in the viewport when the pin
+        // starts (e.g. vertically centered for a "center center" trigger), not snap to the
+        // viewport's top edge - naturalDocTop is where it'd be (in document coordinates) if it
+        // were never pinned at all, so naturalDocTop - startY is its viewport-relative offset
+        // at the moment scroll reaches startY.
+        this.pinHandle.setPinnedTop(this.pinHandle.naturalDocTop - this.startY);
         this.pinHandle.setDistance(this.endY - this.startY);
       }
     }
