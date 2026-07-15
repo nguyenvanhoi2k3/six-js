@@ -1,6 +1,6 @@
 # @six-js/core
 
-A lightweight core library for Six JS components.
+A lightweight animation library — Core, Tween, Timeline, and ScrollTrigger. Phase 1 of a ground-up rewrite; see `CLAUDE.md` for architecture notes and current scope.
 
 ---
 
@@ -23,20 +23,20 @@ The package ships ESM (`import`) and UMD (`require`) builds plus type declaratio
 ## 🚀 Usage
 
 ```js
-import "@six-js/core/style.css";
 import { six } from "@six-js/core";
 
-six.initElements();
+six.to(".box", { x: 100, duration: 1, ease: "power2.out" });
 
-six.to(".box", { x: 100, duration: 1 });
+six.timeline()
+  .to(".box", { x: 100, duration: 1 })
+  .to(".box2", { opacity: 1, duration: 0.5 }, "<");
+
+six.to(".box", {
+  x: 300,
+  scrollTrigger: { start: "top bottom", end: "bottom top", scrub: true },
+});
 ```
 
-### Plugins
+## Status
 
-Plugins live at their own subpath so bundlers only include them when you actually import them:
-
-```js
-import { splitText } from "@six-js/core/split-text";
-
-splitText(".title", { type: "chars,words,lines" });
-```
+Only Core, Tween, Timeline, and ScrollTrigger are implemented so far. Plugins (SplitText, Draggable, Flip, ScrollSmoother, MotionPath) are not part of this phase.
