@@ -114,10 +114,21 @@ export class ScrollTrigger {
     addResizeListener(this.boundOnResize);
   }
 
-  private resolvePositionValue(value: PositionValue | undefined, fallback: string): number {
+  private resolvePositionValue(value: PositionValue | undefined, fallback: string, relativeBase?: number): number {
     let resolved: PositionValue = value ?? fallback;
     if (typeof resolved === "function") resolved = resolved();
     if (typeof resolved === "number") return resolved;
+
+    // A pure "+=N"/"-=N" string (no "<edge> <edge>" tokens) is relative to `relativeBase` - the
+    // standard way to express a pin/scrub distance directly in pixels (e.g. end: "+=500"),
+    // rather than as a trigger-edge-meets-viewport-edge position. Only meaningful for `end`
+    // (called with relativeBase = the already-resolved startY) - `start` has no prior value to
+    // be relative to, so this branch is simply skipped when relativeBase is undefined.
+    const relMatch = resolved.trim().match(/^([+-])=(\d+(?:\.\d+)?)$/);
+    if (relMatch && relativeBase !== undefined) {
+      const offset = parseFloat(relMatch[2]);
+      return relativeBase + (relMatch[1] === "-" ? -offset : offset);
+    }
 
     const rect = this.triggerEl.getBoundingClientRect();
     const scrollY = getScroll(this.scroller, "y");
@@ -133,7 +144,7 @@ export class ScrollTrigger {
     this.pinHandle?.setPhase("before");
 
     this.startY = this.resolvePositionValue(this.vars.start, "top bottom");
-    this.endY = this.resolvePositionValue(this.vars.end, "bottom top");
+    this.endY = this.resolvePositionValue(this.vars.end, "bottom top", this.startY);
     if (this.endY <= this.startY) this.endY = this.startY + 1;
 
     if (this.vars.pin) {

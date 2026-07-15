@@ -13,10 +13,10 @@ function Z(t, e, i, r, n) {
   const s = e + r, o = dt(e, i, r);
   let a = t;
   a < 0 ? a = 0 : i >= 0 && a > o && (a = o);
-  let l = Math.floor(a / s), h = a - l * s;
-  r === 0 && l > 0 && h === 0 && (l -= 1, h = e), i >= 0 && l > i && (l = i, h = a - l * s), h > e && (h = e);
-  const c = n && l % 2 === 1;
-  return c && (h = e - h), { iteration: l, time: h, reversed: c };
+  let l = Math.floor(a / s), c = a - l * s;
+  r === 0 && l > 0 && c === 0 && (l -= 1, c = e), i >= 0 && l > i && (l = i, c = a - l * s), c > e && (c = e);
+  const h = n && l % 2 === 1;
+  return h && (c = e - c), { iteration: l, time: c, reversed: h };
 }
 let A = null;
 function xt() {
@@ -100,12 +100,12 @@ class ft {
     o < 0 ? o = 0 : this._repeat >= 0 && o > s && (o = s);
     const a = !this._initted;
     a && (this._initted = !0, this._onInit());
-    const l = Z(o - this._delay, this._dur, this._repeat, this._repeatDelay, this._yoyo), h = a ? l : Z(n - this._delay, this._dur, this._repeat, this._repeatDelay, this._yoyo), c = l.iteration !== h.iteration;
-    this._tTime = o, this._time = l.time, this._renderIteration(l.time, l.reversed, l.iteration, i, r || c);
+    const l = Z(o - this._delay, this._dur, this._repeat, this._repeatDelay, this._yoyo), c = a ? l : Z(n - this._delay, this._dur, this._repeat, this._repeatDelay, this._yoyo), h = l.iteration !== c.iteration;
+    this._tTime = o, this._time = l.time, this._renderIteration(l.time, l.reversed, l.iteration, i, r || h);
     const d = this._rawPrev;
     if (this._rawPrev = e, i) return;
     const f = s === 0, g = f ? e < 0 : o <= 0, y = f ? e >= 0 : this._repeat >= 0 && o >= s, _ = f ? d < 0 : n <= 0, k = f ? d >= 0 : this._repeat >= 0 && n >= s, v = f ? e > d : o > n, yt = f ? e < d : o < n;
-    !this._hasStarted && !g && (this._hasStarted = !0, this.emit("start")), v && c && this.emit("repeat"), this.emit("update"), v && !k && y ? this.emit("complete") : yt && !_ && g && this.emit("reverseComplete");
+    !this._hasStarted && !g && (this._hasStarted = !0, this.emit("start")), v && h && this.emit("repeat"), this.emit("update"), v && !k && y ? this.emit("complete") : yt && !_ && g && this.emit("reverseComplete");
   }
   /** Hook for subclasses that need to do one-time setup on first render (e.g. Tween building its PropertyTracks). */
   _onInit() {
@@ -430,8 +430,8 @@ function Yt(t) {
   if (!t || t === "none") return {};
   const e = t.match(Lt);
   if (e) {
-    const [r, n, s, o, a, l] = e[1].split(",").map(Number), h = Math.sqrt(r * r + n * n), c = Math.sqrt(s * s + o * o), d = Math.atan2(n, r) * it, f = (Math.atan2(s, o) * it + d) * -1;
-    return { x: a, y: l, rotation: d, scaleX: h, scaleY: c, skewX: Et(f) };
+    const [r, n, s, o, a, l] = e[1].split(",").map(Number), c = Math.sqrt(r * r + n * n), h = Math.sqrt(s * s + o * o), d = Math.atan2(n, r) * it, f = (Math.atan2(s, o) * it + d) * -1;
+    return { x: a, y: l, rotation: d, scaleX: c, scaleY: h, skewX: Et(f) };
   }
   const i = t.match(It);
   if (i) {
@@ -494,7 +494,7 @@ function Y(t, e) {
   const i = (r = t.style) == null ? void 0 : r[e];
   return i || (typeof getComputedStyle > "u" ? "" : getComputedStyle(t)[e] || "");
 }
-function Bt(t) {
+function Wt(t) {
   const e = Ht.has(t) ? "deg" : Nt.has(t) ? "%" : "px";
   return {
     kind: "numeric",
@@ -509,7 +509,7 @@ function Bt(t) {
     }
   };
 }
-function Wt(t) {
+function Bt(t) {
   return {
     kind: "color",
     get(e) {
@@ -620,8 +620,8 @@ function rt(t, e) {
 }
 function Zt(t, e, i) {
   const r = Xt[e];
-  if (r) return Bt(r);
-  if (Ut.has(e)) return Wt(e);
+  if (r) return Wt(r);
+  if (Ut.has(e)) return Bt(e);
   if (qt.has(e)) return Kt(e);
   if (e.startsWith("--")) return jt(e, i);
   const n = t.style;
@@ -700,9 +700,9 @@ const st = /* @__PURE__ */ new Set([
   "onComplete",
   "onRepeat",
   "onReverseComplete"
-]), B = /^([+\-*/])=(-?[\d.]+)$/;
+]), W = /^([+\-*/])=(-?[\d.]+)$/;
 function ot(t, e) {
-  const i = e.match(B);
+  const i = e.match(W);
   if (!i) return null;
   const r = parseFloat(i[2]);
   switch (i[1]) {
@@ -730,22 +730,22 @@ function ae(t, e, i, r, n) {
   let o, a;
   if (r === void 0)
     o = s.value, a = s.unit || i.defaultUnit;
-  else if (typeof r == "string" && B.test(r))
+  else if (typeof r == "string" && W.test(r))
     o = ot(s.value, r), a = s.unit || i.defaultUnit;
   else {
-    const c = T(r, i.defaultUnit);
-    o = c.value, a = c.unit;
+    const h = T(r, i.defaultUnit);
+    o = h.value, a = h.unit;
   }
-  let l, h;
+  let l, c;
   if (n === void 0)
-    l = s.value, h = s.unit || i.defaultUnit;
-  else if (typeof n == "string" && B.test(n))
-    l = ot(o, n), h = a;
+    l = s.value, c = s.unit || i.defaultUnit;
+  else if (typeof n == "string" && W.test(n))
+    l = ot(o, n), c = a;
   else {
-    const c = T(n, i.defaultUnit);
-    l = c.value, h = c.unit;
+    const h = T(n, i.defaultUnit);
+    l = h.value, c = h.unit;
   }
-  return !i.isTransform && h !== a && (o = nt(t, e, o, a), l = nt(t, e, l, h), a = "px", h = "px"), { kind: "numeric", target: t, prop: e, isTransform: i.isTransform, handler: i, start: o, change: l - o, unit: h };
+  return !i.isTransform && c !== a && (o = nt(t, e, o, a), l = nt(t, e, l, c), a = "px", c = "px"), { kind: "numeric", target: t, prop: e, isTransform: i.isTransform, handler: i, start: o, change: l - o, unit: c };
 }
 function ue(t, e, i, r) {
   const n = i !== void 0 ? L(String(i)) : e.get(t), s = r !== void 0 ? L(String(r)) : e.get(t);
@@ -755,21 +755,21 @@ function le(t, e, i, r) {
   const n = i !== void 0 ? String(i) : e.get(t), s = r !== void 0 ? String(r) : e.get(t);
   return ee(n, s) ? { kind: "complex", target: t, isTransform: !1, handler: e, start: n, end: s } : { kind: "discrete", target: t, isTransform: !1, handler: e, start: n, end: s };
 }
-function he(t, e, i, r) {
+function ce(t, e, i, r) {
   const n = i !== void 0 ? String(i) : e.get(t), s = r !== void 0 ? String(r) : e.get(t);
   return { kind: "discrete", target: t, isTransform: !1, handler: e, start: n, end: s };
 }
-function ce(t, e, i, r, n) {
-  return i.kind === "numeric" ? ae(t, e, i, r, n) : i.kind === "color" ? ue(t, i, r, n) : i.kind === "complex" ? le(t, i, r, n) : he(t, i, r, n);
+function he(t, e, i, r, n) {
+  return i.kind === "numeric" ? ae(t, e, i, r, n) : i.kind === "color" ? ue(t, i, r, n) : i.kind === "complex" ? le(t, i, r, n) : ce(t, i, r, n);
 }
 function de(t, e, i, r) {
   const n = oe(e, r), s = [];
   for (const o of t)
     for (const a of n) {
-      let l, h;
-      i === "to" ? h = e[a] : i === "from" ? l = e[a] : (h = a in e ? e[a] : void 0, l = r && a in r ? r[a] : void 0);
-      const c = Zt(o, a, h ?? l);
-      s.push(ce(o, a, c, l, h));
+      let l, c;
+      i === "to" ? c = e[a] : i === "from" ? l = e[a] : (c = a in e ? e[a] : void 0, l = r && a in r ? r[a] : void 0);
+      const h = Zt(o, a, c ?? l);
+      s.push(he(o, a, h, l, c));
     }
   return s;
 }
@@ -913,13 +913,13 @@ class z extends ft {
   }
   // ---- tween sugar ----
   addTweens(i, r, n, s, o) {
-    const { stagger: a, ...l } = r, h = { ...this._childDefaults, ...l };
+    const { stagger: a, ...l } = r, c = { ...this._childDefaults, ...l };
     if (a === void 0)
-      return this.add(new x(i, h, n, s), o), this;
-    const c = F(i), d = this.resolvePosition(o), f = h.delay ?? 0;
-    return c.forEach((g, y) => {
-      const _ = pt(y, c.length, a);
-      this.add(new x(g, { ...h, delay: f + _ }, n, s), d);
+      return this.add(new x(i, c, n, s), o), this;
+    const h = F(i), d = this.resolvePosition(o), f = c.delay ?? 0;
+    return h.forEach((g, y) => {
+      const _ = pt(y, h.length, a);
+      this.add(new x(g, { ...c, delay: f + _ }, n, s), d);
     }), this;
   }
   to(i, r, n) {
@@ -954,10 +954,10 @@ class z extends ft {
   _renderIteration(i, r, n, s, o) {
     const a = Math.min(this._lastRenderedLocal, i), l = Math.max(this._lastRenderedLocal, i);
     this._lastRenderedLocal = i;
-    for (const h of R(this)) {
-      if (h.paused()) continue;
-      const c = h.startTime();
-      h.endTime() < a || c > l || h.render(ve(i, h), s, o);
+    for (const c of R(this)) {
+      if (c.paused()) continue;
+      const h = c.startTime();
+      c.endTime() < a || h > l || c.render(ve(i, c), s, o);
     }
   }
 }
@@ -967,8 +967,8 @@ function Se(t) {
 function Te(t, e, i) {
   const r = t.filter((o) => o.duration === void 0).length, n = t.reduce((o, a) => o + (a.duration ?? 0), 0), s = e !== void 0 ? r > 0 ? Math.max(0, e - n) / r : 0 : i;
   return t.map((o) => {
-    const { duration: a, ease: l, ...h } = o;
-    return { duration: a ?? s, ease: l, props: h };
+    const { duration: a, ease: l, ...c } = o;
+    return { duration: a ?? s, ease: l, props: c };
   });
 }
 function Me(t, e, i) {
@@ -1116,8 +1116,8 @@ class Pe {
     return this.listeners.length;
   }
 }
-const W = new Pe(), M = new z({ unbounded: !0, defaultPosition: "now" });
-W.add((t) => M.render(t));
+const B = new Pe(), M = new z({ unbounded: !0, defaultPosition: "now" });
+B.add((t) => M.render(t));
 let K = 0;
 function gt() {
   K++;
@@ -1183,15 +1183,15 @@ function Oe(t) {
 function Ee(t, e) {
   let i = t.totalProgress(), r = i, n = !1;
   const s = (o, a) => {
-    const l = a / 1e3, h = 1 - Math.exp(-3 * l / Math.max(0.05, e));
-    r += (i - r) * h, Math.abs(i - r) < 5e-4 && (r = i), t.totalProgress(r);
+    const l = a / 1e3, c = 1 - Math.exp(-3 * l / Math.max(0.05, e));
+    r += (i - r) * c, Math.abs(i - r) < 5e-4 && (r = i), t.totalProgress(r);
   };
-  return W.add(s), {
+  return B.add(s), {
     update(o) {
       i = o, n || (n = !0, r = i, t.totalProgress(r));
     },
     kill() {
-      W.remove(s);
+      B.remove(s);
     }
   };
 }
@@ -1258,8 +1258,8 @@ function lt(t) {
   return { ratio: 0, offsetPx: isNaN(i) ? 0 : i };
 }
 function Xe(t, e, i, r) {
-  const [n = "top", s = "top"] = t.trim().split(/\s+/), o = lt(n), a = lt(s), l = i + e.top + o.ratio * e.height + o.offsetPx, h = a.ratio * r + a.offsetPx;
-  return l - h;
+  const [n = "top", s = "top"] = t.trim().split(/\s+/), o = lt(n), a = lt(s), l = i + e.top + o.ratio * e.height + o.offsetPx, c = a.ratio * r + a.offsetPx;
+  return l - c;
 }
 function He(t) {
   if (t === void 0) return window;
@@ -1269,7 +1269,7 @@ function He(t) {
   }
   return t;
 }
-function ht(t) {
+function ct(t) {
   if (typeof t == "string") {
     const e = document.querySelector(t);
     if (!e) throw new Error(`[six] ScrollTrigger: trigger "${t}" not found`);
@@ -1293,19 +1293,24 @@ class X {
     u(this, "markerHandle", null);
     u(this, "boundOnScroll", () => this.update());
     u(this, "boundOnResize", () => this.refresh());
-    this.vars = e, this.triggerEl = ht(e.trigger), this.scroller = He(e.scroller), e.animation && (e.animation.pause(), e.scrub && (this.scrubController = typeof e.scrub == "number" ? Ee(e.animation, e.scrub) : Oe(e.animation))), e.markers && (this.markerHandle = Fe(String(w.length))), w.push(this), this.refresh(), De(this.scroller, this.boundOnScroll), Ie(this.boundOnResize);
+    this.vars = e, this.triggerEl = ct(e.trigger), this.scroller = He(e.scroller), e.animation && (e.animation.pause(), e.scrub && (this.scrubController = typeof e.scrub == "number" ? Ee(e.animation, e.scrub) : Oe(e.animation))), e.markers && (this.markerHandle = Fe(String(w.length))), w.push(this), this.refresh(), De(this.scroller, this.boundOnScroll), Ie(this.boundOnResize);
   }
-  resolvePositionValue(e, i) {
-    let r = e ?? i;
-    if (typeof r == "function" && (r = r()), typeof r == "number") return r;
-    const n = this.triggerEl.getBoundingClientRect(), s = N(this.scroller, "y"), o = $e(this.scroller, "y");
-    return Xe(r, n, s, o);
+  resolvePositionValue(e, i, r) {
+    let n = e ?? i;
+    if (typeof n == "function" && (n = n()), typeof n == "number") return n;
+    const s = n.trim().match(/^([+-])=(\d+(?:\.\d+)?)$/);
+    if (s && r !== void 0) {
+      const c = parseFloat(s[2]);
+      return r + (s[1] === "-" ? -c : c);
+    }
+    const o = this.triggerEl.getBoundingClientRect(), a = N(this.scroller, "y"), l = $e(this.scroller, "y");
+    return Xe(n, o, a, l);
   }
   refresh() {
     var e, i, r, n;
     if (!this.killed) {
-      if ((e = this.pinHandle) == null || e.setPhase("before"), this.startY = this.resolvePositionValue(this.vars.start, "top bottom"), this.endY = this.resolvePositionValue(this.vars.end, "bottom top"), this.endY <= this.startY && (this.endY = this.startY + 1), this.vars.pin) {
-        const s = this.vars.pin === !0 ? this.triggerEl : typeof this.vars.pin == "string" ? ht(this.vars.pin) : this.vars.pin;
+      if ((e = this.pinHandle) == null || e.setPhase("before"), this.startY = this.resolvePositionValue(this.vars.start, "top bottom"), this.endY = this.resolvePositionValue(this.vars.end, "bottom top", this.startY), this.endY <= this.startY && (this.endY = this.startY + 1), this.vars.pin) {
+        const s = this.vars.pin === !0 ? this.triggerEl : typeof this.vars.pin == "string" ? ct(this.vars.pin) : this.vars.pin;
         s instanceof Element ? (this.pinHandle ?? (this.pinHandle = ze(s)), this.pinHandle.setDistance(this.endY - this.startY)) : console.warn(`[six] ScrollTrigger: pin must be true, a CSS selector, or an Element - got ${JSON.stringify(this.vars.pin)}, ignoring`);
       }
       (i = this.markerHandle) == null || i.update(this.startY, this.endY), this.update(), (n = (r = this.vars).onRefresh) == null || n.call(r, this);
@@ -1315,10 +1320,10 @@ class X {
     return Math.max(0, Math.min((e - this.startY) / (this.endY - this.startY), 1));
   }
   update() {
-    var s, o, a, l, h, c, d, f, g, y, _, k, v;
+    var s, o, a, l, c, h, d, f, g, y, _, k, v;
     if (this.killed) return;
     const e = N(this.scroller, "y"), i = this.computeProgress(e), r = e >= this.startY && e <= this.endY, n = e >= this.lastScroll;
-    this.pinHandle && this.pinHandle.setPhase(e < this.startY ? "before" : e > this.endY ? "after" : "during"), r && !this.wasInside ? (n ? (o = (s = this.vars).onEnter) == null || o.call(s, this) : (l = (a = this.vars).onEnterBack) == null || l.call(a, this), this.scrubController || (h = this.vars.animation) == null || h.play()) : !r && this.wasInside && (n ? (d = (c = this.vars).onLeave) == null || d.call(c, this) : ((g = (f = this.vars).onLeaveBack) == null || g.call(f, this), this.scrubController || (y = this.vars.animation) == null || y.reverse())), this.wasInside = r, this.lastScroll = e, (_ = this.scrubController) == null || _.update(i), (v = (k = this.vars).onUpdate) == null || v.call(k, this);
+    this.pinHandle && this.pinHandle.setPhase(e < this.startY ? "before" : e > this.endY ? "after" : "during"), r && !this.wasInside ? (n ? (o = (s = this.vars).onEnter) == null || o.call(s, this) : (l = (a = this.vars).onEnterBack) == null || l.call(a, this), this.scrubController || (c = this.vars.animation) == null || c.play()) : !r && this.wasInside && (n ? (d = (h = this.vars).onLeave) == null || d.call(h, this) : ((g = (f = this.vars).onLeaveBack) == null || g.call(f, this), this.scrubController || (y = this.vars.animation) == null || y.reverse())), this.wasInside = r, this.lastScroll = e, (_ = this.scrubController) == null || _.update(i), (v = (k = this.vars).onUpdate) == null || v.call(k, this);
   }
   progress() {
     return this.computeProgress(N(this.scroller, "y"));
@@ -1346,7 +1351,7 @@ class X {
 function Ne(t, e) {
   return e || (typeof t == "string" || t instanceof Element ? t : F(t)[0]);
 }
-function ct(t, e, i) {
+function ht(t, e, i) {
   if (!e) return;
   const r = Ne(t, e.trigger);
   X.create({ ...e, trigger: r, animation: i });
@@ -1354,14 +1359,14 @@ function ct(t, e, i) {
 function J(t, e, i, r) {
   const { stagger: n, scrollTrigger: s, ...o } = e;
   if (n === void 0) {
-    const c = new x(t, o, i, r);
-    return M.add(c), ct(t, s, c), c;
+    const h = new x(t, o, i, r);
+    return M.add(h), ht(t, s, h), h;
   }
-  const a = F(t), l = o.delay ?? 0, h = new z();
-  return a.forEach((c, d) => {
+  const a = F(t), l = o.delay ?? 0, c = new z();
+  return a.forEach((h, d) => {
     const f = l + pt(d, a.length, n);
-    h.add(new x(c, { ...o, delay: f }, i, r), 0);
-  }), M.add(h), ct(t, s, h), h;
+    c.add(new x(h, { ...o, delay: f }, i, r), 0);
+  }), M.add(c), ht(t, s, c), c;
 }
 function Ue(t, e) {
   return J(t, e, "to");
@@ -1372,11 +1377,11 @@ function qe(t, e) {
 function Ve(t, e, i) {
   return J(t, i, "fromTo", e);
 }
-function Be(t, e) {
+function We(t, e) {
   const i = new x(t, { ...e, duration: 0 });
   return M.add(i), i;
 }
-function We(t) {
+function Be(t) {
   const { scrollTrigger: e, ...i } = t ?? {}, r = new z(i);
   return M.add(r), e && (e.trigger ? X.create({ ...e, trigger: e.trigger, animation: r }) : console.warn("[six] timeline({ scrollTrigger }) requires an explicit trigger - a Timeline has no target to default to")), r;
 }
@@ -1387,8 +1392,8 @@ const Je = {
   to: Ue,
   from: qe,
   fromTo: Ve,
-  set: Be,
-  timeline: We,
+  set: We,
+  timeline: Be,
   config: Ke,
   context: vt
 };

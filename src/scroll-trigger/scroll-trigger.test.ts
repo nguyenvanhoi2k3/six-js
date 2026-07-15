@@ -99,6 +99,19 @@ describe("ScrollTrigger - integration", () => {
     expect(st.progress()).toBeCloseTo(800 / 900, 2); // (0 - (-800)) / (100 - (-800))
   });
 
+  it("resolves 'end: \"+=N\"' as N pixels past the resolved start (the pin-distance idiom), not a trigger/viewport edge position", () => {
+    const trigger = document.createElement("div");
+    mockRect(trigger, 0, 100);
+    mockViewportHeight(800);
+    scrollTo(0);
+
+    // start defaults to "top bottom" = -800; end should land at exactly start + 1200
+    const st = new ScrollTrigger({ trigger, end: "+=1200" });
+
+    scrollTo(-800 + 600); // halfway through the intended 1200px span
+    expect(st.progress()).toBeCloseTo(0.5, 2);
+  });
+
   it("fires onEnter/onLeave based on scroll direction", () => {
     const trigger = document.createElement("div");
     mockRect(trigger, 500, 100);
