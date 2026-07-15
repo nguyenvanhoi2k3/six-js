@@ -13,8 +13,8 @@ export interface ScrollTriggerVars {
   end?: PositionValue;
   scrub?: boolean | number;
   pin?: boolean | Element | string;
-  markers?: boolean;
-  /** Shown on the debug markers (`markers: true`) instead of a bare instance number - matches GSAP's `id` option. */
+  debug?: boolean;
+  /** Prefixed onto the debug markers' "start"/"end" labels (`debug: true`) when multiple triggers are on screen at once - omitted (no prefix at all) when not given. */
   id?: string;
   animation?: Animation;
   onEnter?: (self: ScrollTrigger) => void;
@@ -32,12 +32,22 @@ interface EdgeSpec {
 
 const EDGE_KEYWORDS: Record<string, number> = { top: 0, center: 0.5, bottom: 1 };
 
+// Matches a trailing "+=N"/"-=N" pixel offset appended directly to an edge token, e.g.
+// "top+=100" (100px past "top") or "30%-=20" (20px before the 30% mark) - GSAP's own compound
+// edge syntax. Requires the literal "=" so a bare negative number like "-20" (its own valid
+// token, meaning "20px from top") isn't mistaken for a suffix.
+const EDGE_OFFSET_RE = /^(.*?)([+-]=[\d.]+)$/;
+
 export function parseEdge(token: string): EdgeSpec {
   const t = token.trim();
-  if (t in EDGE_KEYWORDS) return { ratio: EDGE_KEYWORDS[t], offsetPx: 0 };
-  if (t.endsWith("%")) return { ratio: parseFloat(t) / 100, offsetPx: 0 };
-  const px = parseFloat(t);
-  return { ratio: 0, offsetPx: isNaN(px) ? 0 : px };
+  const match = t.match(EDGE_OFFSET_RE);
+  const base = match ? match[1] : t;
+  const extraOffset = match ? (match[2][0] === "-" ? -1 : 1) * parseFloat(match[2].slice(2)) : 0;
+
+  if (base in EDGE_KEYWORDS) return { ratio: EDGE_KEYWORDS[base], offsetPx: extraOffset };
+  if (base.endsWith("%")) return { ratio: parseFloat(base) / 100, offsetPx: extraOffset };
+  const px = parseFloat(base);
+  return { ratio: 0, offsetPx: (isNaN(px) ? 0 : px) + extraOffset };
 }
 
 /** "<triggerEdge> <viewportEdge>" -> absolute document-Y scroll position where they align. */
@@ -50,6 +60,33 @@ export function resolvePositionString(str: string, triggerRect: { top: number; h
   const viewportOffset = viewportEdge.ratio * viewportSize + viewportEdge.offsetPx;
 
   return triggerPointAbs - viewportOffset;
+}
+
+/**
+ * Extracts just the "<viewportEdge>" half of a "<triggerEdge> <viewportEdge>" position string, as
+ * a pixel offset from the top of the viewport. Unlike the full resolved scrollY (which depends on
+ * scroll position), this is constant for a given viewportSize - it's what a debug marker line
+ * should be pinned to (`position: fixed`) so it represents a fixed point on screen, matching
+ * GSAP's actual marker behavior, instead of scrolling with the document.
+ */
+export function resolveViewportEdgeOffset(str: string, viewportSize: number): number {
+  const [, viewportToken = "top"] = str.trim().split(/\s+/);
+  const viewportEdge = parseEdge(viewportToken);
+  return viewportEdge.ratio * viewportSize + viewportEdge.offsetPx;
+}
+
+/**
+ * Extracts just the "<triggerEdge>" half of a "<triggerEdge> <viewportEdge>" position string,
+ * resolved to an absolute document-Y coordinate - the physical point on the trigger element
+ * itself (its own top + ratio*height + offsetPx), independent of viewport size. This is what a
+ * debug marker's document-anchored "trigger" line should track: unlike `resolvePositionString`'s
+ * result (a scroll-position threshold, which shifts if the viewport is resized even though the
+ * trigger element hasn't moved), this value only changes if the trigger element itself moves.
+ */
+export function resolveTriggerEdgeY(str: string, triggerRect: { top: number; height: number }, scrollY: number): number {
+  const [triggerToken = "top"] = str.trim().split(/\s+/);
+  const triggerEdge = parseEdge(triggerToken);
+  return scrollY + triggerRect.top + triggerEdge.ratio * triggerRect.height + triggerEdge.offsetPx;
 }
 
 function resolveScroller(scroller: Scroller | string | undefined): Scroller {
@@ -106,7 +143,7 @@ export class ScrollTrigger {
       }
     }
 
-    if (vars.markers) this.markerHandle = createMarkers(vars.id ?? String(instances.length));
+    if (vars.debug) this.markerHandle = createMarkers(vars.id ?? "");
 
     instances.push(this);
 
@@ -138,6 +175,36 @@ export class ScrollTrigger {
     return resolvePositionString(resolved, rect, scrollY, viewportSize);
   }
 
+  /** Viewport-relative pixel offset (from the top of the viewport) that a debug marker line for
+   * this start/end value should sit at - always the "<viewportEdge>" component of a position
+   * string. A plain number/function-returning-number, or a *whole-string* relative "+=N" (no
+   * second token at all, e.g. `end: "+=500"`), carries no edge info, so it defaults to the top of
+   * the viewport (ratio 0). A compound token like `"+=100 bottom"` still has a real viewport edge
+   * ("bottom") as its second token, so it must NOT hit this early return - only a prefix check
+   * (no `$` anchor) would wrongly swallow that second token too. */
+  private resolveMarkerViewportY(value: PositionValue | undefined, fallback: string): number {
+    let resolved: PositionValue = value ?? fallback;
+    if (typeof resolved === "function") resolved = resolved();
+    if (typeof resolved !== "string" || /^[+-]=\d+(?:\.\d+)?$/.test(resolved.trim())) return 0;
+
+    return resolveViewportEdgeOffset(resolved, getViewportSize(this.scroller, "y"));
+  }
+
+  /** Absolute document-Y that a debug marker's "trigger" line (left-aligned, follows the page)
+   * should sit at - always the "<triggerEdge>" component of a position string, resolved against
+   * the trigger element's own current position. Falls back to `computedY` (the already-resolved
+   * scrollY-threshold, i.e. `this.startY`/`this.endY`) for a plain number/function or a
+   * whole-string relative "+=N", which carry no independent trigger-edge token to resolve. */
+  private resolveMarkerTriggerY(value: PositionValue | undefined, fallback: string, computedY: number): number {
+    let resolved: PositionValue = value ?? fallback;
+    if (typeof resolved === "function") resolved = resolved();
+    if (typeof resolved !== "string" || /^[+-]=\d+(?:\.\d+)?$/.test(resolved.trim())) return computedY;
+
+    const rect = this.triggerEl.getBoundingClientRect();
+    const scrollY = getScroll(this.scroller, "y");
+    return resolveTriggerEdgeY(resolved, rect, scrollY);
+  }
+
   refresh(): void {
     if (this.killed) return;
 
@@ -166,7 +233,12 @@ export class ScrollTrigger {
       }
     }
 
-    this.markerHandle?.update(this.startY, this.endY);
+    this.markerHandle?.update(
+      this.resolveMarkerTriggerY(this.vars.start, "top bottom", this.startY),
+      this.resolveMarkerTriggerY(this.vars.end, "bottom top", this.endY),
+      this.resolveMarkerViewportY(this.vars.start, "top bottom"),
+      this.resolveMarkerViewportY(this.vars.end, "bottom top"),
+    );
 
     // Always an instant reposition, never animated - see the long comment on
     // ScrubController.snapTo() in scrub.ts for why this matters (page-reload rewind bug).

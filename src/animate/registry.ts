@@ -39,19 +39,32 @@ const TRANSFORM_ALIASES: Record<string, TransformKey> = {
   x: "x",
   y: "y",
   z: "z",
-  xPercent: "xPercent",
-  yPercent: "yPercent",
-  rotation: "rotation",
   rotate: "rotation",
-  rotationX: "rotationX",
   rotateX: "rotationX",
-  rotationY: "rotationY",
   rotateY: "rotationY",
   scaleX: "scaleX",
   scaleY: "scaleY",
   skewX: "skewX",
   skewY: "skewY",
 };
+
+// x/y have no separate "xPercent"/"yPercent" property name - a percent-translate (for
+// self-relative centering, e.g. -50%) and a px-translate can still both be set on the same axis
+// at once, but which cache field a call writes to is decided by the value's own unit rather than
+// by a dedicated property name. Only an explicit "N%" string routes here; a plain number or a
+// "px"/unitless value (including relative "+=N") always stays on the px field.
+const PERCENT_TRANSLATE_KEYS: Record<string, TransformKey> = { x: "xPercent", y: "yPercent" };
+
+function isPercentValue(value: unknown): boolean {
+  return typeof value === "string" && /%\s*$/.test(value.trim());
+}
+
+function resolveTransformKey(prop: string, sampleValue: unknown): TransformKey | undefined {
+  if (isPercentValue(sampleValue) && prop in PERCENT_TRANSLATE_KEYS) {
+    return PERCENT_TRANSLATE_KEYS[prop];
+  }
+  return TRANSFORM_ALIASES[prop];
+}
 
 const ANGLE_TRANSFORM_KEYS = new Set<TransformKey>(["rotation", "rotationX", "rotationY", "skewX", "skewY"]);
 const PERCENT_TRANSFORM_KEYS = new Set<TransformKey>(["xPercent", "yPercent"]);
@@ -233,7 +246,7 @@ function plainPropertyHandler(prop: string, sampleValue: unknown): PropertyHandl
 
 /** Resolves how to read/write `prop` on `target`. `sampleValue` (the end value from tween vars) helps decide numeric vs discrete when the current DOM state alone is ambiguous (e.g. `width: "auto"` animating to `200`). */
 export function resolveHandler(target: Element, prop: string, sampleValue?: unknown): PropertyHandler {
-  const transformKey = TRANSFORM_ALIASES[prop];
+  const transformKey = resolveTransformKey(prop, sampleValue);
   if (transformKey) return transformHandler(transformKey);
 
   if (COLOR_PROPS.has(prop)) return colorHandler(prop);

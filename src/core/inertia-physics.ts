@@ -1,4 +1,4 @@
-import { ticker, TickerCallback } from "./ticker";
+import { ticker, TickerListener } from "./ticker";
 
 export class InertiaPhysics {
   private velocity: number = 0;
@@ -6,7 +6,7 @@ export class InertiaPhysics {
   private onUpdate: (delta: number) => void;
   private onComplete: () => void;
   private isRunning: boolean = false;
-  private tickerCallback: TickerCallback;
+  private tickerCallback: TickerListener;
 
   constructor(
     onUpdate: (delta: number) => void,

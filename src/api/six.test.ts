@@ -141,7 +141,7 @@ describe("six.config", () => {
     rootTimeline.totalTime(t0 + 1, true);
     expect(a.style.opacity).toBe("0.5"); // 1s into a 2s default duration
 
-    six.config({ duration: 0.5, ease: "power1.out" }); // restore factory defaults for other tests
+    six.config({ duration: 0.5, ease: "smooth" }); // restore factory defaults for other tests
   });
 });
 

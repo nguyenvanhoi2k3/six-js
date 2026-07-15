@@ -146,39 +146,15 @@ h6 {
   z-index: 9999;
 }
 
-.container{
-  font-size: 10.4px;
+.container {
+  font-size: 104px;
   font-weight: 900;
+  font-family: sans-serif;
 }
-
-/* -------- sandbox (index.html) -------- */
-.panel {
-  padding: 24px;
-  border-bottom: 1px solid #ddd;
+html,
+body {
+  overflow-x: hidden;
 }
-
-.panel h1 {
-  font-size: 20px;
-  margin-bottom: 8px;
-}
-
-.panel h2 {
-  font-size: 15px;
-  margin-bottom: 12px;
-}
-
-.panel button {
-  margin-top: 12px;
-  padding: 6px 12px;
-  cursor: pointer;
-}
-
-.stagger-row {
-  display: flex;
-  gap: 12px;
-}
-
-.box.small {
-  width: 40px;
-  height: 40px;
+.space {
+  height: 100vh;
 }

@@ -1,5 +1,5 @@
 // six-js\src\components\animate\animate.ts
-import { EASINGS, toCssEasing, type EasingType } from "../../easing/easing";
+import { EASINGS, toCssEasing, type EasingType } from "../shared/easing";
 import { observe, unobserve } from "../../core/observer";
 import { parseTimeValue } from "../../core/time";
 import { SafeHTMLElement } from "../../core/safe-element";

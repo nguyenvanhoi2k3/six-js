@@ -63,7 +63,7 @@ describe("Tween - fromTo()", () => {
 describe("Tween - transform composition", () => {
   it("composes multiple transform properties into a single transform string per frame", () => {
     const el = document.createElement("div");
-    const tw = new Tween(el, { x: 100, rotation: 90, duration: 1, ease: "none" });
+    const tw = new Tween(el, { x: 100, rotate: 90, duration: 1, ease: "none" });
     tw.totalTime(0.5, true);
     expect(el.style.transform).toContain("translate3d(50px, 0px, 0px)");
     expect(el.style.transform).toContain("rotate(45deg)");

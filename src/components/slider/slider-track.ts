@@ -1,9 +1,9 @@
 // six-js\src\components\slider\slider-track.ts
 import { SxSlider } from "./slider";
 import { InertiaPhysics } from "../../core/inertia-physics";
-import { ticker, TickerCallback } from "../../core/ticker";
+import { ticker, TickerListener } from "../../core/ticker";
 import { setTransformValue, buildTransformString } from "../../properties/transform-state";
-import { EASINGS } from "../../easing/easing";
+import { EASINGS } from "../shared/easing";
 import { SafeHTMLElement } from "../../core/safe-element";
 
 export class SxSliderTrack extends SafeHTMLElement {
@@ -392,7 +392,7 @@ export class SxSliderTrack extends SafeHTMLElement {
     }
   }
 
-  private scrollTickerCallback: TickerCallback = () => this.runScrollLoop();
+  private scrollTickerCallback: TickerListener = () => this.runScrollLoop();
 
   private startMomentumScroll(
     destination: number,

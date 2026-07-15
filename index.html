@@ -8,135 +8,61 @@
   </head>
 
   <body>
-    <section class="panel">
-      <h1>six-js Phase 1 smoke test</h1>
-      <p>Open the console. Each block below exercises one piece of the engine.</p>
-    </section>
-
-    <section class="panel">
-      <h2>1. six.to() - basic tween</h2>
-      <div class="box" id="tween-box"></div>
-      <button id="tween-replay">replay</button>
-    </section>
-
-    <section class="panel">
-      <h2>2. six.timeline() - sequenced + labels</h2>
-      <div class="box box2" id="tl-a"></div>
-      <div class="box box3" id="tl-b"></div>
-      <button id="tl-replay">replay</button>
-    </section>
-
-    <section class="panel">
-      <h2>3. Nested timeline keeps its own repeat (the bug this rewrite fixes)</h2>
-      <div class="box" id="nested-box"></div>
-      <button id="nested-replay">replay</button>
-    </section>
-
-    <section class="panel">
-      <h2>4. Stagger</h2>
-      <div class="stagger-row">
-        <div class="box small"></div>
-        <div class="box small"></div>
-        <div class="box small"></div>
-        <div class="box small"></div>
-        <div class="box small"></div>
+    <div class="space"></div>
+    <div class="box"></div>
+    <div class="container">
+      <div class="track" style="display: flex; gap: 20px">
+        <span class="char">Lorem</span>
+        <span class="char">ipsum</span>
+        <span class="char">dolor</span>
+        <span class="char">sit</span>
+        <span class="char">amet</span>
+        <span class="char">consectetur</span>
+        <span class="char">adipiscing</span>
+        <span class="char">elit</span>
+        <span class="char">sed</span>
+        <span class="char">do</span>
+        <span class="char">eiusmod</span>
+        <span class="char">tempor</span>
+        <span class="char">incididunt</span>
+        <span class="char">ut</span>
+        <span class="char">labore</span>
       </div>
-      <button id="stagger-replay">replay</button>
-    </section>
-
-    <div class="space"></div>
-
-    <section class="panel">
-      <h2>5. ScrollTrigger - scrub</h2>
-      <div class="box" id="scrub-box"></div>
-    </section>
-
-    <div class="space"></div>
-
-    <section class="panel">
-      <h2>6. ScrollTrigger - pin</h2>
-      <div class="box" id="pin-box"></div>
-    </section>
-
-    <div class="space"></div>
+    </div>
     <div class="space"></div>
 
     <script type="module">
-      import { six } from "./dist/six-js.es.js";
+      import { six, enableElements } from "./dist/six-js.es.js";
+      enableElements();
+      const container = document.querySelector(".container");
+      const track = document.querySelector(".track");
 
-      window.six = six; // for poking at from the console
-
-      // 1. basic tween
-      // six.to() animates FROM the element's CURRENT value TO the target - after the first
-      // play, "current" already equals the target, so replaying .to() with the same vars is a
-      // no-op unless we reset back to the starting state first. six.set() is the instant,
-      // zero-duration way to do that.
-      function playTween() {
-        six.set("#tween-box", { x: 0, rotation: 0, backgroundColor: "#30364f" });
-        six.to("#tween-box", { x: 300, rotation: 180, backgroundColor: "#f87171", duration: 1, ease: "back.out" });
-      }
-      playTween();
-      document.getElementById("tween-replay").addEventListener("click", playTween);
-
-      // 2. timeline with labels
-      function playTimeline() {
-        six.set("#tl-a, #tl-b", { x: 0, y: 0 }); // comma-separated CSS selector, not an array of selector strings - see six/tween.ts's resolveTargets()
-        const tl = six.timeline();
-        tl.to("#tl-a", { x: 250, duration: 0.6, ease: "power2.out" });
-        tl.addLabel("mid");
-        tl.to("#tl-b", { x: 250, duration: 0.6, ease: "power2.out" }, "mid");
-        tl.to("#tl-a", { y: 40, duration: 0.4 }, "mid+=0.3");
-      }
-      playTimeline();
-      document.getElementById("tl-replay").addEventListener("click", playTimeline);
-
-      // 3. nested timeline repeat
-      function playNested() {
-        six.set("#nested-box", { x: 0 });
-        const inner = six.timeline({ repeat: 2, yoyo: true });
-        inner.to("#nested-box", { x: 200, duration: 0.5, ease: "none" });
-
-        const outer = six.timeline();
-        outer.add(inner);
-      }
-      playNested();
-      document.getElementById("nested-replay").addEventListener("click", playNested);
-
-      // 4. stagger
-      function playStagger() {
-        six.set(".stagger-row .box", { y: 0 });
-        six.to(".stagger-row .box", { y: -40, duration: 0.5, ease: "power1.out", stagger: 0.1 });
-      }
-      playStagger();
-      document.getElementById("stagger-replay").addEventListener("click", playStagger);
-
-      // 5. ScrollTrigger scrub
-      six.to("#scrub-box", {
-        x: 400,
-        rotation: 360,
-        ease: "none",
-        scrollTrigger: {
-          trigger: "#scrub-box",
-          start: "top bottom",
-          end: "bottom top",
-          scrub: 0.5,
-          markers: true,
-        },
+      const distance = track.scrollWidth - window.innerWidth;
+      six.to(".box", {
+        x: 300,
+        scrollTrigger:{
+          start: "+=100 bottom",
+          end: "top center",
+          debug: true,
+          scrub:true
+        }
       });
 
-      // 6. ScrollTrigger pin
-      six.timeline({
-        scrollTrigger: {
-          trigger: "#pin-box",
-          start: "top top",
-          end: "+=400",
-          pin: true,
-          scrub: true,
-          markers: true,
-        },
-      }).to("#pin-box", { backgroundColor: "#c6ffb4", rotation: 90, ease: "none" });
+      // six.to(track, {
+      //   x: -distance,
+      //   ease: "none",
 
-      console.log("six-js sandbox loaded", six);
+      //   scrollTrigger: {
+      //     trigger: container,
+      //     start: "center center",
+      //     end: `+=${distance}`,
+      //     scrub: 0.6,
+      //     pin: true,
+      //      onUpdate() {
+      //       console.log("update")
+      //      }
+      //   },
+      // });
     </script>
   </body>
 </html>

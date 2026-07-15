@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { parseEdge, resolvePositionString, ScrollTrigger } from "./scroll-trigger";
+import { parseEdge, resolvePositionString, resolveTriggerEdgeY, resolveViewportEdgeOffset, ScrollTrigger } from "./scroll-trigger";
 import { invalidateReads } from "./observer";
 import { Tween } from "../tween/tween";
 
@@ -17,6 +17,13 @@ describe("parseEdge", () => {
   it("resolves a bare number to a pixel offset", () => {
     expect(parseEdge("50")).toEqual({ ratio: 0, offsetPx: 50 });
     expect(parseEdge("-20")).toEqual({ ratio: 0, offsetPx: -20 });
+  });
+
+  it("applies a '+=N'/'-=N' suffix as an extra pixel offset on top of a keyword/%/number base", () => {
+    expect(parseEdge("top+=100")).toEqual({ ratio: 0, offsetPx: 100 });
+    expect(parseEdge("bottom-=50")).toEqual({ ratio: 1, offsetPx: -50 });
+    expect(parseEdge("30%+=20")).toEqual({ ratio: 0.3, offsetPx: 20 });
+    expect(parseEdge("50-=20")).toEqual({ ratio: 0, offsetPx: 30 });
   });
 });
 
@@ -47,6 +54,33 @@ describe("resolvePositionString", () => {
 
   it("supports a percentage viewport edge", () => {
     expect(resolvePositionString("top 25%", rect, scrollY, viewportSize)).toBe(600 - 200);
+  });
+});
+
+describe("resolveTriggerEdgeY / resolveViewportEdgeOffset", () => {
+  const rect = { top: 500, height: 200 };
+  const scrollY = 100;
+  const viewportSize = 800;
+
+  it("resolveTriggerEdgeY only depends on the trigger's own position, not viewportSize", () => {
+    // trigger top in document coords = scrollY + rect.top = 600, regardless of the viewport token
+    expect(resolveTriggerEdgeY("top bottom", rect, scrollY)).toBe(600);
+    expect(resolveTriggerEdgeY("top top", rect, scrollY)).toBe(600);
+    expect(resolveTriggerEdgeY("center center", rect, scrollY)).toBe(700);
+  });
+
+  it("resolveViewportEdgeOffset only depends on the viewport token/size, not the trigger's position", () => {
+    expect(resolveViewportEdgeOffset("top bottom", viewportSize)).toBe(800);
+    expect(resolveViewportEdgeOffset("top top", viewportSize)).toBe(0);
+    expect(resolveViewportEdgeOffset("center center", viewportSize)).toBe(400);
+  });
+
+  it("together, trigger - viewport reproduces resolvePositionString's combined result", () => {
+    for (const pos of ["top top", "top bottom", "bottom top", "center center"]) {
+      expect(resolveTriggerEdgeY(pos, rect, scrollY) - resolveViewportEdgeOffset(pos, viewportSize)).toBe(
+        resolvePositionString(pos, rect, scrollY, viewportSize),
+      );
+    }
   });
 });
 

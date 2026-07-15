@@ -26,44 +26,44 @@ export const EASES: Record<string, EaseFn> = {
   none: (t) => t,
   linear: (t) => t,
 
-  "power1.in": (t) => t * t,
-  "power1.out": (t) => 1 - (1 - t) * (1 - t),
-  "power1.inOut": (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2),
+  quadIn: (t) => t * t,
+  quadOut: (t) => 1 - (1 - t) * (1 - t),
+  quadInOut: (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2),
 
-  "power2.in": (t) => t * t * t,
-  "power2.out": (t) => 1 - Math.pow(1 - t, 3),
-  "power2.inOut": (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2),
+  cubicIn: (t) => t * t * t,
+  cubicOut: (t) => 1 - Math.pow(1 - t, 3),
+  cubicInOut: (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2),
 
-  "power3.in": (t) => t ** 4,
-  "power3.out": (t) => 1 - (1 - t) ** 4,
-  "power3.inOut": (t) => (t < 0.5 ? 8 * t ** 4 : 1 - (-2 * t + 2) ** 4 / 2),
+  quartIn: (t) => t ** 4,
+  quartOut: (t) => 1 - (1 - t) ** 4,
+  quartInOut: (t) => (t < 0.5 ? 8 * t ** 4 : 1 - (-2 * t + 2) ** 4 / 2),
 
-  "power4.in": (t) => t ** 5,
-  "power4.out": (t) => 1 - (1 - t) ** 5,
-  "power4.inOut": (t) => (t < 0.5 ? 16 * t ** 5 : 1 - (-2 * t + 2) ** 5 / 2),
+  quintIn: (t) => t ** 5,
+  quintOut: (t) => 1 - (1 - t) ** 5,
+  quintInOut: (t) => (t < 0.5 ? 16 * t ** 5 : 1 - (-2 * t + 2) ** 5 / 2),
 
-  "sine.in": (t) => 1 - Math.cos((t * Math.PI) / 2),
-  "sine.out": (t) => Math.sin((t * Math.PI) / 2),
-  "sine.inOut": (t) => -(Math.cos(Math.PI * t) - 1) / 2,
+  sineIn: (t) => 1 - Math.cos((t * Math.PI) / 2),
+  sineOut: (t) => Math.sin((t * Math.PI) / 2),
+  sineInOut: (t) => -(Math.cos(Math.PI * t) - 1) / 2,
 
-  "expo.in": (t) => (t === 0 ? 0 : Math.pow(2, 10 * (t - 1))),
-  "expo.out": (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)),
-  "expo.inOut": (t) => {
+  expoIn: (t) => (t === 0 ? 0 : Math.pow(2, 10 * (t - 1))),
+  expoOut: (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)),
+  expoInOut: (t) => {
     if (t === 0) return 0;
     if (t === 1) return 1;
     return t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2;
   },
 
-  "circ.in": (t) => 1 - Math.sqrt(1 - t * t),
-  "circ.out": (t) => Math.sqrt(1 - (t - 1) * (t - 1)),
-  "circ.inOut": (t) => (t < 0.5 ? (1 - Math.sqrt(1 - 4 * t * t)) / 2 : (Math.sqrt(1 - (-2 * t + 2) ** 2) + 1) / 2),
+  circIn: (t) => 1 - Math.sqrt(1 - t * t),
+  circOut: (t) => Math.sqrt(1 - (t - 1) * (t - 1)),
+  circInOut: (t) => (t < 0.5 ? (1 - Math.sqrt(1 - 4 * t * t)) / 2 : (Math.sqrt(1 - (-2 * t + 2) ** 2) + 1) / 2),
 
-  "back.in": (t) => (BACK + 1) * t * t * t - BACK * t * t,
-  "back.out": (t) => {
+  backIn: (t) => (BACK + 1) * t * t * t - BACK * t * t,
+  backOut: (t) => {
     const u = t - 1;
     return 1 + (BACK + 1) * u * u * u + BACK * u * u;
   },
-  "back.inOut": (t) => {
+  backInOut: (t) => {
     if (t < 0.5) {
       const x = 2 * t;
       return (x * x * ((BACK_IN_OUT + 1) * x - BACK_IN_OUT)) / 2;
@@ -72,22 +72,32 @@ export const EASES: Record<string, EaseFn> = {
     return (x * x * ((BACK_IN_OUT + 1) * x + BACK_IN_OUT) + 2) / 2;
   },
 
-  "bounce.in": (t) => 1 - bounceOut(1 - t),
-  "bounce.out": bounceOut,
-  "bounce.inOut": (t) => (t < 0.5 ? (1 - bounceOut(1 - 2 * t)) / 2 : (1 + bounceOut(2 * t - 1)) / 2),
+  bounceIn: (t) => 1 - bounceOut(1 - t),
+  bounceOut: bounceOut,
+  bounceInOut: (t) => (t < 0.5 ? (1 - bounceOut(1 - 2 * t)) / 2 : (1 + bounceOut(2 * t - 1)) / 2),
 
-  "elastic.in": (t) => (t === 0 || t === 1 ? t : -Math.pow(2, 10 * t - 10) * Math.sin((t * 10 - 10.75) * ELASTIC_C4)),
-  "elastic.out": (t) => (t === 0 || t === 1 ? t : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * ELASTIC_C4) + 1),
-  "elastic.inOut": (t) => {
+  elasticIn: (t) => (t === 0 || t === 1 ? t : -Math.pow(2, 10 * t - 10) * Math.sin((t * 10 - 10.75) * ELASTIC_C4)),
+  elasticOut: (t) => (t === 0 || t === 1 ? t : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * ELASTIC_C4) + 1),
+  elasticInOut: (t) => {
     if (t === 0 || t === 1) return t;
     return t < 0.5
       ? -(Math.pow(2, 20 * t - 10) * Math.sin((20 * t - 11.125) * ELASTIC_C5)) / 2
       : (Math.pow(2, -20 * t + 10) * Math.sin((20 * t - 11.125) * ELASTIC_C5)) / 2 + 1;
   },
+
+  // six-js signature eases - not part of any other library's naming.
+  // Zero velocity AND zero acceleration at both ends (quintic smootherstep) - reads as
+  // noticeably silkier than sineInOut, with no lingering "coast" at the edges.
+  smooth: (t) => t * t * t * (t * (t * 6 - 15) + 10),
+  // Crisp damped-spring settle (~1.75 oscillations) - overshoots and undershoots 1 before
+  // settling, but via a continuous decaying cosine rather than elastic's segmented formula.
+  spring: (t) => 1 - Math.cos(t * 3.5 * Math.PI) * Math.pow(2, -6 * t),
+  // Looser, slower-decaying wobble (~1.25 oscillations) than `spring` - a softer, jelly-like settle.
+  jelly: (t) => 1 - Math.cos(t * 2.5 * Math.PI) * Math.pow(2, -5 * t),
 };
 
 export function resolveEase(ease: string | EaseFn | undefined): EaseFn {
   if (typeof ease === "function") return ease;
   if (ease && EASES[ease]) return EASES[ease];
-  return EASES["power1.out"];
+  return EASES["quadOut"];
 }

@@ -5,6 +5,7 @@ import { rootTimeline } from "../core/root";
 import { GlobalDefaults, setDefaults } from "../core/defaults";
 import { Context, context } from "../core/context";
 import { ScrollTrigger, ScrollTriggerVars } from "../scroll-trigger/scroll-trigger";
+import { registerComponents } from "../components";
 
 export type SixTarget = TweenTarget;
 
@@ -95,6 +96,11 @@ export const six = {
   config,
   context,
 };
+
+/** Defines every `sx-*` custom element (dialog, slider, marquee, animate). Each element's own definition is idempotent, so calling this more than once is safe. */
+export function enableElements(): void {
+  registerComponents();
+}
 
 export { ScrollTrigger };
 export type { Context, GlobalDefaults, Tween, Timeline, TweenVars, TimelineVars, ScrollTriggerVars };

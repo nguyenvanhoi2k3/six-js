@@ -3,9 +3,9 @@ import { getTransformCache } from "./transform-cache";
 import { resolveHandler } from "./registry";
 
 describe("resolveHandler - transform properties", () => {
-  it("resolves x/y/rotation/scale to numeric handlers backed by the transform cache", () => {
+  it("resolves x/y/rotate/scale to numeric handlers backed by the transform cache", () => {
     const el = document.createElement("div");
-    const handler = resolveHandler(el, "rotation", 45);
+    const handler = resolveHandler(el, "rotate", 45);
     expect(handler.kind).toBe("numeric");
     if (handler.kind !== "numeric") throw new Error("unreachable");
 
@@ -14,16 +14,23 @@ describe("resolveHandler - transform properties", () => {
     expect(handler.get(el)).toEqual({ value: 45, unit: "deg" });
   });
 
-  it("resolves the 'rotate'/'rotateX'/'rotateY' aliases to the same cache fields as their long forms", () => {
+  it("resolves 'rotateX'/'rotateY' to their own cache fields, independent of 'rotate'", () => {
     const el = document.createElement("div");
-    resolveHandler(el, "rotate", 10).set(el, { value: 10, unit: "deg" });
-    expect(getTransformCache(el).rotation).toBe(10);
+    resolveHandler(el, "rotateX", 10).set(el, { value: 10, unit: "deg" });
+    resolveHandler(el, "rotateY", 20).set(el, { value: 20, unit: "deg" });
+    expect(getTransformCache(el).rotationX).toBe(10);
+    expect(getTransformCache(el).rotationY).toBe(20);
   });
 
-  it("uses % as the default unit for xPercent/yPercent and px for x/y/z", () => {
+  it("routes x/y to the percent-translate cache field only when given an explicit '%' string, otherwise px", () => {
     const el = document.createElement("div");
-    expect((resolveHandler(el, "xPercent") as { defaultUnit: string }).defaultUnit).toBe("%");
+    expect((resolveHandler(el, "x", "-50%") as { defaultUnit: string }).defaultUnit).toBe("%");
+    expect((resolveHandler(el, "y", "-50%") as { defaultUnit: string }).defaultUnit).toBe("%");
+    expect((resolveHandler(el, "x", 50) as { defaultUnit: string }).defaultUnit).toBe("px");
     expect((resolveHandler(el, "x") as { defaultUnit: string }).defaultUnit).toBe("px");
+
+    resolveHandler(el, "x", "-50%").set(el, { value: -50, unit: "%" });
+    expect(getTransformCache(el).xPercent).toBe(-50);
   });
 });
 

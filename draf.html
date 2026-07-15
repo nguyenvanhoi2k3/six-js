@@ -1,0 +1,141 @@
+<!-- <!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>six-js</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div class="space"></div>
+    <div class="container">
+      <div class="track" style="display: flex; gap: 20px">
+        <span class="char">Lorem</span>
+        <span class="char">ipsum</span>
+        <span class="char">dolor</span>
+        <span class="char">sit</span>
+        <span class="char">amet</span>
+        <span class="char">consectetur</span>
+        <span class="char">adipiscing</span>
+        <span class="char">elit</span>
+        <span class="char">sed</span>
+        <span class="char">do</span>
+        <span class="char">eiusmod</span>
+        <span class="char">tempor</span>
+        <span class="char">incididunt</span>
+        <span class="char">ut</span>
+        <span class="char">labore</span>
+      </div>
+    </div>
+    <div class="space"></div>
+
+    <!-- ------------------------------------------------GSAP------------------------------------------------ -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/ScrollTrigger.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        gsap.registerPlugin(ScrollTrigger);
+
+        const container = document.querySelector(".container");
+        const track = document.querySelector(".track");
+        const words = gsap.utils.toArray(".char");
+
+        const distance = track.scrollWidth - window.innerWidth;
+
+        // offset cho word ban đầu và các word phía sau
+        const initialOffset = 300;
+        const triggerOffset = 0;
+
+        const eases = [
+          "power2.out",
+          "power3.out",
+          "power4.out",
+          "back.out(1.8)",
+          "expo.out",
+          "circ.out",
+          "elastic.out(1,0.45)",
+        ];
+
+        const configs = new Map();
+
+        words.forEach((word) => {
+          const rect = word.getBoundingClientRect();
+
+          // Word đang nằm trong viewport lúc load?
+          const isInitial = rect.left < window.innerWidth && rect.right > 0;
+
+          const config = {
+            played: false,
+
+            // mỗi word có trigger riêng
+            triggerX:
+              window.innerWidth - (isInitial ? initialOffset : triggerOffset),
+
+            y: gsap.utils.random(-350, 350),
+            rotation: gsap.utils.random(-20, 20),
+            scale: gsap.utils.random(0.7, 1.2),
+
+            duration: gsap.utils.random(0.45, 1.2),
+            delay: gsap.utils.random(0, 0.25),
+            ease: gsap.utils.random(eases),
+          };
+
+          configs.set(word, config);
+
+          gsap.set(word, {
+            opacity: 0,
+            y: config.y,
+            rotation: config.rotation,
+            scale: config.scale,
+            transformOrigin: "50% 50%",
+          });
+        });
+
+        gsap.to(track, {
+          x: -distance,
+          ease: "none",
+
+          scrollTrigger: {
+            trigger: container,
+            start: "center center",
+            end: `+=${distance}`,
+            scrub: 1,
+            pin: true,
+
+            onUpdate() {
+              words.forEach((word) => {
+                const c = configs.get(word);
+
+                if (c.played) return;
+
+                const rect = word.getBoundingClientRect();
+
+                // Dùng tâm của word thay vì mép trái
+                const center = rect.left + rect.width / 2;
+
+                if (center < c.triggerX && rect.right > 0) {
+                  c.played = true;
+
+                  gsap.to(word, {
+                    opacity: 1,
+                    y: 0,
+                    rotation: 0,
+                    scale: 1,
+
+                    duration: c.duration,
+                    delay: c.delay,
+                    ease: c.ease,
+
+                    overwrite: "auto",
+                  });
+                }
+              });
+            },
+          },
+        });
+      });
+    </script>
+  </body>
+</html> -->

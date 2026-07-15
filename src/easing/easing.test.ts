@@ -14,15 +14,15 @@ describe("EASES", () => {
     expect(EASES.none(0.37)).toBeCloseTo(0.37);
   });
 
-  it("power1.out is monotonically increasing and front-loaded (decelerating)", () => {
-    const fn = EASES["power1.out"];
+  it("quadOut is monotonically increasing and front-loaded (decelerating)", () => {
+    const fn = EASES.quadOut;
     expect(fn(0.25)).toBeGreaterThan(0.25);
     expect(fn(0.5)).toBeGreaterThan(fn(0.25));
     expect(fn(0.75)).toBeGreaterThan(fn(0.5));
   });
 
-  it("back.out overshoots past 1 before settling", () => {
-    const fn = EASES["back.out"];
+  it("backOut overshoots past 1 before settling", () => {
+    const fn = EASES.backOut;
     let overshot = false;
     for (let t = 0; t <= 1; t += 0.01) {
       if (fn(t) > 1) overshot = true;
@@ -30,10 +30,30 @@ describe("EASES", () => {
     expect(overshot).toBe(true);
   });
 
-  it("bounce.out dips below a straight line before settling at 1", () => {
-    const fn = EASES["bounce.out"];
+  it("bounceOut dips below a straight line before settling at 1", () => {
+    const fn = EASES.bounceOut;
     expect(fn(0.5)).toBeLessThan(1);
     expect(fn(1)).toBeCloseTo(1);
+  });
+
+  it("smooth has zero slope at both ends (smootherstep)", () => {
+    const fn = EASES.smooth;
+    const h = 1e-4;
+    const slopeAtStart = (fn(h) - fn(0)) / h;
+    const slopeAtEnd = (fn(1) - fn(1 - h)) / h;
+    expect(slopeAtStart).toBeCloseTo(0, 2);
+    expect(slopeAtEnd).toBeCloseTo(0, 2);
+  });
+
+  it("spring and jelly oscillate past 1 before settling", () => {
+    for (const name of ["spring", "jelly"] as const) {
+      const fn = EASES[name];
+      let overshot = false;
+      for (let t = 0; t <= 1; t += 0.01) {
+        if (fn(t) > 1) overshot = true;
+      }
+      expect(overshot, name).toBe(true);
+    }
   });
 });
 
@@ -44,14 +64,14 @@ describe("resolveEase", () => {
   });
 
   it("resolves a known name", () => {
-    expect(resolveEase("power2.in")).toBe(EASES["power2.in"]);
+    expect(resolveEase("cubicIn")).toBe(EASES.cubicIn);
   });
 
-  it("falls back to power1.out for an unknown name", () => {
-    expect(resolveEase("not-a-real-ease")).toBe(EASES["power1.out"]);
+  it("falls back to quadOut for an unknown name", () => {
+    expect(resolveEase("not-a-real-ease")).toBe(EASES.quadOut);
   });
 
-  it("falls back to power1.out when undefined", () => {
-    expect(resolveEase(undefined)).toBe(EASES["power1.out"]);
+  it("falls back to quadOut when undefined", () => {
+    expect(resolveEase(undefined)).toBe(EASES.quadOut);
   });
 });
