@@ -6,16 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 npm run build       # gen-version + vite build (ES, single entry) + vite build --config vite.umd.config.ts -> dist/ (es + umd + type declarations)
-npm run dev         # gen-version + vite build --watch (ES only)
+npm run dev         # gen-version + vite build --watch (ES only) - rebuilds dist/ on every source change, doesn't serve anything itself
+npm run sandbox     # vite dev server for index.html, importing /src/index.ts directly (TS transpiled on the fly) - an alternative to the Live Server workflow below
 npm test            # vitest run (jsdom environment)
 npm run test:watch  # vitest, watch mode
 npm run typecheck   # tsc --noEmit
-npm run sandbox      # vite dev server for index.html
 ```
 
 `npm run gen-version` regenerates `src/version.ts` from `package.json`'s `version` field — do not hand-edit `src/version.ts`.
 
-`index.html` (project root) is a live sandbox exercising every Phase 1 piece against the real `six` API. It imports `/src/index.ts` directly (dev-mode ESM, no build step needed) rather than `dist/`, which means it **must** be served by `npm run sandbox` (or `npx vite`) — Vite transpiles `.ts` on the fly. Opening it via a generic static file server (VS Code's "Live Server" extension, `python -m http.server`, etc.) fails with `Failed to load module script: ... MIME type of "video/mp2t"`, because those servers map the `.ts` extension to the MPEG transport-stream video MIME type, not JavaScript, and browsers enforce strict MIME checking on `<script type="module">`.
+`index.html` (project root) is a live sandbox exercising every Phase 1 piece against the real `six` API. It imports `./dist/six-js.es.js` (the **built** output), specifically so it can be opened with a plain static file server — VS Code's "Live Server" extension is the intended workflow here, not `npm run sandbox`. **Run `npm run build` (one-shot) or `npm run dev` (rebuilds on every save) before/while using Live Server**, or the sandbox is testing stale code. Do not change `index.html` back to importing `/src/index.ts` directly — a generic static server can't transpile TypeScript, and (worse) maps the `.ts` extension to the MPEG transport-stream video MIME type rather than JavaScript, so the browser rejects it with `Failed to load module script: ... MIME type of "video/mp2t"` under strict module-script MIME checking. Verified working via a plain static server (`serve`) with zero console/request errors after switching to the `dist/` import.
 
 ## Status: Phase 1 rewrite in progress
 
