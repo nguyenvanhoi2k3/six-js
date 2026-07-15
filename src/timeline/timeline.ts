@@ -126,6 +126,15 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
     this.remove(child);
   }
 
+  /** Cascades to every child before detaching itself from its own parent (if any). */
+  kill(): this {
+    for (const child of forwards(this)) {
+      child.kill();
+    }
+    super.kill();
+    return this;
+  }
+
   getChildren(): Animation[] {
     return [...forwards(this)];
   }

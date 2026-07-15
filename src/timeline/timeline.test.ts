@@ -227,6 +227,23 @@ describe("Timeline - remove/kill", () => {
     expect(a.renders.length).toBe(rendersBeforeKill); // no further renders once removed
   });
 
+  it("kill() cascades to every child before detaching itself from its own parent", () => {
+    const outer = new Timeline();
+    const inner = new Timeline();
+    const a = new StubLeaf();
+    const b = new StubLeaf();
+    inner.add(a);
+    inner.add(b);
+    outer.add(inner);
+
+    inner.kill();
+
+    expect(a.parent).toBeNull();
+    expect(b.parent).toBeNull();
+    expect(inner.parent).toBeNull();
+    expect(outer.getChildren()).toEqual([]);
+  });
+
   it("reparenting via add() on a new timeline removes the child from its old one", () => {
     const tlA = new Timeline();
     const tlB = new Timeline();

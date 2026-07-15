@@ -1,5 +1,6 @@
 import { ListNode } from "./linked-list";
 import { resolveCycle, totalDurationOf } from "./cycle";
+import { getActiveScope } from "./context";
 
 export type AnimationEvent = "start" | "update" | "complete" | "repeat" | "reverseComplete";
 
@@ -74,6 +75,8 @@ export abstract class Animation implements ListNode<Animation> {
   private listeners: Partial<Record<AnimationEvent, Set<() => void>>> = {};
 
   constructor(vars: AnimationVars = {}) {
+    getActiveScope()?._capture(this);
+
     this._delay = Math.max(0, vars.delay ?? 0);
     this._repeat = vars.repeat ?? 0;
     this._repeatDelay = Math.max(0, vars.repeatDelay ?? 0);
