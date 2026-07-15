@@ -10,11 +10,12 @@ npm run dev         # gen-version + vite build --watch (ES only)
 npm test            # vitest run (jsdom environment)
 npm run test:watch  # vitest, watch mode
 npm run typecheck   # tsc --noEmit
+npm run sandbox      # vite dev server for index.html
 ```
 
 `npm run gen-version` regenerates `src/version.ts` from `package.json`'s `version` field — do not hand-edit `src/version.ts`.
 
-`index.html` (project root) is a live sandbox exercising every Phase 1 piece against the real `six` API (`npx vite` and open it) — it imports `/src/index.ts` directly (dev-mode ESM, no build step needed), not `dist/`.
+`index.html` (project root) is a live sandbox exercising every Phase 1 piece against the real `six` API. It imports `/src/index.ts` directly (dev-mode ESM, no build step needed) rather than `dist/`, which means it **must** be served by `npm run sandbox` (or `npx vite`) — Vite transpiles `.ts` on the fly. Opening it via a generic static file server (VS Code's "Live Server" extension, `python -m http.server`, etc.) fails with `Failed to load module script: ... MIME type of "video/mp2t"`, because those servers map the `.ts` extension to the MPEG transport-stream video MIME type, not JavaScript, and browsers enforce strict MIME checking on `<script type="module">`.
 
 ## Status: Phase 1 rewrite in progress
 
