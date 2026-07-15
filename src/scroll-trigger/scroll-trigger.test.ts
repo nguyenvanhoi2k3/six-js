@@ -139,6 +139,36 @@ describe("ScrollTrigger - integration", () => {
     expect(onLeaveBack).toHaveBeenCalledOnce();
   });
 
+  it("does not fire onUpdate for scroll positions outside the trigger's range - only while inside, or on the exact entering/leaving frame", () => {
+    const trigger = document.createElement("div");
+    mockRect(trigger, 500, 100);
+    mockViewportHeight(800);
+    scrollTo(0);
+
+    const onUpdate = vi.fn();
+    new ScrollTrigger({ trigger, start: "top top", end: "bottom top", onUpdate });
+    // start = 500, end = 600 (see the onEnter/onLeave test above for the derivation)
+    onUpdate.mockClear(); // ignore the construction-time refresh() call
+
+    scrollTo(50); // nowhere near the range yet
+    scrollTo(100);
+    scrollTo(200);
+    expect(onUpdate).not.toHaveBeenCalled();
+
+    scrollTo(550); // entering
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+
+    scrollTo(580); // still inside, progress changing
+    expect(onUpdate).toHaveBeenCalledTimes(2);
+
+    scrollTo(700); // leaving - fires once more for the transition itself
+    expect(onUpdate).toHaveBeenCalledTimes(3);
+
+    scrollTo(800); // long past the range now - no further change for this instance
+    scrollTo(1000);
+    expect(onUpdate).toHaveBeenCalledTimes(3);
+  });
+
   it("plays a paused animation on enter and reverses it on leaveBack (toggle mode, no scrub)", () => {
     const trigger = document.createElement("div");
     mockRect(trigger, 500, 100);

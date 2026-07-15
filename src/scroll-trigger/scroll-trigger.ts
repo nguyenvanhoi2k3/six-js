@@ -183,16 +183,17 @@ export class ScrollTrigger {
     const progress = this.computeProgress(scrollY);
     const inside = scrollY >= this.startY && scrollY <= this.endY;
     const goingForward = scrollY >= this.lastScroll;
+    const wasInside = this.wasInside;
 
     if (this.pinHandle) {
       this.pinHandle.setPhase(scrollY < this.startY ? "before" : scrollY > this.endY ? "after" : "during");
     }
 
-    if (inside && !this.wasInside) {
+    if (inside && !wasInside) {
       if (goingForward) this.vars.onEnter?.(this);
       else this.vars.onEnterBack?.(this);
       if (!this.scrubController) this.vars.animation?.play();
-    } else if (!inside && this.wasInside) {
+    } else if (!inside && wasInside) {
       if (goingForward) this.vars.onLeave?.(this);
       else {
         this.vars.onLeaveBack?.(this);
@@ -206,7 +207,12 @@ export class ScrollTrigger {
     if (instant) this.scrubController?.snapTo(progress);
     else this.scrubController?.update(progress);
 
-    this.vars.onUpdate?.(this);
+    // progress is CLAMPED (constant) while outside the trigger's range, so a scroll happening
+    // anywhere else on the page - not yet reached this trigger, or long past it - produces no
+    // actual change for this instance. Only fire onUpdate while inside (progress genuinely
+    // moving) or on the exact frame of entering/leaving (the transition itself is meaningful,
+    // even though `inside` alone wouldn't catch the leaving case).
+    if (inside || inside !== wasInside) this.vars.onUpdate?.(this);
   }
 
   progress(): number {
