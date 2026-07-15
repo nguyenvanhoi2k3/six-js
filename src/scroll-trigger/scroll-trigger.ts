@@ -166,7 +166,9 @@ export class ScrollTrigger {
 
     this.markerHandle?.update(this.startY, this.endY);
 
-    this.update();
+    // Always an instant reposition, never animated - see the long comment on
+    // ScrubController.snapTo() in scrub.ts for why this matters (page-reload rewind bug).
+    this.update(true);
     this.vars.onRefresh?.(this);
   }
 
@@ -174,7 +176,7 @@ export class ScrollTrigger {
     return Math.max(0, Math.min((scrollY - this.startY) / (this.endY - this.startY), 1));
   }
 
-  update(): void {
+  update(instant = false): void {
     if (this.killed) return;
 
     const scrollY = getScroll(this.scroller, "y");
@@ -201,7 +203,8 @@ export class ScrollTrigger {
     this.wasInside = inside;
     this.lastScroll = scrollY;
 
-    this.scrubController?.update(progress);
+    if (instant) this.scrubController?.snapTo(progress);
+    else this.scrubController?.update(progress);
 
     this.vars.onUpdate?.(this);
   }

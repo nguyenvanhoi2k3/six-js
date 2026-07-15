@@ -174,6 +174,34 @@ describe("ScrollTrigger - integration", () => {
     expect(target.style.opacity).toBe("0.5");
   });
 
+  it("smoothed scrub does not visibly rewind on page reload when the browser's async scroll restoration lands after the first read", () => {
+    // Regression test for a real reported bug: reloading mid-page, the browser doesn't always
+    // have window.scrollY at the restored position by the time this library's synchronous
+    // script runs - construction reads a stale value (here, 0), and the browser's own
+    // restoration fires its own native "scroll" event moments later with the real position.
+    // Before the fix, that later event was treated as an ordinary scrub update and SMOOTHED
+    // from the stale reading to the real one, i.e. the tween visibly rewound to 0 and eased
+    // back into place on every reload - even before any real animation frame (ticker tick) had
+    // a chance to occur, so "smoothing" was never actually meaningful for it.
+    const trigger = document.createElement("div");
+    mockRect(trigger, 0, 100);
+    mockViewportHeight(800);
+    scrollTo(0); // simulates the page not yet having its scroll position restored
+
+    const target = document.createElement("div");
+    const animation = new Tween(target, { opacity: 1, duration: 1, ease: "none" });
+
+    // start = -800, end = 100 -> span of 900; scrub as a number selects the smoothed controller
+    new ScrollTrigger({ trigger, animation, scrub: 0.6 });
+    // construction-time refresh() read the "stale" scrollY = 0, i.e. progress (0-(-800))/900
+    expect(animation.totalProgress()).toBeCloseTo(800 / 900, 5);
+
+    // the browser "restores" scroll shortly after, dispatching its own native scroll event -
+    // no ticker tick has occurred in between (nothing here advances the ticker).
+    scrollTo(-800 + 450); // halfway through the span
+    expect(animation.totalProgress()).toBeCloseTo(0.5, 2); // snapped instantly, not mid-ease
+  });
+
   it("kill() removes the instance from the registry and detaches its listeners", () => {
     const trigger = document.createElement("div");
     mockRect(trigger, 0, 100);
