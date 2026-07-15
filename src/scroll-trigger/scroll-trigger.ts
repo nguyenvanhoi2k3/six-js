@@ -138,8 +138,13 @@ export class ScrollTrigger {
 
     if (this.vars.pin) {
       const pinTarget = this.vars.pin === true ? this.triggerEl : typeof this.vars.pin === "string" ? resolveElement(this.vars.pin) : this.vars.pin;
-      this.pinHandle ??= setupPin(pinTarget as HTMLElement);
-      this.pinHandle.setDistance(this.endY - this.startY);
+
+      if (!(pinTarget instanceof Element)) {
+        console.warn(`[six] ScrollTrigger: pin must be true, a CSS selector, or an Element - got ${JSON.stringify(this.vars.pin)}, ignoring`);
+      } else {
+        this.pinHandle ??= setupPin(pinTarget as HTMLElement);
+        this.pinHandle.setDistance(this.endY - this.startY);
+      }
     }
 
     this.markerHandle?.update(this.startY, this.endY);

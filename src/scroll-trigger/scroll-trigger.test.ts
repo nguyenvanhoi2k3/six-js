@@ -171,4 +171,14 @@ describe("ScrollTrigger - integration", () => {
     st.kill();
     expect(ScrollTrigger.getAll()).not.toContain(st);
   });
+
+  it("warns instead of crashing when pin is given a value that isn't true/a selector/an Element", () => {
+    const trigger = document.createElement("div");
+    mockRect(trigger, 0, 100);
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    // a plain number (e.g. a typo'd "pin duration") is not a valid pin value in this API
+    expect(() => new ScrollTrigger({ trigger, pin: 0.7 as unknown as true })).not.toThrow();
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("pin must be true"));
+  });
 });

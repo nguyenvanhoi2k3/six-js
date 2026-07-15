@@ -5,7 +5,7 @@ const Ge = "0.0.33";
 function dt(t, e, i) {
   return e < 0 ? 1 / 0 : t * (e + 1) + i * e;
 }
-function J(t, e, i, r, n) {
+function Z(t, e, i, r, n) {
   if (e <= 0)
     return { iteration: 0, time: 0, reversed: !1 };
   if (i === 0)
@@ -100,7 +100,7 @@ class ft {
     o < 0 ? o = 0 : this._repeat >= 0 && o > s && (o = s);
     const a = !this._initted;
     a && (this._initted = !0, this._onInit());
-    const l = J(o - this._delay, this._dur, this._repeat, this._repeatDelay, this._yoyo), h = a ? l : J(n - this._delay, this._dur, this._repeat, this._repeatDelay, this._yoyo), c = l.iteration !== h.iteration;
+    const l = Z(o - this._delay, this._dur, this._repeat, this._repeatDelay, this._yoyo), h = a ? l : Z(n - this._delay, this._dur, this._repeat, this._repeatDelay, this._yoyo), c = l.iteration !== h.iteration;
     this._tTime = o, this._time = l.time, this._renderIteration(l.time, l.reversed, l.iteration, i, r || c);
     const d = this._rawPrev;
     if (this._rawPrev = e, i) return;
@@ -576,7 +576,7 @@ function Gt(t, e) {
     }
   };
 }
-function Zt(t, e) {
+function Jt(t, e) {
   return b(e) ? {
     kind: "numeric",
     isTransform: !1,
@@ -618,14 +618,14 @@ function rt(t, e) {
     }
   };
 }
-function Jt(t, e, i) {
+function Zt(t, e, i) {
   const r = Xt[e];
   if (r) return Bt(r);
   if (Ut.has(e)) return Wt(e);
   if (qt.has(e)) return Kt(e);
   if (e.startsWith("--")) return jt(e, i);
   const n = t.style;
-  return n && e in n ? Gt(e, i) : e in t && typeof t[e] == "number" ? rt(e, i ?? t[e]) : typeof t.setAttribute == "function" ? Zt(e, i) : rt(e, i);
+  return n && e in n ? Gt(e, i) : e in t && typeof t[e] == "number" ? rt(e, i ?? t[e]) : typeof t.setAttribute == "function" ? Jt(e, i) : rt(e, i);
 }
 const Qt = /#(?:[0-9a-f]{3,8})\b|rgba?\([^)]*\)|hsla?\([^)]*\)|-?\d*\.?\d+(?:[a-z%]+)?/gi;
 function te(t) {
@@ -768,7 +768,7 @@ function de(t, e, i, r) {
     for (const a of n) {
       let l, h;
       i === "to" ? h = e[a] : i === "from" ? l = e[a] : (h = a in e ? e[a] : void 0, l = r && a in r ? r[a] : void 0);
-      const c = Jt(o, a, h ?? l);
+      const c = Zt(o, a, h ?? l);
       s.push(ce(o, a, c, l, h));
     }
   return s;
@@ -1306,7 +1306,7 @@ class X {
     if (!this.killed) {
       if ((e = this.pinHandle) == null || e.setPhase("before"), this.startY = this.resolvePositionValue(this.vars.start, "top bottom"), this.endY = this.resolvePositionValue(this.vars.end, "bottom top"), this.endY <= this.startY && (this.endY = this.startY + 1), this.vars.pin) {
         const s = this.vars.pin === !0 ? this.triggerEl : typeof this.vars.pin == "string" ? ht(this.vars.pin) : this.vars.pin;
-        this.pinHandle ?? (this.pinHandle = ze(s)), this.pinHandle.setDistance(this.endY - this.startY);
+        s instanceof Element ? (this.pinHandle ?? (this.pinHandle = ze(s)), this.pinHandle.setDistance(this.endY - this.startY)) : console.warn(`[six] ScrollTrigger: pin must be true, a CSS selector, or an Element - got ${JSON.stringify(this.vars.pin)}, ignoring`);
       }
       (i = this.markerHandle) == null || i.update(this.startY, this.endY), this.update(), (n = (r = this.vars).onRefresh) == null || n.call(r, this);
     }
@@ -1351,7 +1351,7 @@ function ct(t, e, i) {
   const r = Ne(t, e.trigger);
   X.create({ ...e, trigger: r, animation: i });
 }
-function Z(t, e, i, r) {
+function J(t, e, i, r) {
   const { stagger: n, scrollTrigger: s, ...o } = e;
   if (n === void 0) {
     const c = new x(t, o, i, r);
@@ -1364,13 +1364,13 @@ function Z(t, e, i, r) {
   }), M.add(h), ct(t, s, h), h;
 }
 function Ue(t, e) {
-  return Z(t, e, "to");
+  return J(t, e, "to");
 }
 function qe(t, e) {
-  return Z(t, e, "from");
+  return J(t, e, "from");
 }
 function Ve(t, e, i) {
-  return Z(t, i, "fromTo", e);
+  return J(t, i, "fromTo", e);
 }
 function Be(t, e) {
   const i = new x(t, { ...e, duration: 0 });
@@ -1383,7 +1383,7 @@ function We(t) {
 function Ke(t) {
   Tt(t);
 }
-const Ze = {
+const Je = {
   to: Ue,
   from: qe,
   fromTo: Ve,
@@ -1395,5 +1395,5 @@ const Ze = {
 export {
   X as ScrollTrigger,
   Ge as VERSION,
-  Ze as six
+  Je as six
 };
