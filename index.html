@@ -67,7 +67,12 @@
       window.six = six; // for poking at from the console
 
       // 1. basic tween
+      // six.to() animates FROM the element's CURRENT value TO the target - after the first
+      // play, "current" already equals the target, so replaying .to() with the same vars is a
+      // no-op unless we reset back to the starting state first. six.set() is the instant,
+      // zero-duration way to do that.
       function playTween() {
+        six.set("#tween-box", { x: 0, rotation: 0, backgroundColor: "#30364f" });
         six.to("#tween-box", { x: 300, rotation: 180, backgroundColor: "#f87171", duration: 1, ease: "back.out" });
       }
       playTween();
@@ -75,6 +80,7 @@
 
       // 2. timeline with labels
       function playTimeline() {
+        six.set("#tl-a, #tl-b", { x: 0, y: 0 }); // comma-separated CSS selector, not an array of selector strings - see six/tween.ts's resolveTargets()
         const tl = six.timeline();
         tl.to("#tl-a", { x: 250, duration: 0.6, ease: "power2.out" });
         tl.addLabel("mid");
@@ -86,6 +92,7 @@
 
       // 3. nested timeline repeat
       function playNested() {
+        six.set("#nested-box", { x: 0 });
         const inner = six.timeline({ repeat: 2, yoyo: true });
         inner.to("#nested-box", { x: 200, duration: 0.5, ease: "none" });
 
@@ -97,6 +104,7 @@
 
       // 4. stagger
       function playStagger() {
+        six.set(".stagger-row .box", { y: 0 });
         six.to(".stagger-row .box", { y: -40, duration: 0.5, ease: "power1.out", stagger: 0.1 });
       }
       playStagger();
