@@ -1,3496 +1,1399 @@
-var Vt = Object.defineProperty;
-var jt = (s, e, t) => e in s ? Vt(s, e, { enumerable: !0, configurable: !0, writable: !0, value: t }) : s[e] = t;
-var a = (s, e, t) => jt(s, typeof e != "symbol" ? e + "" : e, t);
-import { g as Ft, p as xt, a as vt } from "./shared/index.js";
-import { s as xi } from "./shared/index.js";
-function V(s) {
-  return s < 1 / 2.75 ? 7.5625 * s * s : s < 2 / 2.75 ? (s -= 1.5 / 2.75, 7.5625 * s * s + 0.75) : s < 2.5 / 2.75 ? (s -= 2.25 / 2.75, 7.5625 * s * s + 0.9375) : (s -= 2.625 / 2.75, 7.5625 * s * s + 0.984375);
+var _t = Object.defineProperty;
+var wt = (t, e, i) => e in t ? _t(t, e, { enumerable: !0, configurable: !0, writable: !0, value: i }) : t[e] = i;
+var u = (t, e, i) => wt(t, typeof e != "symbol" ? e + "" : e, i);
+const Ge = "0.0.33";
+function dt(t, e, i) {
+  return e < 0 ? 1 / 0 : t * (e + 1) + i * e;
 }
-const N = 1.70158, j = N * 1.525, D = {
-  linear: (s) => s,
-  quadIn: (s) => s * s,
-  quadOut: (s) => 1 - (1 - s) * (1 - s),
-  quadInOut: (s) => s < 0.5 ? 2 * s * s : 1 - Math.pow(-2 * s + 2, 2) / 2,
-  cubicIn: (s) => s * s * s,
-  cubicOut: (s) => 1 - Math.pow(1 - s, 3),
-  cubicInOut: (s) => s < 0.5 ? 4 * s * s * s : 1 - Math.pow(-2 * s + 2, 3) / 2,
-  quartIn: (s) => s ** 4,
-  quartOut: (s) => 1 - (1 - s) ** 4,
-  quartInOut: (s) => s < 0.5 ? 8 * s ** 4 : 1 - (-2 * s + 2) ** 4 / 2,
-  quintIn: (s) => s ** 5,
-  quintOut: (s) => 1 - (1 - s) ** 5,
-  quintInOut: (s) => s < 0.5 ? 16 * s ** 5 : 1 - (-2 * s + 2) ** 5 / 2,
-  strongIn: (s) => s ** 5,
-  strongOut: (s) => 1 - (1 - s) ** 5,
-  strongInOut: (s) => s < 0.5 ? 16 * s ** 5 : 1 - (-2 * s + 2) ** 5 / 2,
-  sineIn: (s) => 1 - Math.cos(s * Math.PI / 2),
-  sineOut: (s) => Math.sin(s * Math.PI / 2),
-  sineInOut: (s) => -(Math.cos(Math.PI * s) - 1) / 2,
-  expoIn: (s) => s === 0 ? 0 : Math.pow(2, 10 * (s - 1)) * s + Math.pow(s, 6) * (1 - s),
-  expoOut: (s) => s === 1 ? 1 : 1 - Math.pow(2, -10 * s),
-  expoInOut: (s) => s === 0 ? 0 : s === 1 ? 1 : s < 0.5 ? Math.pow(2, 20 * s - 10) / 2 : (2 - Math.pow(2, -20 * s + 10)) / 2,
-  circIn: (s) => 1 - Math.sqrt(1 - s * s),
-  circOut: (s) => Math.sqrt(1 - (s - 1) * (s - 1)),
-  circInOut: (s) => s < 0.5 ? (1 - Math.sqrt(1 - (2 * s) ** 2)) / 2 : (Math.sqrt(1 - (-2 * s + 2) ** 2) + 1) / 2,
-  backIn: (s) => (N + 1) * s * s * s - N * s * s,
-  backOut: (s) => (s--, 1 + (N + 1) * s * s * s + N * s * s),
-  backInOut: (s) => {
-    if (s < 0.5) {
-      const t = 2 * s;
-      return t * t * ((j + 1) * t - j) / 2;
+function J(t, e, i, r, n) {
+  if (e <= 0)
+    return { iteration: 0, time: 0, reversed: !1 };
+  if (i === 0)
+    return { iteration: 0, time: t < 0 ? 0 : t > e ? e : t, reversed: !1 };
+  const s = e + r, o = dt(e, i, r);
+  let a = t;
+  a < 0 ? a = 0 : i >= 0 && a > o && (a = o);
+  let l = Math.floor(a / s), h = a - l * s;
+  r === 0 && l > 0 && h === 0 && (l -= 1, h = e), i >= 0 && l > i && (l = i, h = a - l * s), h > e && (h = e);
+  const c = n && l % 2 === 1;
+  return c && (h = e - h), { iteration: l, time: h, reversed: c };
+}
+let A = null;
+function xt() {
+  return A;
+}
+class bt {
+  constructor(e) {
+    u(this, "captured", /* @__PURE__ */ new Set());
+    u(this, "dead", !1);
+    e && this.run(e);
+  }
+  run(e) {
+    if (this.dead) throw new Error("[six] cannot run a reverted context");
+    const i = A;
+    A = this;
+    try {
+      return e(this);
+    } finally {
+      A = i;
     }
-    const e = 2 * s - 2;
-    return (e * e * ((j + 1) * e + j) + 2) / 2;
-  },
-  bounceIn: (s) => 1 - V(1 - s),
-  bounceOut: V,
-  bounceInOut: (s) => s < 0.5 ? (1 - V(1 - 2 * s)) / 2 : (1 + V(2 * s - 1)) / 2
-}, Gt = {
-  linear: "linear",
-  quadIn: "cubic-bezier(0.11, 0, 0.5, 0)",
-  quadOut: "cubic-bezier(0.5, 1, 0.89, 1)",
-  quadInOut: "cubic-bezier(0.45, 0, 0.55, 1)",
-  cubicIn: "cubic-bezier(0.32, 0, 0.67, 0)",
-  cubicOut: "cubic-bezier(0.33, 1, 0.68, 1)",
-  cubicInOut: "cubic-bezier(0.65, 0, 0.35, 1)",
-  quartIn: "cubic-bezier(0.5, 0, 0.75, 0)",
-  quartOut: "cubic-bezier(0.25, 1, 0.5, 1)",
-  quartInOut: "cubic-bezier(0.76, 0, 0.24, 1)",
-  quintIn: "cubic-bezier(0.64, 0, 0.78, 0)",
-  quintOut: "cubic-bezier(0.22, 1, 0.36, 1)",
-  quintInOut: "cubic-bezier(0.83, 0, 0.17, 1)",
-  strongIn: "cubic-bezier(0.64, 0, 0.78, 0)",
-  strongOut: "cubic-bezier(0.22, 1, 0.36, 1)",
-  strongInOut: "cubic-bezier(0.83, 0, 0.17, 1)",
-  sineIn: "cubic-bezier(0.12, 0, 0.39, 0)",
-  sineOut: "cubic-bezier(0.61, 1, 0.88, 1)",
-  sineInOut: "cubic-bezier(0.37, 0, 0.63, 1)",
-  expoIn: "cubic-bezier(0.7, 0, 0.84, 0)",
-  expoOut: "cubic-bezier(0.16, 1, 0.3, 1)",
-  expoInOut: "cubic-bezier(0.87, 0, 0.13, 1)",
-  circIn: "cubic-bezier(0.55, 0, 1, 0.45)",
-  circOut: "cubic-bezier(0, 0.55, 0.45, 1)",
-  circInOut: "cubic-bezier(0.85, 0, 0.15, 1)",
-  backIn: "cubic-bezier(0.36, 0, 0.66, -0.56)",
-  backOut: "cubic-bezier(0.34, 1.56, 0.64, 1)",
-  backInOut: "cubic-bezier(0.68, -0.6, 0.32, 1.6)",
-  bounceIn: "ease-in",
-  bounceOut: "ease-out",
-  bounceInOut: "ease-in-out"
-};
-function Ut(s) {
-  return Gt[s] ?? "ease-out";
-}
-const ct = /* @__PURE__ */ new WeakMap();
-let et = [], it = null;
-function St(s, e) {
-  et.push({ instance: s, type: e }), it === null && (it = requestAnimationFrame(Kt));
-}
-function Kt() {
-  const s = et.slice();
-  et.length = 0, it = null;
-  for (let e = 0; e < s.length; e++) {
-    const { instance: t, type: i } = s[e];
-    i === "enter" ? t.enter() : t.leave && t.leave();
-  }
-}
-let J = null;
-function Dt() {
-  return typeof window > "u" ? null : (J || (J = new IntersectionObserver(
-    (s) => {
-      for (let e = 0; e < s.length; e++) {
-        const t = s[e], i = ct.get(t.target);
-        i && (t.isIntersecting ? St(i, "enter") : St(i, "leave"));
-      }
-    },
-    { threshold: 0.05 }
-  )), J);
-}
-function $t(s, e) {
-  var t;
-  ct.set(s, e), (t = Dt()) == null || t.observe(s);
-}
-function st(s) {
-  var e;
-  ct.delete(s), (e = Dt()) == null || e.unobserve(s);
-}
-function W(s, e) {
-  if (s == null) return e;
-  const t = s.trim();
-  if (!t) return e;
-  const i = Number(t);
-  return Number.isFinite(i) ? i * 1e3 : e;
-}
-const w = typeof HTMLElement < "u" ? HTMLElement : class {
-}, L = class L extends w {
-  constructor() {
-    super(...arguments);
-    a(this, "animation");
-    a(this, "options");
-    a(this, "order", L.counter++);
-    a(this, "cascadeSet");
-  }
-  static get mediaQuery() {
-    return this._mediaQuery || (this._mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")), this._mediaQuery;
-  }
-  static get reduceMotion() {
-    return this.mediaQuery.matches;
-  }
-  static enqueueCascade(t) {
-    const i = t.parentElement;
-    let n = this.cascadeQueue.get(i);
-    n || (n = /* @__PURE__ */ new Set(), this.cascadeQueue.set(i, n)), n.add(t), t.cascadeSet = n, this.scheduleCascade();
-  }
-  static scheduleCascade() {
-    this.isProcessingCascade || !this.cascadeQueue.size || (this.isProcessingCascade = !0, queueMicrotask(() => {
-      for (const t of this.cascadeQueue.values())
-        this.handleCascade([...t]);
-      this.cascadeQueue.clear(), this.isProcessingCascade = !1;
-    }));
-  }
-  static handleCascade(t) {
-    t.sort((i, n) => i.order - n.order), t.forEach((i, n) => {
-      i.play(n * 120);
-    });
-  }
-  get isCascade() {
-    return this.hasAttribute("cascade");
-  }
-  connectedCallback() {
-    if (this.options = this.getOptions(), L.reduceMotion) {
-      this.style.opacity = "1", this.style.transform = "none";
-      return;
-    }
-    this.setInitialState(), $t(this, {
-      enter: () => this.handleEnter(),
-      leave: () => this.handleLeave()
-    });
-  }
-  disconnectedCallback() {
-    var t, i;
-    (t = this.animation) == null || t.cancel(), st(this), (i = this.cascadeSet) == null || i.delete(this), this.cascadeSet = void 0;
-  }
-  handleEnter() {
-    this.hasAttribute("replay") || st(this), this.isCascade ? L.enqueueCascade(this) : this.play();
-  }
-  handleLeave() {
-    this.hasAttribute("replay") && this.reset();
-  }
-  getOptions() {
-    const t = Number(this.getAttribute("strength")) || 30, i = {
-      fade: [0, 0],
-      "fade-up": [0, t],
-      "fade-down": [0, -t],
-      "fade-left": [t, 0],
-      "fade-right": [-t, 0]
-    }, n = this.getAttribute("type") ?? "fade-up", r = this.getAttribute("easing"), [o, h] = i[n] ?? i["fade-up"];
-    return {
-      x: o,
-      y: h,
-      easing: r && r in D ? r : "none",
-      duration: W(this.getAttribute("duration"), 500),
-      delay: W(this.getAttribute("delay"), 50)
-    };
-  }
-  setInitialState() {
-    this.style.opacity = "0", this.style.transform = "none";
-  }
-  reset() {
-    var t;
-    (t = this.animation) == null || t.cancel(), this.animation = void 0, this.setInitialState();
-  }
-  play(t = 0) {
-    var l;
-    const { x: i, y: n, easing: r, duration: o, delay: h } = this.options;
-    (l = this.animation) == null || l.cancel(), this.animation = this.animate(
-      [
-        {
-          opacity: 0,
-          transform: `translate3d(${i}px, ${n}px, 0)`
-        },
-        {
-          opacity: 1,
-          transform: "translate3d(0,0,0)"
-        }
-      ],
-      {
-        duration: o,
-        delay: h + t,
-        easing: Ut(r),
-        fill: "both"
-      }
-    ), this.animation.onfinish = () => {
-      var c;
-      this.style.opacity = "1", this.style.transform = "translate3d(0,0,0)", (c = this.animation) == null || c.cancel(), this.animation = void 0;
-    };
-  }
-};
-a(L, "counter", 0), a(L, "_mediaQuery", null), a(L, "cascadeQueue", /* @__PURE__ */ new Map()), a(L, "isProcessingCascade", !1);
-let nt = L;
-function Qt() {
-  customElements.get("sx-animate") || customElements.define("sx-animate", nt);
-}
-class Zt {
-  constructor() {
-    a(this, "_listeners", /* @__PURE__ */ new Set());
-    a(this, "_time", 0);
-    a(this, "_delta", 0);
-    a(this, "_frame", 0);
-    a(this, "_start", this._now());
-    a(this, "_last", this._start);
-    a(this, "_lagThreshold", 500);
-    a(this, "_adjustedLag", 33);
-    a(this, "_gap", 1e3 / 240);
-    a(this, "_nextTime", this._gap);
-    a(this, "_id", null);
-    a(this, "_tick", () => {
-      let t = this._now() - this._last;
-      (t > this._lagThreshold || t < 0) && (this._start += t - this._adjustedLag), this._last += t;
-      const i = this._last - this._start, n = i - this._nextTime;
-      if (n > 0) {
-        this._frame++, this._delta = i - this._time * 1e3, this._time = i / 1e3, this._nextTime += n >= this._gap ? n + 4 : this._gap;
-        const r = [...this._listeners];
-        for (const o of r)
-          o(this._time, this._delta, this._frame);
-      }
-      if (this._listeners.size === 0) {
-        this.sleep();
-        return;
-      }
-      this._id = this._request(this._tick);
-    });
-  }
-  _now() {
-    return typeof performance < "u" ? performance.now() : Date.now();
-  }
-  _request(e) {
-    return typeof requestAnimationFrame < "u" ? requestAnimationFrame(e) : setTimeout(e, 16);
-  }
-  _cancel(e) {
-    if (typeof cancelAnimationFrame < "u") {
-      cancelAnimationFrame(e);
-      return;
-    }
-    clearTimeout(e);
-  }
-  _wake() {
-    if (this._id !== null) return;
-    const e = this._now();
-    this._start = e - this._time * 1e3, this._last = e, this._tick();
   }
   add(e) {
-    return this._listeners.add(e), this._wake(), e;
+    this.dead || this.captured.add(e);
   }
-  addOnce(e) {
-    const t = (i, n, r) => {
-      this.remove(t), e(i, n, r);
+  _capture(e) {
+    this.add(e);
+  }
+  revert() {
+    this.captured.forEach((e) => e.kill()), this.captured.clear();
+  }
+  kill() {
+    this.dead || (this.dead = !0, this.revert());
+  }
+  get isDead() {
+    return this.dead;
+  }
+}
+function vt(t) {
+  return new bt(t);
+}
+let St = 0;
+class ft {
+  constructor(e = {}) {
+    u(this, "id", ++St);
+    u(this, "parent", null);
+    /** Kept after removal from `parent` (GSAP calls this the "detached parent") so time queries made after removal still resolve. */
+    u(this, "_dp", null);
+    u(this, "_next", null);
+    u(this, "_prev", null);
+    u(this, "_start", 0);
+    u(this, "_dur", 0);
+    u(this, "_tDur", 0);
+    u(this, "_time", 0);
+    u(this, "_tTime", 0);
+    /** Functional timeScale - forced to 0 while paused. `_ts === 0` IS the definition of paused. */
+    u(this, "_ts", 1);
+    /** Recorded/user timeScale - preserved through pause so resume restores speed+direction. Sign IS the definition of reversed. */
+    u(this, "_rts", 1);
+    u(this, "_delay");
+    u(this, "_repeat");
+    u(this, "_repeatDelay");
+    u(this, "_yoyo");
+    u(this, "_initted", !1);
+    u(this, "_dirty", !0);
+    u(this, "_hasStarted", !1);
+    /** Raw (pre-clamp) totalTime from the previous render() call - see the zero-duration handling in render(). */
+    u(this, "_rawPrev", -1);
+    u(this, "listeners", {});
+    var i;
+    (i = xt()) == null || i._capture(this), this._delay = Math.max(0, e.delay ?? 0), this._repeat = e.repeat ?? 0, this._repeatDelay = Math.max(0, e.repeatDelay ?? 0), this._yoyo = e.yoyo ?? !1, e.onStart && this.on("start", e.onStart), e.onUpdate && this.on("update", e.onUpdate), e.onComplete && this.on("complete", e.onComplete), e.onRepeat && this.on("repeat", e.onRepeat), e.onReverseComplete && this.on("reverseComplete", e.onReverseComplete), e.paused && (this._ts = 0);
+  }
+  // ---- rendering ----
+  /**
+   * Renders this animation at `totalTime` (on ITS OWN axis, delay included at the front).
+   * `suppressEvents` skips start/update/repeat/complete callbacks (used by seek()). `force`
+   * re-renders even if `totalTime` hasn't changed since the last render.
+   */
+  render(e, i = !1, r = !1) {
+    const n = this._tTime, s = this.totalDuration();
+    let o = e;
+    o < 0 ? o = 0 : this._repeat >= 0 && o > s && (o = s);
+    const a = !this._initted;
+    a && (this._initted = !0, this._onInit());
+    const l = J(o - this._delay, this._dur, this._repeat, this._repeatDelay, this._yoyo), h = a ? l : J(n - this._delay, this._dur, this._repeat, this._repeatDelay, this._yoyo), c = l.iteration !== h.iteration;
+    this._tTime = o, this._time = l.time, this._renderIteration(l.time, l.reversed, l.iteration, i, r || c);
+    const d = this._rawPrev;
+    if (this._rawPrev = e, i) return;
+    const f = s === 0, g = f ? e < 0 : o <= 0, y = f ? e >= 0 : this._repeat >= 0 && o >= s, _ = f ? d < 0 : n <= 0, k = f ? d >= 0 : this._repeat >= 0 && n >= s, v = f ? e > d : o > n, yt = f ? e < d : o < n;
+    !this._hasStarted && !g && (this._hasStarted = !0, this.emit("start")), v && c && this.emit("repeat"), this.emit("update"), v && !k && y ? this.emit("complete") : yt && !_ && g && this.emit("reverseComplete");
+  }
+  /** Hook for subclasses that need to do one-time setup on first render (e.g. Tween building its PropertyTracks). */
+  _onInit() {
+  }
+  // ---- duration ----
+  duration(e) {
+    return e === void 0 ? this._dur : (this._dur = Math.max(0, e), this.invalidate(), this._uncache(), this);
+  }
+  totalDuration(e) {
+    if (e === void 0)
+      return this._dirty && this._recomputeTotalDuration(), this._tDur;
+    const i = this.totalDuration();
+    return i > 0 && e > 0 && this.timeScale(this.timeScale() * (i / e)), this;
+  }
+  _recomputeTotalDuration() {
+    this._tDur = this._delay + dt(this._dur, this._repeat, this._repeatDelay), this._dirty = !1;
+  }
+  _uncache() {
+    var e;
+    this._dirty = !0, (e = this.parent) == null || e._uncache();
+  }
+  // ---- repeat / yoyo / delay ----
+  repeat(e) {
+    return e === void 0 ? this._repeat : (this._repeat = e, this._uncache(), this);
+  }
+  repeatDelay(e) {
+    return e === void 0 ? this._repeatDelay : (this._repeatDelay = Math.max(0, e), this._uncache(), this);
+  }
+  yoyo(e) {
+    return e === void 0 ? this._yoyo : (this._yoyo = e, this);
+  }
+  delay(e) {
+    return e === void 0 ? this._delay : (this._delay = Math.max(0, e), this._uncache(), this);
+  }
+  startTime(e) {
+    var i;
+    return e === void 0 ? this._start : (this._start = e, (i = this.parent) == null || i._uncache(), this);
+  }
+  endTime() {
+    return this._start + this.totalDuration() / Math.abs(this._rts || 1);
+  }
+  // ---- time scale / direction ----
+  timeScale(e) {
+    if (e === void 0) return this._rts;
+    e === 0 && (e = this._rts < 0 ? -1e-8 : 1e-8);
+    const i = this._ts === 0;
+    return this._rts = e, this._ts = i ? 0 : e, this;
+  }
+  reversed(e) {
+    return e === void 0 ? this._rts < 0 : (this.timeScale(e ? -Math.abs(this._rts) : Math.abs(this._rts)), this);
+  }
+  // ---- paused / play state ----
+  paused(e) {
+    return e === void 0 ? this._ts === 0 : (this._ts = e ? 0 : this._rts, this);
+  }
+  play() {
+    return this.paused(!1), this;
+  }
+  pause() {
+    return this.paused(!0), this;
+  }
+  resume() {
+    return this.play();
+  }
+  reverse() {
+    return this.reversed(!0), this.play();
+  }
+  restart(e = !1) {
+    return this._hasStarted = !1, this.totalTime(e ? -this._delay : 0, !0), this.play();
+  }
+  // ---- time / totalTime / progress ----
+  totalTime(e, i = !1) {
+    return e === void 0 ? this._tTime : (this.render(e, i, !1), this);
+  }
+  time(e, i = !1) {
+    if (e === void 0) return this._time;
+    const r = this._tTime - this._delay - this._time;
+    return this.totalTime(this._delay + r + Math.max(0, Math.min(e, this._dur)), i);
+  }
+  progress(e) {
+    return e === void 0 ? this._dur ? this._time / this._dur : 1 : this.time(e * this._dur);
+  }
+  totalProgress(e) {
+    const i = this.totalDuration();
+    return e === void 0 ? i ? this._tTime / i : 1 : this.totalTime(e * i);
+  }
+  seek(e, i = !0) {
+    return this.totalTime(e, i), this;
+  }
+  // ---- lifecycle ----
+  invalidate() {
+    return this._initted = !1, this;
+  }
+  kill() {
+    return this.parent && (this._dp = this.parent, this.parent._removeChild(this), this.parent = null), this;
+  }
+  isActive() {
+    const e = this.totalDuration();
+    return !this.paused() && !!this.parent && this._tTime > 0 && (e === 1 / 0 || this._tTime < e);
+  }
+  // ---- events ----
+  on(e, i) {
+    var r;
+    return ((r = this.listeners)[e] ?? (r[e] = /* @__PURE__ */ new Set())).add(i), this;
+  }
+  off(e, i) {
+    var r;
+    return (r = this.listeners[e]) == null || r.delete(i), this;
+  }
+  emit(e) {
+    var i;
+    (i = this.listeners[e]) == null || i.forEach((r) => r());
+  }
+}
+let q = { duration: 0.5, ease: "power1.out" };
+function Tt(t) {
+  q = { ...q, ...t };
+}
+function Mt() {
+  return q;
+}
+function P(t) {
+  if (t < 1 / 2.75) return 7.5625 * t * t;
+  if (t < 2 / 2.75) {
+    const n = t - 0.5454545454545454;
+    return 7.5625 * n * n + 0.75;
+  }
+  if (t < 2.5 / 2.75) {
+    const n = t - 0.8181818181818182;
+    return 7.5625 * n * n + 0.9375;
+  }
+  const r = t - 2.625 / 2.75;
+  return 7.5625 * r * r + 0.984375;
+}
+const S = 1.70158, C = S * 1.525, Q = 2 * Math.PI / 3, tt = 2 * Math.PI / 4.5, H = {
+  none: (t) => t,
+  linear: (t) => t,
+  "power1.in": (t) => t * t,
+  "power1.out": (t) => 1 - (1 - t) * (1 - t),
+  "power1.inOut": (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+  "power2.in": (t) => t * t * t,
+  "power2.out": (t) => 1 - Math.pow(1 - t, 3),
+  "power2.inOut": (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
+  "power3.in": (t) => t ** 4,
+  "power3.out": (t) => 1 - (1 - t) ** 4,
+  "power3.inOut": (t) => t < 0.5 ? 8 * t ** 4 : 1 - (-2 * t + 2) ** 4 / 2,
+  "power4.in": (t) => t ** 5,
+  "power4.out": (t) => 1 - (1 - t) ** 5,
+  "power4.inOut": (t) => t < 0.5 ? 16 * t ** 5 : 1 - (-2 * t + 2) ** 5 / 2,
+  "sine.in": (t) => 1 - Math.cos(t * Math.PI / 2),
+  "sine.out": (t) => Math.sin(t * Math.PI / 2),
+  "sine.inOut": (t) => -(Math.cos(Math.PI * t) - 1) / 2,
+  "expo.in": (t) => t === 0 ? 0 : Math.pow(2, 10 * (t - 1)),
+  "expo.out": (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t),
+  "expo.inOut": (t) => t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2,
+  "circ.in": (t) => 1 - Math.sqrt(1 - t * t),
+  "circ.out": (t) => Math.sqrt(1 - (t - 1) * (t - 1)),
+  "circ.inOut": (t) => t < 0.5 ? (1 - Math.sqrt(1 - 4 * t * t)) / 2 : (Math.sqrt(1 - (-2 * t + 2) ** 2) + 1) / 2,
+  "back.in": (t) => (S + 1) * t * t * t - S * t * t,
+  "back.out": (t) => {
+    const e = t - 1;
+    return 1 + (S + 1) * e * e * e + S * e * e;
+  },
+  "back.inOut": (t) => {
+    if (t < 0.5) {
+      const i = 2 * t;
+      return i * i * ((C + 1) * i - C) / 2;
+    }
+    const e = 2 * t - 2;
+    return (e * e * ((C + 1) * e + C) + 2) / 2;
+  },
+  "bounce.in": (t) => 1 - P(1 - t),
+  "bounce.out": P,
+  "bounce.inOut": (t) => t < 0.5 ? (1 - P(1 - 2 * t)) / 2 : (1 + P(2 * t - 1)) / 2,
+  "elastic.in": (t) => t === 0 || t === 1 ? t : -Math.pow(2, 10 * t - 10) * Math.sin((t * 10 - 10.75) * Q),
+  "elastic.out": (t) => t === 0 || t === 1 ? t : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * Q) + 1,
+  "elastic.inOut": (t) => t === 0 || t === 1 ? t : t < 0.5 ? -(Math.pow(2, 20 * t - 10) * Math.sin((20 * t - 11.125) * tt)) / 2 : Math.pow(2, -20 * t + 10) * Math.sin((20 * t - 11.125) * tt) / 2 + 1
+};
+function kt(t) {
+  return typeof t == "function" ? t : t && H[t] ? H[t] : H["power1.out"];
+}
+const Pt = /^#([0-9a-f]{3,8})$/i, Ct = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+))?\s*\)$/i, Rt = /^rgba?\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*(?:\/\s*([\d.]+%?))?\s*\)$/i, $t = {
+  black: [0, 0, 0],
+  white: [255, 255, 255],
+  red: [255, 0, 0],
+  green: [0, 128, 0],
+  blue: [0, 0, 255],
+  yellow: [255, 255, 0],
+  cyan: [0, 255, 255],
+  aqua: [0, 255, 255],
+  magenta: [255, 0, 255],
+  fuchsia: [255, 0, 255],
+  gray: [128, 128, 128],
+  grey: [128, 128, 128],
+  silver: [192, 192, 192],
+  maroon: [128, 0, 0],
+  olive: [128, 128, 0],
+  lime: [0, 255, 0],
+  navy: [0, 0, 128],
+  teal: [0, 128, 128],
+  purple: [128, 0, 128],
+  orange: [255, 165, 0],
+  pink: [255, 192, 203],
+  brown: [165, 42, 42],
+  gold: [255, 215, 0],
+  indigo: [75, 0, 130],
+  violet: [238, 130, 238],
+  coral: [255, 127, 80],
+  salmon: [250, 128, 114],
+  khaki: [240, 230, 140],
+  crimson: [220, 20, 60],
+  chocolate: [210, 105, 30],
+  tomato: [255, 99, 71],
+  orchid: [218, 112, 214],
+  plum: [221, 160, 221],
+  turquoise: [64, 224, 208],
+  tan: [210, 180, 140],
+  beige: [245, 245, 220],
+  ivory: [255, 255, 240],
+  lavender: [230, 230, 250],
+  skyblue: [135, 206, 235],
+  steelblue: [70, 130, 180],
+  slateblue: [106, 90, 205],
+  royalblue: [65, 105, 225],
+  dodgerblue: [30, 144, 255],
+  deepskyblue: [0, 191, 255],
+  cornflowerblue: [100, 149, 237],
+  forestgreen: [34, 139, 34],
+  seagreen: [46, 139, 87],
+  springgreen: [0, 255, 127],
+  yellowgreen: [154, 205, 50],
+  darkred: [139, 0, 0],
+  darkblue: [0, 0, 139],
+  darkgreen: [0, 100, 0],
+  darkorange: [255, 140, 0],
+  darkviolet: [148, 0, 211],
+  darkgray: [169, 169, 169],
+  darkgrey: [169, 169, 169],
+  darkslategray: [47, 79, 79],
+  darkslategrey: [47, 79, 79],
+  lightblue: [173, 216, 230],
+  lightgreen: [144, 238, 144],
+  lightgray: [211, 211, 211],
+  lightgrey: [211, 211, 211],
+  lightpink: [255, 182, 193],
+  lightyellow: [255, 255, 224],
+  hotpink: [255, 105, 180],
+  deeppink: [255, 20, 147],
+  chartreuse: [127, 255, 0],
+  aquamarine: [127, 255, 212],
+  firebrick: [178, 34, 34],
+  slategray: [112, 128, 144],
+  slategrey: [112, 128, 144],
+  midnightblue: [25, 25, 112],
+  mintcream: [245, 255, 250],
+  peachpuff: [255, 218, 185],
+  sienna: [160, 82, 45],
+  transparent: [0, 0, 0]
+};
+function Dt(t) {
+  return $t[t.toLowerCase()] ?? null;
+}
+function p(t, e, i) {
+  const r = i === 1 ? t[e] + t[e] : t.slice(e, e + 2);
+  return parseInt(r, 16);
+}
+function L(t) {
+  const e = t.trim(), i = e.match(Pt);
+  if (i) {
+    const n = i[1];
+    if (n.length === 3 || n.length === 4) {
+      const s = n.length === 4 ? p(n, 3, 1) / 255 : 1;
+      return { r: p(n, 0, 1), g: p(n, 1, 1), b: p(n, 2, 1), a: s };
+    }
+    if (n.length === 6 || n.length === 8) {
+      const s = n.length === 8 ? p(n, 6, 2) / 255 : 1;
+      return { r: p(n, 0, 2), g: p(n, 2, 2), b: p(n, 4, 2), a: s };
+    }
+  }
+  const r = e.match(Ct) ?? e.match(Rt);
+  if (r) {
+    const [, n, s, o, a] = r;
+    return {
+      r: parseFloat(n),
+      g: parseFloat(s),
+      b: parseFloat(o),
+      a: a === void 0 ? 1 : a.endsWith("%") ? parseFloat(a) / 100 : parseFloat(a)
     };
-    return this.add(t), t;
   }
-  remove(e) {
-    this._listeners.delete(e), this._listeners.size === 0 && this.sleep();
+  if (/^[a-z]+$/i.test(e)) {
+    const n = Dt(e);
+    if (n) return { r: n[0], g: n[1], b: n[2], a: e.toLowerCase() === "transparent" ? 0 : 1 };
   }
-  clear() {
-    this._listeners.clear(), this.sleep();
-  }
-  sleep() {
-    this._id !== null && (this._cancel(this._id), this._id = null);
-  }
-  fps(e) {
-    e = Math.max(1, e), this._gap = 1e3 / e, this._nextTime = this._time * 1e3 + this._gap;
-  }
-  lagSmoothing(e = 500, t = 33) {
-    this._lagThreshold = e || 1 / 0, this._adjustedLag = Math.min(t, this._lagThreshold);
-  }
-  deltaRatio(e = 60) {
-    return this._delta / (1e3 / e);
-  }
-  get time() {
-    return this._time;
-  }
-  get delta() {
-    return this._delta;
-  }
-  get frame() {
-    return this._frame;
-  }
-  get active() {
-    return this._id !== null;
-  }
-  get listeners() {
-    return this._listeners.size;
-  }
+  return { r: 0, g: 0, b: 0, a: 1 };
 }
-const T = new Zt(), dt = {
-  x: 0,
-  y: 0,
-  z: 0,
-  rotate: 0,
-  rotateX: 0,
-  rotateY: 0,
-  rotateZ: 0,
-  scale: 1,
-  scaleX: 1,
-  scaleY: 1,
-  skewX: 0,
-  skewY: 0
-}, U = 180 / Math.PI;
-function Jt(s) {
-  const e = window.getComputedStyle(s).transform;
-  return !e || e === "none" ? { ...dt } : e.startsWith("matrix3d") ? ee(e) : te(e);
-}
-function te(s) {
-  const e = s.match(/matrix\(([^)]+)\)/);
-  if (!e) return { ...dt };
-  const t = e[1].split(",").map((p) => parseFloat(p.trim())), [i, n, r, o, h, l] = t, c = Math.sqrt(i * i + n * n), u = Math.sqrt(r * r + o * o), d = Math.atan2(n, i) * U;
+function mt(t, e, i) {
   return {
-    x: h,
-    y: l,
-    z: 0,
-    rotate: d,
-    rotateX: 0,
-    rotateY: 0,
-    rotateZ: d,
-    scale: c,
-    scaleX: c,
-    scaleY: u,
-    skewX: 0,
-    skewY: 0
+    r: Math.round(t.r + (e.r - t.r) * i),
+    g: Math.round(t.g + (e.g - t.g) * i),
+    b: Math.round(t.b + (e.b - t.b) * i),
+    a: Math.round((t.a + (e.a - t.a) * i) * 1e3) / 1e3
   };
 }
-function ee(s) {
-  const e = s.match(/matrix3d\(([^)]+)\)/);
-  if (!e) return { ...dt };
-  const t = e[1].split(",").map((b) => parseFloat(b.trim())), i = t[0], n = t[1], r = t[2], o = t[4], h = t[5], l = t[6];
-  t[8], t[9];
-  const c = t[10], u = t[12], d = t[13], p = t[14], f = Math.sqrt(i * i + n * n + r * r), g = Math.sqrt(o * o + h * h + l * l), m = Math.atan2(n, i) * U, y = Math.atan2(-r, Math.sqrt(l * l + c * c)) * U, v = Math.atan2(l, c) * U;
-  return {
-    x: u,
-    y: d,
-    z: p,
-    rotate: m,
-    rotateX: v,
-    rotateY: y,
-    rotateZ: m,
-    scale: f,
-    scaleX: f,
-    scaleY: g,
-    skewX: 0,
-    skewY: 0
-  };
+function V(t) {
+  return `rgba(${t.r}, ${t.g}, ${t.b}, ${t.a})`;
 }
-const ie = {
+const At = {
   x: 0,
   y: 0,
   z: 0,
   xPercent: 0,
   yPercent: 0,
-  rotate: 0,
-  rotateX: 0,
-  rotateY: 0,
-  rotateZ: 0,
-  scale: 1,
+  rotation: 0,
+  rotationX: 0,
+  rotationY: 0,
   scaleX: 1,
   scaleY: 1,
   skewX: 0,
   skewY: 0
-}, Ct = /* @__PURE__ */ new WeakMap();
-function se(s) {
-  const e = Jt(s);
+}, et = /* @__PURE__ */ new WeakMap(), Lt = /^matrix\(([^)]+)\)$/, It = /^matrix3d\(([^)]+)\)$/, it = 180 / Math.PI;
+function Yt(t) {
+  if (!t || t === "none") return {};
+  const e = t.match(Lt);
+  if (e) {
+    const [r, n, s, o, a, l] = e[1].split(",").map(Number), h = Math.sqrt(r * r + n * n), c = Math.sqrt(s * s + o * o), d = Math.atan2(n, r) * it, f = (Math.atan2(s, o) * it + d) * -1;
+    return { x: a, y: l, rotation: d, scaleX: h, scaleY: c, skewX: Et(f) };
+  }
+  const i = t.match(It);
+  if (i) {
+    const r = i[1].split(",").map(Number);
+    return { x: r[12], y: r[13], z: r[14] };
+  }
+  return {};
+}
+function Ot(t) {
+  return typeof getComputedStyle > "u" ? {} : Yt(getComputedStyle(t).transform);
+}
+function Et(t) {
+  let e = t % 360;
+  return e > 180 && (e -= 360), e < -180 && (e += 360), e;
+}
+function I(t) {
+  let e = et.get(t);
+  return e || (e = { ...At, ...Ot(t) }, et.set(t, e)), e;
+}
+function m(t) {
+  return Math.round(t * 1e4) / 1e4;
+}
+function zt(t, e) {
+  const i = [];
+  return (t.xPercent || t.yPercent) && i.push(`translate(${m(t.xPercent)}%, ${m(t.yPercent)}%)`), (t.x || t.y || t.z) && i.push(e ? `translate3d(${m(t.x)}px, ${m(t.y)}px, ${m(t.z)}px)` : `translate(${m(t.x)}px, ${m(t.y)}px)`), t.rotation && i.push(`rotate(${m(t.rotation)}deg)`), t.rotationX && i.push(`rotateX(${m(t.rotationX)}deg)`), t.rotationY && i.push(`rotateY(${m(t.rotationY)}deg)`), t.skewX && i.push(`skewX(${m(t.skewX)}deg)`), t.skewY && i.push(`skewY(${m(t.skewY)}deg)`), (t.scaleX !== 1 || t.scaleY !== 1) && i.push(`scale(${m(t.scaleX)}, ${m(t.scaleY)})`), i.length ? i.join(" ") : "none";
+}
+function Ft(t, e, i) {
+  t.style.transform = zt(e, i);
+}
+const Xt = {
+  x: "x",
+  y: "y",
+  z: "z",
+  xPercent: "xPercent",
+  yPercent: "yPercent",
+  rotation: "rotation",
+  rotate: "rotation",
+  rotationX: "rotationX",
+  rotateX: "rotationX",
+  rotationY: "rotationY",
+  rotateY: "rotationY",
+  scaleX: "scaleX",
+  scaleY: "scaleY",
+  skewX: "skewX",
+  skewY: "skewY"
+}, Ht = /* @__PURE__ */ new Set(["rotation", "rotationX", "rotationY", "skewX", "skewY"]), Nt = /* @__PURE__ */ new Set(["xPercent", "yPercent"]), Ut = /* @__PURE__ */ new Set(["backgroundColor", "color", "borderColor", "outlineColor", "fill", "stroke", "stopColor"]), qt = /* @__PURE__ */ new Set(["boxShadow", "textShadow", "borderRadius", "clipPath", "filter", "backgroundPosition", "backgroundSize", "objectPosition"]), Vt = /* @__PURE__ */ new Set(["opacity", "zIndex", "flexGrow", "flexShrink", "order", "fontWeight"]);
+function b(t) {
+  if (typeof t == "number") return !0;
+  if (typeof t != "string") return !1;
+  const e = t.trim();
+  return /^[+-]?[\d.]+[a-z%]*$/i.test(e) || /^[+-]=/.test(e);
+}
+function T(t, e = "") {
+  if (typeof t == "number") return { value: t, unit: e };
+  const i = String(t).trim().match(/^([+-]?[\d.]+)([a-z%]*)$/i);
+  return i ? { value: parseFloat(i[1]), unit: i[2] || e } : { value: 0, unit: e };
+}
+function Y(t, e) {
+  var r;
+  const i = (r = t.style) == null ? void 0 : r[e];
+  return i || (typeof getComputedStyle > "u" ? "" : getComputedStyle(t)[e] || "");
+}
+function Bt(t) {
+  const e = Ht.has(t) ? "deg" : Nt.has(t) ? "%" : "px";
   return {
-    ...ie,
-    x: e.x,
-    y: e.y,
-    z: e.z,
-    rotate: e.rotate,
-    rotateX: e.rotateX,
-    rotateY: e.rotateY,
-    rotateZ: e.rotateZ,
-    scale: e.scale,
-    scaleX: e.scaleX,
-    scaleY: e.scaleY,
-    skewX: e.skewX,
-    skewY: e.skewY
+    kind: "numeric",
+    isTransform: !0,
+    transformKey: t,
+    defaultUnit: e,
+    get(i) {
+      return { value: I(i)[t], unit: e };
+    },
+    set(i, r) {
+      I(i)[t] = r.value;
+    }
   };
 }
-function ut(s) {
-  let e = Ct.get(s);
-  return e || (e = se(s), Ct.set(s, e)), e;
+function Wt(t) {
+  return {
+    kind: "color",
+    get(e) {
+      return L(Y(e, t) || "rgba(0,0,0,0)");
+    },
+    set(e, i) {
+      e.style[t] = V(i);
+    }
+  };
 }
-function ne(s, e) {
-  return ut(s)[e];
+function Kt(t) {
+  return {
+    kind: "complex",
+    get(e) {
+      return Y(e, t);
+    },
+    set(e, i) {
+      e.style[t] = i;
+    }
+  };
 }
-function I(s, e, t) {
-  ut(s)[e] = t;
-}
-function Y(s) {
-  const e = ut(s);
-  return `translate(${e.xPercent}%, ${e.yPercent}%) translate3d(${e.x}px, ${e.y}px, ${e.z}px) rotate(${e.rotate}deg) rotateX(${e.rotateX}deg) rotateY(${e.rotateY}deg) rotateZ(${e.rotateZ}deg) scale(${e.scale}) scaleX(${e.scaleX}) scaleY(${e.scaleY}) skewX(${e.skewX}deg) skewY(${e.skewY}deg)`;
-}
-class re extends w {
-  constructor() {
-    super();
-    a(this, "inner", null);
-    a(this, "resizeObserver", null);
-    a(this, "setupRafId", null);
-    a(this, "offset", 0);
-    a(this, "isHovered", !1);
-    a(this, "cachedResetBounds", 0);
-    a(this, "isSettingUp", !1);
-    a(this, "isVisible", !1);
-    a(this, "onMouseEnter", () => {
-      this.pauseOnHover && (this.isHovered = !0);
-    });
-    a(this, "onMouseLeave", () => {
-      this.isHovered && (this.isHovered = !1);
-    });
-    a(this, "updateAnimation", (t, i) => {
-      if (this.isHovered || this.cachedResetBounds <= 0) return;
-      const n = i / 1e3, r = this.speed * n, o = this.direction, l = this.isVertical ? this.offsetHeight : this.offsetWidth;
-      o === "left" || o === "up" ? (this.offset -= r, this.clone ? this.offset <= -this.cachedResetBounds && (this.offset += this.cachedResetBounds) : this.offset <= -this.cachedResetBounds && (this.offset = l)) : (this.offset += r, this.clone ? this.offset >= 0 && (this.offset -= this.cachedResetBounds) : this.offset >= l && (this.offset = -this.cachedResetBounds)), this.applyTransform(this.offset);
-    });
-    this.attachShadow({ mode: "open" });
-  }
-  static get observedAttributes() {
-    return ["direction", "speed", "pause-on-hover", "gap", "clone"];
-  }
-  get clone() {
-    return this.getAttribute("clone") !== "false";
-  }
-  set clone(t) {
-    this.setAttribute("clone", String(t));
-  }
-  get direction() {
-    const t = this.getAttribute("direction");
-    return t === "right" || t === "up" || t === "down" ? t : "left";
-  }
-  set direction(t) {
-    this.setAttribute("direction", t);
-  }
-  // Tiện ích kiểm tra nhanh xem có phải đang cuộn dọc hay không
-  get isVertical() {
-    const t = this.direction;
-    return t === "up" || t === "down";
-  }
-  get speed() {
-    const t = parseFloat(this.getAttribute("speed") ?? "50");
-    return isFinite(t) && t >= 0 ? t : 50;
-  }
-  set speed(t) {
-    this.setAttribute("speed", String(t));
-  }
-  get pauseOnHover() {
-    return this.getAttribute("pause-on-hover") !== "false";
-  }
-  set pauseOnHover(t) {
-    this.setAttribute("pause-on-hover", String(t));
-  }
-  get gap() {
-    const t = (this.getAttribute("gap") ?? "16").trim();
-    return /^\d+(\.\d+)?$/.test(t) ? `${t}px` : t;
-  }
-  set gap(t) {
-    this.setAttribute("gap", t);
-  }
-  connectedCallback() {
-    if (this.render(), this.inner = this.querySelector("sx-marquee-inner"), !this.inner) {
-      console.warn("sx-marquee: Missing <sx-marquee-inner> child.");
-      return;
-    }
-    this.addEventListener("mouseenter", this.onMouseEnter), this.addEventListener("mouseleave", this.onMouseLeave), this.resizeObserver = new ResizeObserver(() => {
-      this.scheduleSetup();
-    }), this.resizeObserver.observe(this), $t(this, {
-      enter: () => {
-        this.isVisible || (this.isVisible = !0, T.add(this.updateAnimation));
-      },
-      leave: () => {
-        this.isVisible && (this.isVisible = !1, T.remove(this.updateAnimation));
-      }
-    });
-  }
-  disconnectedCallback() {
-    var t;
-    this.removeEventListener("mouseenter", this.onMouseEnter), this.removeEventListener("mouseleave", this.onMouseLeave), (t = this.resizeObserver) == null || t.disconnect(), this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), st(this), T.remove(this.updateAnimation);
-  }
-  attributeChangedCallback(t, i, n) {
-    i !== n && (t === "gap" ? (this.updateGapVar(), setTimeout(() => this.scheduleSetup(), 50)) : (t === "direction" || t === "speed" || t === "clone") && this.scheduleSetup());
-  }
-  scheduleSetup() {
-    this.setupRafId !== null && cancelAnimationFrame(this.setupRafId), this.setupRafId = requestAnimationFrame(() => {
-      this.setupRafId = null, this.setupMarquee();
-    });
-  }
-  render() {
-    this.shadowRoot && (this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          overflow: hidden;
-          width: 100%;
-          --sx-marquee-gap: 16px;
-        }
-        /* Khi cuộn dọc, sx-marquee cần có một chiều cao cố định kế thừa từ lớp cha */
-        :host([direction="up"]), :host([direction="down"]) {
-          height: 100%;
-        }
-        .container {
-          display: flex;
-          overflow: hidden;
-          width: 100%;
-          height: 100%;
-        }
-        :host([direction="up"]) .container, 
-        :host([direction="down"]) .container {
-          flex-direction: column;
-        }
-        ::slotted(sx-marquee-inner) {
-          display: flex !important;
-          flex-shrink: 0;
-          white-space: nowrap;
-          gap: var(--sx-marquee-gap) !important;
-          will-change: transform;
-        }
-        :host([direction="up"]) ::slotted(sx-marquee-inner), 
-        :host([direction="down"]) ::slotted(sx-marquee-inner) {
-          flex-direction: column !important;
-          white-space: normal;
-        }
-      </style>
-      <div class="container"><slot></slot></div>
-    `, this.updateGapVar());
-  }
-  updateGapVar() {
-    this.style.setProperty("--sx-marquee-gap", this.gap);
-  }
-  setupMarquee() {
-    var t;
-    if (!(!this.inner || this.isSettingUp)) {
-      this.isSettingUp = !0;
-      try {
-        (t = this.resizeObserver) == null || t.unobserve(this.inner);
-        const i = Array.from(
-          this.inner.querySelectorAll(
-            "sx-marquee-item:not([data-clone])"
-          )
-        );
-        this.inner.replaceChildren(...i);
-        const n = this.isVertical, r = n ? this.offsetHeight : this.offsetWidth, o = n ? this.inner.offsetHeight : this.inner.offsetWidth;
-        if (this.clone && o > 0 && r > 0) {
-          const h = o < r ? Math.ceil(r * 2 / o) : 2, l = document.createDocumentFragment();
-          for (let c = 1; c < h; c++)
-            for (const u of i) {
-              const d = u.cloneNode(!0);
-              d.setAttribute("data-clone", "true"), l.appendChild(d);
-            }
-          this.inner.appendChild(l);
-        }
-        this.offset = 0, this.applyTransform(0), this.calculateBounds();
-      } finally {
-        this.isSettingUp = !1;
-      }
-    }
-  }
-  calculateBounds() {
-    if (!this.inner) {
-      this.cachedResetBounds = 0;
-      return;
-    }
-    const t = this.inner.querySelectorAll(
-      "sx-marquee-item:not([data-clone])"
-    );
-    if (t.length === 0) {
-      this.cachedResetBounds = 0;
-      return;
-    }
-    let i = 0;
-    const n = this.isVertical;
-    for (let o = 0; o < t.length; o++)
-      i += n ? t[o].offsetHeight : t[o].offsetWidth;
-    const r = parseFloat(getComputedStyle(this.inner).gap) || 0;
-    i += r * t.length, this.cachedResetBounds = i;
-  }
-  applyTransform(t) {
-    this.inner && (I(this.inner, this.isVertical ? "y" : "x", t), this.inner.style.transform = Y(this.inner));
-  }
-}
-class oe extends w {
-}
-class ae extends w {
-  connectedCallback() {
-    this.style.cssText = "display:inline-block;flex-shrink:0;";
-  }
-}
-function le() {
-  customElements.get("sx-marquee") || customElements.define("sx-marquee", re), customElements.get("sx-marquee-inner") || customElements.define("sx-marquee-inner", oe), customElements.get("sx-marquee-item") || customElements.define("sx-marquee-item", ae);
-}
-class he extends w {
-  constructor() {
-    super();
-  }
-}
-class ce {
-  constructor() {
-    a(this, "sliders", /* @__PURE__ */ new Map());
-  }
-  register(e, t) {
-    this.sliders.set(e, t);
-  }
-  unregister(e) {
-    this.sliders.delete(e);
-  }
-  get(e) {
-    return this.sliders.get(e);
-  }
-}
-const q = new ce();
-class de extends w {
-  constructor() {
-    super();
-    a(this, "renderedSignature", "");
-    a(this, "innerContainer", null);
-    a(this, "snakeBar", null);
-    a(this, "maxVisibleBullets", 5);
-    a(this, "bulletWidthWithGap", 16);
-    a(this, "lastActiveIndex", 0);
-    a(this, "cachedBullets", []);
-    a(this, "snakeTimeout", null);
-    this.addEventListener("click", (t) => this.handleAction(t)), this.addEventListener("keydown", (t) => {
-      (t.key === "Enter" || t.key === " ") && (t.preventDefault(), this.handleAction(t));
-    });
-  }
-  static get observedAttributes() {
-    return ["effect", "name"];
-  }
-  attributeChangedCallback() {
-    this.renderedSignature = "";
-  }
-  handleAction(t) {
-    const i = t.target;
-    if (i.classList.contains("sx-slider-pagination-bullet")) {
-      const n = Number(i.getAttribute("data-index"));
-      this.goToSlide(n);
-    }
-  }
-  goToSlide(t) {
-    const i = this.getAttribute("name");
-    let n = null;
-    i ? n = q.get(i) : n = this.closest("sx-slider"), n && typeof n.goTo == "function" && n.goTo(t);
-  }
-  renderBullets(t) {
-    const i = this.getAttribute("effect"), n = i === "dynamic", r = i === "snake", o = i === "fraction", h = t.join(",") + `_effect:${i}`;
-    if (this.renderedSignature === h) return;
-    if (this.renderedSignature = h, this.innerHTML = "", this.snakeBar = null, this.cachedBullets = [], o) {
-      this.innerContainer = null, this.style.width = "";
-      const c = document.createElement("span");
-      c.className = "sx-slider-pagination-current", c.textContent = "1";
-      const u = document.createTextNode(" / "), d = document.createElement("span");
-      d.className = "sx-slider-pagination-total", d.textContent = t.length.toString();
-      const p = document.createDocumentFragment();
-      p.appendChild(c), p.appendChild(u), p.appendChild(d), this.appendChild(p);
-      return;
-    }
-    const l = document.createDocumentFragment();
-    if (r) {
-      this.innerContainer = null, this.style.width = "", this.style.position = "relative", t.forEach((c, u) => {
-        const d = this.createBulletDOM(c, u, !1);
-        this.cachedBullets.push(d), l.appendChild(d);
-      }), this.snakeBar = document.createElement("div"), this.snakeBar.className = "sx-slider-pagination-bar", this.snakeBar.style.position = "absolute", this.snakeBar.style.zIndex = "10", this.snakeBar.style.transition = "width 150ms ease-out, left 150ms ease-out", l.appendChild(this.snakeBar), this.appendChild(l);
-      return;
-    }
-    if (n) {
-      this.innerContainer = document.createElement("div"), this.innerContainer.className = "sx-slider-pagination-inner", l.appendChild(this.innerContainer), t.forEach((c, u) => {
-        const d = this.createBulletDOM(c, u, !1);
-        this.cachedBullets.push(d), this.innerContainer.appendChild(d);
-      }), t.length > this.maxVisibleBullets ? this.style.width = `${this.maxVisibleBullets * this.bulletWidthWithGap}px` : this.style.width = "auto", this.appendChild(l);
-      return;
-    }
-    this.innerContainer = null, this.style.width = "", t.forEach((c, u) => {
-      const d = this.createBulletDOM(c, u, i === "number");
-      this.cachedBullets.push(d), l.appendChild(d);
-    }), this.appendChild(l);
-  }
-  createBulletDOM(t, i, n) {
-    const r = document.createElement("span");
-    return r.className = "sx-slider-pagination-bullet", r.setAttribute("data-index", t.toString()), r.setAttribute("role", "button"), r.setAttribute("tabindex", "0"), r.setAttribute("aria-label", `Go to slide ${i + 1}`), n && (r.textContent = (i + 1).toString()), r;
-  }
-  updateActive(t) {
-    const i = this.getAttribute("effect");
-    if (i === "fraction") {
-      const d = this.querySelector(".sx-slider-pagination-current");
-      d && (d.textContent = (t + 1).toString());
-      return;
-    }
-    const n = i === "dynamic", r = i === "snake", o = this.cachedBullets, h = o.length;
-    if (h === 0) return;
-    if (o.forEach((d, p) => {
-      n && (d.className = "sx-slider-pagination-bullet"), p === t ? (d.setAttribute("sx-bullet-active", ""), d.setAttribute("aria-current", "true")) : (d.removeAttribute("sx-bullet-active"), d.removeAttribute("aria-current"));
-    }), r && this.snakeBar) {
-      if (this.snakeTimeout !== null && (clearTimeout(this.snakeTimeout), this.snakeTimeout = null), o[t]) {
-        const m = t * 20, y = this.lastActiveIndex * 20;
-        if (t > this.lastActiveIndex) {
-          const v = m - y + 10;
-          this.snakeBar.style.left = `${y}px`, this.snakeBar.style.width = `${v}px`, this.snakeTimeout = window.setTimeout(() => {
-            this.getAttribute("effect") === "snake" && this.snakeBar && (this.snakeBar.style.left = `${m}px`, this.snakeBar.style.width = "10px");
-          }, 150);
-        } else if (t < this.lastActiveIndex) {
-          const v = y - m + 10;
-          this.snakeBar.style.left = `${m}px`, this.snakeBar.style.width = `${v}px`, this.snakeTimeout = window.setTimeout(() => {
-            this.getAttribute("effect") === "snake" && this.snakeBar && (this.snakeBar.style.width = "10px");
-          }, 150);
-        } else
-          this.snakeBar.style.left = `${m}px`, this.snakeBar.style.width = "10px";
-      }
-      this.lastActiveIndex = t;
-      return;
-    }
-    if (!n || h <= this.maxVisibleBullets || !this.innerContainer) {
-      this.innerContainer && (I(this.innerContainer, "x", 0), this.innerContainer.style.transform = Y(this.innerContainer));
-      return;
-    }
-    let l = Math.max(0, t - Math.floor(this.maxVisibleBullets / 2));
-    l = Math.min(l, h - this.maxVisibleBullets);
-    const c = l + this.maxVisibleBullets - 1;
-    o.forEach((d, p) => {
-      p >= l && p <= c ? p === l ? d.classList.add(p === 0 ? "sx-bullet-main" : "sx-bullet-small") : p === l + 1 ? d.classList.add(p === 1 ? "sx-bullet-main" : "sx-bullet-medium") : p === c ? d.classList.add(
-        p === h - 1 ? "sx-bullet-main" : "sx-bullet-small"
-      ) : p === c - 1 ? d.classList.add(
-        p === h - 2 ? "sx-bullet-main" : "sx-bullet-medium"
-      ) : d.classList.add("sx-bullet-main") : d.classList.add("sx-bullet-small");
-    });
-    const u = -l * this.bulletWidthWithGap;
-    I(this.innerContainer, "x", u), this.innerContainer.style.transform = Y(this.innerContainer);
-  }
-}
-class ue extends w {
-  constructor() {
-    super(), this.addEventListener("click", () => this.handleAction()), this.addEventListener("keydown", (e) => {
-      (e.key === "Enter" || e.key === " ") && (e.preventDefault(), this.handleAction());
-    });
-  }
-  connectedCallback() {
-    this.hasAttribute("role") || this.setAttribute("role", "button"), this.hasAttribute("tabindex") || this.setAttribute("tabindex", "0"), this.hasAttribute("aria-label") || this.setAttribute("aria-label", "Next slide");
-  }
-  handleAction() {
-    if (this.hasAttribute("sx-disabled")) return;
-    const e = this.getAttribute("name");
-    if (e) {
-      const t = q.get(e);
-      t && t.next();
-    } else {
-      const t = this.closest("sx-slider");
-      t && t.next();
-    }
-  }
-}
-class pe extends w {
-  constructor() {
-    super();
-    a(this, "bar");
-    this.bar = document.createElement("div"), this.bar.className = "sx-slider-progress-bar";
-  }
-  connectedCallback() {
-    this.contains(this.bar) || this.appendChild(this.bar);
-  }
-  update(t, i, n) {
-    const r = Math.max(0, Math.min(1, t));
-    this.bar.style.transition = n || "none", i === "vertical" ? (this.bar.style.transformOrigin = "top center", I(this.bar, "scaleY", r), I(this.bar, "scaleX", 1)) : (this.bar.style.transformOrigin = "left center", I(this.bar, "scaleX", r), I(this.bar, "scaleY", 1)), this.bar.style.transform = Y(this.bar);
-  }
-}
-class fe extends w {
-  constructor() {
-    super(), this.addEventListener("click", () => this.handleAction()), this.addEventListener("keydown", (e) => {
-      (e.key === "Enter" || e.key === " ") && (e.preventDefault(), this.handleAction());
-    });
-  }
-  connectedCallback() {
-    this.hasAttribute("role") || this.setAttribute("role", "button"), this.hasAttribute("tabindex") || this.setAttribute("tabindex", "0"), this.hasAttribute("aria-label") || this.setAttribute("aria-label", "Previous slide");
-  }
-  handleAction() {
-    if (this.hasAttribute("sx-disabled")) return;
-    const e = this.getAttribute("name");
-    if (e) {
-      const t = q.get(e);
-      t && t.prev();
-    } else {
-      const t = this.closest("sx-slider");
-      t && t.prev();
-    }
-  }
-}
-class ge {
-  constructor(e, t, i = 0.92) {
-    a(this, "velocity", 0);
-    a(this, "friction");
-    a(this, "onUpdate");
-    a(this, "onComplete");
-    a(this, "isRunning", !1);
-    a(this, "tickerCallback");
-    this.onUpdate = e, this.onComplete = t, this.friction = i, this.tickerCallback = (n, r, o) => this.loop(r);
-  }
-  setFriction(e) {
-    this.friction = e;
-  }
-  addVelocity(e) {
-    this.velocity += e, this.isRunning || this.start();
-  }
-  stop() {
-    this.isRunning && (this.isRunning = !1, this.velocity = 0, T.remove(this.tickerCallback));
-  }
-  start() {
-    this.isRunning || (this.isRunning = !0, T.add(this.tickerCallback));
-  }
-  loop(e) {
-    if (!this.isRunning) return;
-    const t = e / 16.67, i = Math.pow(this.friction, t);
-    if (Math.abs(this.velocity) < 0.1) {
-      this.stop(), this.onComplete();
-      return;
-    }
-    this.onUpdate(this.velocity * t), this.velocity *= i;
-  }
-}
-class me extends w {
-  constructor() {
-    super();
-    a(this, "sliderCha", null);
-    a(this, "isDragging", !1);
-    a(this, "startX", 0);
-    a(this, "currentTranslate", 0);
-    a(this, "prevTranslate", 0);
-    a(this, "isResetting", !1);
-    a(this, "dragXs", []);
-    a(this, "dragTimes", []);
-    a(this, "velocity", 0);
-    a(this, "scrollDuration", 0);
-    a(this, "scrollStartTime", 0);
-    a(this, "scrollFrom", 0);
-    a(this, "scrollToTarget", 0);
-    a(this, "scrollFriction", 1);
-    a(this, "isScrollAnimating", !1);
-    a(this, "noConstrain", !1);
-    a(this, "lastClientAxis", 0);
-    a(this, "lastWheelTime", 0);
-    a(this, "boundWheel", this.onWheel.bind(this));
-    a(this, "boundDragStart", this.dragStart.bind(this));
-    a(this, "boundDragMove", this.dragMove.bind(this));
-    a(this, "boundDragEnd", this.dragEnd.bind(this));
-    a(this, "handleScrollEnd", () => {
-      if (!this.sliderCha) return;
-      const t = this.sliderCha.options;
-      if (t.snap || t.drag !== "free")
-        this.sliderCha.alignIndexToFreeTranslation(this.currentTranslate), this.updatePosition();
-      else if (!t.loop) {
-        const { max: i, min: n } = this.sliderCha.getBoundaries(), r = Math.max(
-          n,
-          Math.min(i, this.currentTranslate)
-        );
-        r !== this.currentTranslate && this.startMomentumScroll(r, 400);
-      }
-      this.sliderCha.startAutoplay();
-    });
-    a(this, "wheelInertia", new ge(
-      (t) => {
-        if (this.sliderCha) {
-          if (this.currentTranslate += t, this.sliderCha.options.loop)
-            this.checkLoopBoundsInstant();
-          else {
-            const { max: i, min: n } = this.sliderCha.getBoundaries(), r = this.sliderCha.options.edgeResistance;
-            this.currentTranslate > i ? r <= 0 ? (this.currentTranslate = i, this.wheelInertia.stop(), this.handleScrollEnd()) : this.currentTranslate > i + r ? (this.currentTranslate = i + r, this.wheelInertia.setFriction(0.2)) : this.wheelInertia.setFriction(0.6) : this.currentTranslate < n ? r <= 0 ? (this.currentTranslate = n, this.wheelInertia.stop(), this.handleScrollEnd()) : this.currentTranslate < n - r ? (this.currentTranslate = n - r, this.wheelInertia.setFriction(0.2)) : this.wheelInertia.setFriction(0.6) : this.wheelInertia.setFriction(0.92);
-          }
-          this.setTransform(this.currentTranslate);
-        }
-      },
-      () => this.handleScrollEnd(),
-      0.92
-    ));
-    a(this, "scrollTickerCallback", () => this.runScrollLoop());
-  }
-  connectedCallback() {
-    this.sliderCha = this.closest("sx-slider"), this.initDragEvents(), this.addEventListener("transitionend", () => {
-      this.isResetting || this.checkLoopBoundsInstant();
-    });
-  }
-  disconnectedCallback() {
-    this.sliderCha && (this.sliderCha.removeEventListener("mousedown", this.boundDragStart), this.sliderCha.removeEventListener("touchstart", this.boundDragStart), this.sliderCha.removeEventListener("wheel", this.boundWheel)), this.detachWindowDragListeners(), this.wheelInertia.stop(), this.cancelMomentumScroll();
-  }
-  initDragEvents() {
-    this.sliderCha && (this.sliderCha.addEventListener("mousedown", this.boundDragStart), this.sliderCha.addEventListener("touchstart", this.boundDragStart, {
-      passive: !0
-    }), this.sliderCha.addEventListener("wheel", this.boundWheel, {
-      passive: !1
-    }));
-  }
-  attachWindowDragListeners() {
-    window.addEventListener("mousemove", this.boundDragMove), window.addEventListener("mouseup", this.boundDragEnd), window.addEventListener("touchmove", this.boundDragMove, {
-      passive: !1
-    }), window.addEventListener("touchend", this.boundDragEnd);
-  }
-  detachWindowDragListeners() {
-    window.removeEventListener("mousemove", this.boundDragMove), window.removeEventListener("mouseup", this.boundDragEnd), window.removeEventListener("touchmove", this.boundDragMove), window.removeEventListener("touchend", this.boundDragEnd);
-  }
-  onWheel(t) {
-    if (!(!this.sliderCha || this.sliderCha.options.direction !== "vertical" || !this.sliderCha.options.verticalScroll))
-      if (t.preventDefault(), this.sliderCha.stopAutoplay(), this.sliderCha.options.drag === "free") {
-        this.cancelMomentumScroll(), this.style.transition = "none", this.wheelInertia.setFriction(0.92);
-        let i = -t.deltaY * 0.15;
-        if (!this.sliderCha.options.loop) {
-          const { max: n, min: r } = this.sliderCha.getBoundaries();
-          (this.currentTranslate > n && i > 0 || this.currentTranslate < r && i < 0) && (i *= 0.2);
-        }
-        this.wheelInertia.addVelocity(i);
-      } else {
-        const i = performance.now();
-        i - this.lastWheelTime > 400 && (t.deltaY > 0 ? this.sliderCha.next() : t.deltaY < 0 && this.sliderCha.prev(), this.lastWheelTime = i), this.sliderCha.startAutoplay();
-      }
-  }
-  getPositionAxis(t) {
-    if (!this.sliderCha) return 0;
-    const i = this.sliderCha.options.direction === "vertical";
-    return t instanceof MouseEvent ? i ? t.clientY : t.clientX : i ? t.touches[0].clientY : t.touches[0].clientX;
-  }
-  dragStart(t) {
-    !this.sliderCha || this.sliderCha.options.drag === "false" || this.isResetting || (this.attachWindowDragListeners(), this.sliderCha.stopAutoplay(), this.cancelMomentumScroll(), this.wheelInertia.stop(), this.prevTranslate = this.currentTranslate, this.isDragging = !0, this.startX = this.getPositionAxis(t), this.lastClientAxis = this.startX, this.velocity = 0, this.dragXs = [this.startX], this.dragTimes = [performance.now()], this.style.transition = "none", this.checkLoopBoundsInstant());
-  }
-  dragMove(t) {
-    if (!this.isDragging || !this.sliderCha) return;
-    t.cancelable && t.preventDefault();
-    const i = this.getPositionAxis(t);
-    this.lastClientAxis = i;
-    const n = performance.now();
-    for (this.dragXs.push(i), this.dragTimes.push(n); this.dragTimes.length > 0 && n - this.dragTimes[0] > 200; )
-      this.dragXs.shift(), this.dragTimes.shift();
-    const r = i - this.startX;
-    let o = this.prevTranslate + r;
-    if (this.sliderCha.options.loop)
-      this.currentTranslate = o, this.checkLoopBoundsInstant();
-    else {
-      const { max: h, min: l } = this.sliderCha.getBoundaries(), c = this.sliderCha.options.edgeResistance;
-      o > h ? o = c <= 0 ? h : h + Math.min(c, (o - h) * 0.3) : o < l && (o = c <= 0 ? l : l - Math.min(c, (l - o) * 0.3)), this.currentTranslate = o;
-    }
-    this.setTransform(this.currentTranslate);
-  }
-  dragEnd() {
-    if (!this.isDragging || !this.sliderCha) return;
-    this.isDragging = !1, this.detachWindowDragListeners();
-    const t = this.sliderCha.options, i = performance.now();
-    if (this.dragTimes.length > 0) {
-      const n = this.dragTimes[this.dragTimes.length - 1];
-      if (i - n > 10)
-        this.velocity = 0;
-      else {
-        const r = n - this.dragTimes[0];
-        r > 0 ? this.velocity = (this.dragXs[this.dragXs.length - 1] - this.dragXs[0]) / r : this.velocity = 0;
-      }
-    } else
-      this.velocity = 0;
-    if (t.drag === "free") {
-      this.prevTranslate = this.currentTranslate;
-      let r = this.currentTranslate + this.velocity * 400;
-      if (t.snap) {
-        const o = parseFloat(this.sliderCha.startPadding) || 0;
-        this.sliderCha.alignIndexToFreeTranslation(r);
-        const h = this.sliderCha.getRawIndex();
-        let l = t.autoSize ? this.sliderCha.getOffsetForIndex(h) : h * this.sliderCha.getSlideSizeWithGap(), c = t.autoSize ? this.sliderCha.getOffsetForIndex(h + 1) - l : this.sliderCha.getSlideSizeWithGap();
-        if (t.centered) {
-          const u = this.sliderCha.getBoundingClientRect()[this.sliderCha.sizeDim];
-          r = o + u / 2 - (l + c / 2);
-        } else
-          r = o - l;
-        if (!t.loop) {
-          const { max: u, min: d } = this.sliderCha.getBoundaries();
-          r = Math.max(d, Math.min(u, r));
-        }
-      }
-      if (t.loop)
-        this.startMomentumScroll(r);
-      else {
-        const { max: o, min: h } = this.sliderCha.getBoundaries(), l = Math.max(
-          h,
-          Math.min(o, r)
-        );
-        this.startMomentumScroll(l);
-      }
-    } else {
-      this.style.transition = `transform ${t.speed}ms ease-out, height ${t.speed}ms ease-out`;
-      const n = this.lastClientAxis - this.startX;
-      if (t.perMove === "auto") {
-        const r = this.sliderCha.getCurrentIndex();
-        this.sliderCha.alignIndexToFreeTranslation(this.currentTranslate), this.sliderCha.getCurrentIndex() === r ? n < -50 ? this.sliderCha.next() : n > 50 ? this.sliderCha.prev() : this.updatePosition() : this.updatePosition();
-      } else
-        n < -50 ? this.sliderCha.next() : n > 50 ? this.sliderCha.prev() : this.updatePosition();
-      this.sliderCha.startAutoplay();
-    }
-  }
-  startMomentumScroll(t, i, n, r = !1) {
-    var h;
-    this.cancelMomentumScroll(), this.scrollFrom = this.currentTranslate, this.scrollToTarget = t, this.scrollFriction = 1, this.noConstrain = r;
-    const o = Math.abs(t - this.scrollFrom);
-    if (this.scrollDuration = i ?? Math.max(o / 1.5, 800), o < 1) {
-      this.currentTranslate = t, this.setTransform(this.currentTranslate), this.prevTranslate = this.currentTranslate, (h = this.sliderCha) == null || h.alignIndexToFreeTranslation(this.currentTranslate), n && n();
-      return;
-    }
-    this.scrollStartTime = performance.now(), this.isScrollAnimating = !0, T.add(this.scrollTickerCallback);
-  }
-  runScrollLoop() {
-    if (!this.isScrollAnimating || !this.sliderCha) return;
-    const i = performance.now() - this.scrollStartTime, n = Math.min(i / this.scrollDuration, 1), r = D.quartOut(n), h = (this.scrollFrom + (this.scrollToTarget - this.scrollFrom) * r - this.currentTranslate) * this.scrollFriction;
-    if (this.currentTranslate += h, this.setTransform(this.currentTranslate), this.sliderCha.options.loop)
-      this.checkLoopBoundsInstant();
-    else if (!this.noConstrain) {
-      const { max: l, min: c } = this.sliderCha.getBoundaries(), u = this.sliderCha.options.edgeResistance;
-      if (this.currentTranslate > l || this.currentTranslate < c) {
-        if (this.currentTranslate > l) {
-          if (u <= 0) {
-            this.currentTranslate = l, this.setTransform(this.currentTranslate), this.cancelMomentumScroll(), this.sliderCha.startAutoplay();
-            return;
-          } else if (this.currentTranslate > l + u) {
-            this.currentTranslate = l + u, this.setTransform(this.currentTranslate), this.cancelMomentumScroll(), this.startMomentumScroll(l, 600, void 0, !0);
-            return;
-          }
-        } else if (this.currentTranslate < c) {
-          if (u <= 0) {
-            this.currentTranslate = c, this.setTransform(this.currentTranslate), this.cancelMomentumScroll(), this.sliderCha.startAutoplay();
-            return;
-          } else if (this.currentTranslate < c - u) {
-            this.currentTranslate = c - u, this.setTransform(this.currentTranslate), this.cancelMomentumScroll(), this.startMomentumScroll(c, 600, void 0, !0);
-            return;
-          }
-        }
-        if (this.scrollFriction *= 0.6, Math.abs(h) < 1) {
-          const p = this.currentTranslate > l ? l : c;
-          this.startMomentumScroll(p, 600, void 0, !0);
-          return;
-        }
-      }
-    }
-    n >= 1 && Math.abs(h) < 0.5 && (this.isScrollAnimating = !1, this.prevTranslate = this.currentTranslate, T.remove(this.scrollTickerCallback), this.sliderCha.alignIndexToFreeTranslation(this.currentTranslate), this.sliderCha.startAutoplay());
-  }
-  cancelMomentumScroll() {
-    this.isScrollAnimating = !1, T.remove(this.scrollTickerCallback);
-  }
-  checkLoopBoundsInstant() {
-    if (!this.sliderCha || !this.sliderCha.options.loop) return;
-    const t = this.sliderCha.originalSlidesCount, i = this.sliderCha.getCloneCount(), n = parseFloat(this.sliderCha.startPadding) || 0;
-    let r = 0, o = 0;
-    if (this.sliderCha.options.autoSize)
-      o = this.sliderCha.getOffsetForIndex(i), r = this.sliderCha.getOffsetForIndex(i + t) - o;
-    else {
-      const m = this.sliderCha.getSlideSizeWithGap();
-      o = i * m, r = t * m;
-    }
-    let h = 0;
-    if (this.sliderCha.options.centered) {
-      const m = this.sliderCha.getBoundingClientRect()[this.sliderCha.sizeDim];
-      let y = 0;
-      this.sliderCha.options.autoSize ? y = this.sliderCha.getOffsetForIndex(i + 1) - this.sliderCha.getOffsetForIndex(i) : y = this.sliderCha.getSlideSizeWithGap(), h = m / 2 - y / 2;
-    }
-    const l = -o + n + h, c = l - r;
-    let u = !1, d = this.currentTranslate, p = 0, f = 0;
-    const g = this.sliderCha.options.centered ? 50 : 0;
-    this.currentTranslate > l + g ? (d = this.currentTranslate - r, p = -r, f = t, u = !0) : this.currentTranslate <= c - g && (d = this.currentTranslate + r, p = r, f = -t, u = !0), u && (this.isResetting = !0, this.style.transition = "none", this.currentTranslate = d, this.prevTranslate = this.currentTranslate, this.isScrollAnimating && (this.scrollFrom += p, this.scrollToTarget += p), this.setTransform(this.currentTranslate), this.sliderCha.shiftCurrentIndex(f), this.isResetting = !1);
-  }
-  setTransform(t) {
-    this.sliderCha && (I(this, this.sliderCha.transformFn === "translateY" ? "y" : "x", t), this.style.transform = Y(this), this.sliderCha.updateProgress(t, this.style.transition));
-  }
-  updatePosition(t = !1) {
-    if (!this.sliderCha || this.isResetting) return;
-    this.cancelMomentumScroll();
-    const i = this.sliderCha.options;
-    t ? this.style.transition = "none" : this.style.transition = `transform ${i.speed}ms ease-out, height ${i.speed}ms ease-out`;
-    const n = parseFloat(this.sliderCha.startPadding) || 0, r = this.sliderCha.getRawIndex();
-    let o = n, h = 0, l = 0;
-    if (i.autoSize)
-      h = this.sliderCha.getOffsetForIndex(r), l = this.sliderCha.getOffsetForIndex(r + 1) - h;
-    else {
-      const c = this.sliderCha.getSlideSizeWithGap();
-      h = r * c, l = c;
-    }
-    if (i.centered) {
-      const c = this.sliderCha.getBoundingClientRect()[this.sliderCha.sizeDim];
-      o += c / 2 - (h + l / 2);
-    } else
-      o -= h;
-    if (!i.loop) {
-      const { max: c, min: u } = this.sliderCha.getBoundaries();
-      o = Math.max(u, Math.min(c, o));
-    }
-    if (this.currentTranslate = o, this.prevTranslate = this.currentTranslate, this.setTransform(this.currentTranslate), t && this.offsetHeight, i.loop) {
-      const c = this.sliderCha.originalSlidesCount, u = this.sliderCha.getCloneCount();
-      (r >= u + c || r < u) && setTimeout(() => {
-        this.checkLoopBoundsInstant();
-      }, i.speed);
-    }
-  }
-}
-class K {
-  static parse(e) {
-    if (!e) return null;
-    try {
-      let t = e.replace(/'/g, '"');
-      return t = t.replace(/([{,]\s*)([a-zA-Z0-9_.-]+)\s*:/g, '$1"$2":'), t = t.replace(/,\s*([}\]])/g, "$1"), JSON.parse(t);
-    } catch (t) {
-      return console.warn("SixJS: Lỗi cú pháp JSON ở thuộc tính breakpoints", t), null;
-    }
-  }
-  static getMatch(e, t, i) {
-    if (!i) return { ...t };
-    let n = { ...t };
-    const r = Object.keys(i).map(Number).sort((o, h) => o - h);
-    for (const o of r)
-      if (e >= o) {
-        const h = this.kebabToCamel(i[o]);
-        n = { ...n, ...h };
-      }
-    return n;
-  }
-  static kebabToCamel(e) {
-    if (typeof e != "object" || e === null) return e;
-    const t = {};
-    for (const i in e) {
-      const n = i.replace(/-([a-z])/g, (r) => r[1].toUpperCase());
-      t[n] = e[i];
-    }
-    return t;
-  }
-}
-class be extends w {
-  constructor() {
-    super();
-    a(this, "options");
-    a(this, "originalOptions");
-    a(this, "breakpointsConfig", null);
-    a(this, "currentIndex", 0);
-    a(this, "lastFiredIndex", -1);
-    a(this, "track", null);
-    a(this, "resizeObserver");
-    a(this, "originalSlidesCount", 0);
-    a(this, "autoplayTimer", null);
-    a(this, "isFirstInit", !0);
-    a(this, "lastContainerSize", 0);
-    a(this, "isFirstHeightMeasure", !0);
-    a(this, "isClickRouting", !1);
-    a(this, "slideOffsetsCache", null);
-    a(this, "handleVisibilityChange", () => {
-      document.hidden ? this.stopAutoplay() : this.options.autoplay && this.startAutoplay();
-    });
-    this.parseOptions();
-  }
-  get sizeDim() {
-    return this.options.direction === "vertical" ? "height" : "width";
-  }
-  get marginProp() {
-    return this.options.direction === "vertical" ? "marginBottom" : "marginRight";
-  }
-  get clientAxis() {
-    return this.options.direction === "vertical" ? "clientY" : "clientX";
-  }
-  get transformFn() {
-    return this.options.direction === "vertical" ? "translateY" : "translateX";
-  }
-  get startPadding() {
-    return this.options.leftPadding;
-  }
-  getCloneCount() {
-    return this.options.autoSize ? this.originalSlidesCount : this.options.perView;
-  }
-  updateProgress(t, i) {
-    let n = 0, r = 0;
-    const o = this.getBoundingClientRect()[this.sizeDim];
-    if (this.options.loop) {
-      const c = this.originalSlidesCount;
-      if (c > 0 && this.track) {
-        const u = this.getCloneCount(), d = parseFloat(this.startPadding) || 0;
-        let p = 0, f = 0;
-        if (this.options.autoSize)
-          p = this.getOffsetForIndex(u), f = this.getOffsetForIndex(u + c) - p;
-        else {
-          const g = this.getSlideSizeWithGap();
-          p = u * g, f = c * g;
-        }
-        if (f > 0) {
-          r = o / f;
-          let g = 0;
-          if (this.options.centered) {
-            let v = this.options.autoSize ? this.getOffsetForIndex(u + 1) - this.getOffsetForIndex(u) : this.getSlideSizeWithGap();
-            g = o / 2 - v / 2;
-          }
-          n = (-p + d + g - t) / f, n = (n % 1 + 1) % 1;
-        } else
-          n = 1, r = 1;
-      }
-    } else {
-      const { max: c, min: u } = this.getBoundaries(), d = c - u;
-      d > 0 ? (n = (c - t) / d, r = o / (d + o)) : (n = 1, r = 1);
-    }
-    r = Math.max(0, Math.min(1, r));
-    const h = r + n * (1 - r);
-    let l = Array.from(
-      this.querySelectorAll("sx-slider-progress")
-    );
-    if (this.options.name) {
-      const c = Array.from(
-        document.querySelectorAll(
-          `sx-slider-progress[name="${this.options.name}"]`
-        )
-      );
-      l = [.../* @__PURE__ */ new Set([...l, ...c])];
-    }
-    l.forEach((c) => {
-      typeof c.update == "function" && c.update(h, this.options.direction, i);
-    });
-  }
-  getRectSize(t) {
-    return t.getBoundingClientRect()[this.sizeDim];
-  }
-  static get observedAttributes() {
-    return [
-      "name",
-      "per-view",
-      "gap",
-      "drag",
-      "speed",
-      "right-padding",
-      "left-padding",
-      "rewind",
-      "edge-resistance",
-      "loop",
-      "grab-cursor",
-      "snap",
-      "autoplay",
-      "interval",
-      "start-index",
-      "auto-size",
-      "per-move",
-      "auto-height",
-      "centered",
-      "auto-centered",
-      "center-if-short",
-      "direction",
-      "vertical-scroll",
-      "effect",
-      "breakpoints",
-      "sync",
-      "lock-active"
-    ];
-  }
-  connectedCallback() {
-    if (this.track = this.querySelector("sx-slider-track"), this.options.name && q.register(this.options.name, this), this.resizeObserver = new ResizeObserver(() => {
-      window.requestAnimationFrame(() => {
-        if (!this.isConnected) return;
-        const t = this.getBoundingClientRect()[this.sizeDim];
-        t !== this.lastContainerSize && (this.lastContainerSize = t, this.updateLayout());
-      });
-    }), this.resizeObserver.observe(this), this.track) {
-      let t = 0, i = 0;
-      this.track.addEventListener("mousedown", (n) => {
-        t = n.clientX, i = n.clientY;
-      }), this.track.addEventListener(
-        "touchstart",
-        (n) => {
-          n.touches.length > 0 && (t = n.touches[0].clientX, i = n.touches[0].clientY);
-        },
-        { passive: !0 }
-      ), this.track.addEventListener("click", (n) => {
-        const r = Math.abs(n.clientX - t), o = Math.abs(n.clientY - i);
-        if (r > 6 || o > 6) return;
-        const h = n.target.closest("sx-slider-slide");
-        if (!h) return;
-        const l = h.getAttribute("data-real-index");
-        if (l !== null) {
-          const c = parseInt(l, 10);
-          this.goTo(c, !0);
-        }
-      }), this.initLoopClones();
-    }
-    document.addEventListener("visibilitychange", this.handleVisibilityChange), this.startAutoplay(), this.dispatchEvent(
-      new CustomEvent("sx-slider-init", {
-        bubbles: !0,
-        composed: !0,
-        detail: { name: this.options.name }
-      })
-    );
-  }
-  disconnectedCallback() {
-    this.dispatchEvent(
-      new CustomEvent("sx-slider-destroy", {
-        bubbles: !0,
-        composed: !0,
-        detail: { name: this.options.name }
-      })
-    ), this.options.name && q.unregister(this.options.name), this.resizeObserver.disconnect(), this.stopAutoplay(), document.removeEventListener(
-      "visibilitychange",
-      this.handleVisibilityChange
-    );
-  }
-  attributeChangedCallback() {
-    this.parseOptions(), this.updateLayout(), this.startAutoplay();
-  }
-  parseOptions() {
-    const t = (f) => f ? isNaN(Number(f)) ? f : `${f}px` : "0px", i = this.getAttribute("edge-resistance"), n = i !== null ? Number(i) : 100, r = this.getAttribute("interval"), o = W(r, 4e3), h = this.getAttribute("start-index"), l = h !== null ? Number(h) : 0, c = this.getAttribute("per-move");
-    let u = "auto";
-    if (c !== null && c !== "auto") {
-      const f = Number(c);
-      u = isNaN(f) ? "auto" : f;
-    }
-    let d = this.getAttribute("direction");
-    d !== "horizontal" && d !== "vertical" && (d = "horizontal");
-    let p = this.getAttribute("effect");
-    p !== "fade" && (p = "slide"), this.options = {
-      name: this.getAttribute("name"),
-      perView: Number(this.getAttribute("per-view")) || 1,
-      gap: t(this.getAttribute("gap")),
-      drag: this.getAttribute("drag") || "true",
-      speed: W(this.getAttribute("speed"), 300),
-      rightPadding: t(this.getAttribute("right-padding")),
-      leftPadding: t(this.getAttribute("left-padding")),
-      rewind: this.hasAttribute("rewind"),
-      edgeResistance: isNaN(n) ? 0 : n,
-      loop: this.hasAttribute("loop"),
-      grabCursor: this.hasAttribute("grab-cursor"),
-      snap: this.hasAttribute("snap"),
-      autoplay: this.hasAttribute("autoplay"),
-      interval: isNaN(o) ? 4e3 : o,
-      startIndex: isNaN(l) ? 0 : l,
-      autoSize: this.hasAttribute("auto-size"),
-      perMove: u,
-      autoHeight: this.hasAttribute("auto-height"),
-      centered: this.hasAttribute("centered") || this.hasAttribute("auto-centered"),
-      autoCentered: this.hasAttribute("auto-centered"),
-      centerIfShort: this.hasAttribute("center-if-short"),
-      direction: d,
-      verticalScroll: this.hasAttribute("vertical-scroll"),
-      effect: p,
-      sync: this.getAttribute("sync"),
-      lockActive: this.hasAttribute("lock-active")
-    }, this.originalOptions = { ...this.options }, this.breakpointsConfig = K.parse(
-      this.getAttribute("breakpoints")
-    );
-  }
-  startAutoplay() {
-    this.stopAutoplay(), this.options.autoplay && this.options.interval > 0 && (this.autoplayTimer = window.setInterval(() => {
-      this.next();
-    }, this.options.interval));
-  }
-  stopAutoplay() {
-    this.autoplayTimer !== null && (clearInterval(this.autoplayTimer), this.autoplayTimer = null);
-  }
-  initLoopClones() {
-    if (!this.track || !this.options.loop) return;
-    this.track.querySelectorAll("[data-clone]").forEach((r) => r.remove());
-    const i = Array.from(this.track.children);
-    if (this.originalSlidesCount = i.length, this.originalSlidesCount === 0) return;
-    i.forEach((r, o) => {
-      r.setAttribute("data-real-index", o.toString());
-    });
-    const n = this.getCloneCount();
-    for (let r = 0; r < n; r++) {
-      const h = i[i.length - 1 - r].cloneNode(!0);
-      h.setAttribute("data-clone", "prev"), this.track.insertBefore(h, this.track.firstChild);
-    }
-    for (let r = 0; r < n; r++) {
-      const h = i[r].cloneNode(!0);
-      h.setAttribute("data-clone", "next"), this.track.appendChild(h);
-    }
-    this.invalidateOffsetsCache();
-  }
-  destroyLoopClones() {
-    if (!this.track) return;
-    this.track.querySelectorAll("[data-clone]").forEach((i) => i.remove()), this.originalSlidesCount = 0, this.invalidateOffsetsCache();
-  }
-  formatUnit(t) {
-    return t == null || t === "" ? "0px" : isNaN(Number(t)) ? String(t) : `${t}px`;
-  }
-  updateLayout() {
-    if (!this.track) return;
-    this.style.setProperty("--sx-speed", `${this.options.speed}ms`);
-    const t = this.getBoundingClientRect()[this.sizeDim];
-    let i = Array.from(this.track.children);
-    if (i.length === 0) return;
-    if (this.options.loop || i.forEach((f, g) => {
-      f.setAttribute("data-real-index", g.toString());
-    }), this.breakpointsConfig && this.originalOptions) {
-      this.options = K.getMatch(
-        t,
-        JSON.parse(JSON.stringify(this.originalOptions)),
-        this.breakpointsConfig
-      );
-      const f = (g) => g == null || g === "" ? "0px" : isNaN(Number(g)) ? String(g) : `${g}px`;
-      this.options.gap = f(this.options.gap), this.options.leftPadding = f(this.options.leftPadding), this.options.rightPadding = f(this.options.rightPadding);
-    }
-    this.options.effect === "fade" ? this.setAttribute("data-active-effect", "fade") : this.removeAttribute("data-active-effect"), this.options.grabCursor && this.options.drag !== "false" ? this.track.setAttribute("grab-cursor", "") : this.track.removeAttribute("grab-cursor"), this.options.loop && this.originalSlidesCount === 0 ? (this.initLoopClones(), i = Array.from(this.track.children)) : !this.options.loop && this.originalSlidesCount > 0 && (this.destroyLoopClones(), i = Array.from(this.track.children), this.currentIndex = Math.max(
-      0,
-      Math.min(this.currentIndex, i.length - 1)
-    ));
-    const n = this.track.querySelectorAll("[data-clone]").length, r = i.length - n;
-    if (this.isFirstInit && r > 0) {
-      const f = Math.max(
-        0,
-        Math.min(this.options.startIndex, r - 1)
-      );
-      if (this.options.loop) {
-        const g = this.options.autoSize ? r : this.options.perView;
-        this.currentIndex = g + f;
-      } else
-        this.currentIndex = f;
-      this.isFirstInit = !1;
-    }
-    const o = this.getAttribute("left-padding"), h = this.getAttribute("right-padding");
-    !this.options.autoSize && this.options.perView === r && o && parseFloat(o) > 0 && h && parseFloat(h) > 0 ? (this.options.leftPadding = "0px", this.options.rightPadding = "0px") : this.breakpointsConfig || (this.options.leftPadding = this.formatUnit(o), this.options.rightPadding = this.formatUnit(h));
-    const l = this.convertToPx(this.options.gap), c = this.convertToPx(this.options.leftPadding), u = this.convertToPx(this.options.rightPadding);
-    if (this.options.autoSize)
-      i.forEach((f) => {
-        f.style[this.sizeDim] = "max-content";
-      }), this.track.offsetHeight, i.forEach((f) => {
-        const g = f.firstElementChild;
-        g ? f.style[this.sizeDim] = `${g.getBoundingClientRect()[this.sizeDim]}px` : f.style[this.sizeDim] = "max-content", f.style[this.marginProp] = this.options.gap;
-      }), this.options.perView = this.getVisibleSlidesCount();
-    else {
-      const m = ((t || window.innerWidth) - c - u - l * (this.options.perView - 1)) / this.options.perView;
-      i.forEach((y) => {
-        y.style[this.sizeDim] = `${m}px`, y.style[this.marginProp] = this.options.gap;
-      });
-    }
-    let d = !1;
-    const p = i.filter((f) => !f.hasAttribute("data-clone"));
-    if (this.options.autoSize) {
-      let f = 0;
-      p.forEach((g) => {
-        f += this.getRectSize(g) + l;
-      }), f -= l, d = f < t;
-    } else
-      d = r < this.options.perView;
-    this.options.centerIfShort && d ? (this.track.style.justifyContent = "center", this.options.loop && this.track.querySelectorAll("[data-clone]").forEach((g) => g.remove())) : this.track.style.justifyContent = "", this.invalidateOffsetsCache(), this.track.updatePosition(!0), this.updateSlideAttributes();
-  }
-  convertToPx(t) {
-    if (!t || t === "0px" || t === "0") return 0;
-    if (t.endsWith("px"))
-      return parseFloat(t);
-    const i = document.createElement("div");
-    i.style.display = "none", i.style.width = t, document.body.appendChild(i);
-    const n = parseFloat(getComputedStyle(i).width);
-    return document.body.removeChild(i), n || 0;
-  }
-  getSlideSizeWithGap() {
-    if (!this.track || this.track.children.length === 0) return 0;
-    const t = this.track.children[0];
-    return this.getRectSize(t) + this.convertToPx(this.options.gap);
-  }
-  getVisibleSlidesCount() {
-    if (!this.track || this.track.children.length === 0) return 1;
-    const t = this.getBoundingClientRect()[this.sizeDim];
-    let i = 0, n = 0;
-    const r = this.convertToPx(this.options.gap), o = Array.from(this.track.children);
-    for (let h = 0; h < o.length && (i += this.getRectSize(o[h]) + r, !(i - r > t)); h++)
-      n++;
-    return Math.max(1, n);
-  }
-  invalidateOffsetsCache() {
-    this.slideOffsetsCache = null;
-  }
-  buildOffsetsCache() {
-    const t = this.track ? Array.from(this.track.children) : [], i = this.convertToPx(this.options.gap), n = [0];
-    for (let r = 0; r < t.length; r++)
-      n.push(n[r] + this.getRectSize(t[r]) + i);
-    return n;
-  }
-  getOffsetForIndex(t) {
-    if (!this.track) return 0;
-    this.slideOffsetsCache || (this.slideOffsetsCache = this.buildOffsetsCache());
-    const i = this.slideOffsetsCache, n = Math.max(0, Math.min(t, i.length - 1));
-    return i[n];
-  }
-  getMaxTranslate() {
-    if (!this.track || this.track.children.length === 0) return 0;
-    const t = this.getBoundingClientRect()[this.sizeDim];
-    let i = 0;
-    if (this.options.autoSize)
-      i = this.getOffsetForIndex(this.track.children.length), i -= this.convertToPx(this.options.gap);
-    else {
-      const n = this.track.children.length;
-      i = this.getSlideSizeWithGap() * n - this.convertToPx(this.options.gap);
-    }
-    return Math.max(0, i - t);
-  }
-  getBoundaries() {
-    if (!this.track || this.track.children.length === 0)
-      return { max: 0, min: 0 };
-    const t = this.getBoundingClientRect()[this.sizeDim], i = parseFloat(this.startPadding) || 0;
-    this.convertToPx(this.options.gap);
-    const n = this.track.children.length;
-    let r = 0, o = -this.getMaxTranslate();
-    if (this.options.centered && !this.options.autoCentered) {
-      let h = this.options.autoSize ? this.getOffsetForIndex(1) - this.getOffsetForIndex(0) : this.getSlideSizeWithGap();
-      r = i + t / 2 - h / 2;
-      let l = n - 1, c = this.options.autoSize ? this.getOffsetForIndex(l) : l * this.getSlideSizeWithGap(), u = this.options.autoSize ? this.getOffsetForIndex(l + 1) - c : this.getSlideSizeWithGap();
-      o = i + t / 2 - (c + u / 2);
-    }
-    return { max: r, min: Math.min(r, o) };
-  }
-  updateSlideAttributes() {
-    if (!this.track) return;
-    const t = Array.from(this.track.children);
-    if (t.length === 0) return;
-    const i = this.options.loop, n = i ? this.originalSlidesCount : t.length;
-    if (n === 0) return;
-    const r = i ? this.getCloneCount() : 0, o = (b) => {
-      if (!i) return b;
-      let S = (b - r) % n;
-      return S < 0 && (S += n), S;
-    }, h = this.options.centered ? 0 : Math.floor(this.options.perView / 2), l = o(this.currentIndex);
-    this.lastFiredIndex !== l && (this.lastFiredIndex = l, this.dispatchEvent(
-      new CustomEvent("sx-change", {
-        detail: { activeIndex: l }
-      })
-    ));
-    const c = o(this.currentIndex - 1), u = o(this.currentIndex + 1), d = o(this.currentIndex + h), p = this.isFirstHeightMeasure;
-    p && (this.isFirstHeightMeasure = !1);
-    let f = null;
-    p && (f = document.createElement("style"), f.innerHTML = "sx-slider-slide, sx-slider-slide * { transition: none !important; }", this.appendChild(f), this.offsetHeight), t.forEach((b, S) => {
-      const C = o(S);
-      b.setAttribute("aria-label", `${C + 1}/${n}`);
-    }), this.options.lockActive && !this.isClickRouting && !p || t.forEach((b, S) => {
-      b.removeAttribute("sx-slide-active"), b.removeAttribute("sx-slide-prev"), b.removeAttribute("sx-slide-next"), b.removeAttribute("sx-slide-center");
-      const C = o(S);
-      C === l && b.setAttribute("sx-slide-active", ""), C === c && b.setAttribute("sx-slide-prev", ""), C === u && b.setAttribute("sx-slide-next", ""), C === d && b.setAttribute("sx-slide-center", "");
-    }), this.updateAutoHeight();
-    const g = i ? n - 1 : this.getRealMaxIndex();
-    this.updateNavigation(i ? void 0 : g);
-    const m = this.getResolvedPerMove();
-    let y = [];
-    if (m > 1 && !this.options.autoSize) {
-      let b = 0;
-      for (; b < g; )
-        y.push(b), b += m;
-      b !== g && y.push(g);
-    } else
-      for (let b = 0; b <= g; b++)
-        y.push(b);
-    let v = y.indexOf(l);
-    if (v === -1) {
-      for (let b = y.length - 1; b >= 0; b--)
-        if (l >= y[b]) {
-          v = b;
-          break;
-        }
-    }
-    this.updatePagination(y, v), this.options.sync && (this.isClickRouting || !this.options.lockActive) && this.options.sync.split(",").map((S) => S.trim()).forEach((S) => {
-      const C = q.get(S);
-      C && C.syncFromController(l);
-    }), p && f && requestAnimationFrame(() => {
-      f == null || f.remove();
-    });
-  }
-  syncFromController(t) {
-    if (!this.track) return;
-    const i = this.options.loop, n = Array.from(this.track.children), r = this.track.querySelectorAll("[data-clone]").length, o = i ? this.originalSlidesCount : n.length - r;
-    if (((l) => {
-      if (!i) return l;
-      const c = this.getCloneCount();
-      let u = (l - c) % o;
-      return u < 0 && (u += o), u;
-    })(this.currentIndex) !== t) {
-      if (i) {
-        const l = this.getCloneCount(), c = t + l, u = this.originalSlidesCount, d = n.length;
-        let p = c, f = Math.abs(c - this.currentIndex);
-        [c - u, c, c + u].forEach((m) => {
-          if (m >= 0 && m < d) {
-            const y = Math.abs(m - this.currentIndex);
-            y < f && (f = y, p = m);
-          }
-        }), this.currentIndex = p;
-      } else
-        this.currentIndex = Math.max(0, Math.min(t, o - 1));
-      this.isClickRouting = !0, this.updateSlideAttributes(), this.track.updatePosition(), this.isClickRouting = !1;
-    }
-  }
-  updateAutoHeight() {
-    if (!this.track) return;
-    if (!this.options.autoHeight) {
-      this.track.style.height = "", this.track.style.alignItems = "";
-      return;
-    }
-    this.track.style.alignItems = "flex-start";
-    const t = Array.from(this.track.children);
-    if (t.length === 0) return;
-    const i = this.options.perView, n = this.options.centered ? Math.floor(i / 2) : 0;
-    let r = this.currentIndex - n;
-    this.options.loop || (r = Math.max(0, r));
-    let o = 0;
-    for (let h = 0; h < i; h++) {
-      let l = r + h;
-      this.options.loop && (l < 0 ? l = t.length + l : l >= t.length && (l = l % t.length));
-      const c = t[l];
-      if (!c) continue;
-      const u = c.firstElementChild, d = u ? u.getBoundingClientRect().height : c.getBoundingClientRect().height;
-      d > o && (o = d);
-    }
-    o > 0 && (this.track.style.height = `${o}px`);
-  }
-  getCurrentIndex() {
-    if (!this.track) return 0;
-    const t = this.options.loop, i = Array.from(this.track.children), n = t ? this.originalSlidesCount : i.length;
-    if (n === 0) return 0;
-    const r = t ? this.getCloneCount() : 0;
-    let o = t ? (this.currentIndex - r) % n : this.currentIndex;
-    return o < 0 && (o += n), o;
-  }
-  getRawIndex() {
-    return this.currentIndex;
-  }
-  setCurrentIndex(t) {
-    this.currentIndex = t, this.updateSlideAttributes();
-  }
-  shiftCurrentIndex(t) {
-    this.currentIndex += t, this.updateSlideAttributes();
-  }
-  getRealMaxIndex() {
-    if (!this.track || this.track.children.length === 0) return 0;
-    const t = this.track.children.length, { min: i } = this.getBoundaries(), n = this.options.autoSize ? 0 : this.getSlideSizeWithGap(), r = this.options.centered ? this.getBoundingClientRect()[this.sizeDim] : 0;
-    for (let o = 0; o < t; o++) {
-      let h = this.options.autoSize ? this.getOffsetForIndex(o) : o * n, l = this.options.autoSize ? this.getOffsetForIndex(o + 1) - h : n, c = parseFloat(this.startPadding) || 0;
-      if (this.options.centered ? c += r / 2 - (h + l / 2) : c -= h, c <= i + 1)
-        return o;
-    }
-    return Math.max(0, t - 1);
-  }
-  getResolvedPerMove() {
-    return this.options.perMove === "auto" ? 1 : Math.max(1, this.options.perMove);
-  }
-  next() {
-    if (!this.track) return;
-    const t = this.getResolvedPerMove(), i = this.options.loop ? this.getCloneCount() : 0, n = ((this.currentIndex - i) % t + t) % t, r = n !== 0 ? t - n : t;
-    if (this.options.loop)
-      this.currentIndex += r, this.updateSlideAttributes(), this.track.updatePosition();
-    else {
-      const o = this.getRealMaxIndex();
-      this.currentIndex < o ? this.currentIndex = Math.min(o, this.currentIndex + r) : this.options.rewind && (this.currentIndex = 0), this.updateSlideAttributes(), this.track.updatePosition();
-    }
-  }
-  prev() {
-    if (!this.track) return;
-    const t = this.getResolvedPerMove(), i = this.options.loop ? this.getCloneCount() : 0, n = ((this.currentIndex - i) % t + t) % t, r = n !== 0 ? n : t;
-    this.options.loop ? (this.currentIndex -= r, this.updateSlideAttributes(), this.track.updatePosition()) : (this.currentIndex > 0 ? this.currentIndex = Math.max(0, this.currentIndex - r) : this.options.rewind && (this.currentIndex = this.getRealMaxIndex()), this.updateSlideAttributes(), this.track.updatePosition());
-  }
-  goTo(t, i = !1) {
-    if (this.track) {
-      if (i && (this.isClickRouting = !0), this.options.loop) {
-        const n = this.getCloneCount(), r = t + n, o = this.originalSlidesCount, h = this.track.children.length;
-        let l = r, c = Math.abs(r - this.currentIndex);
-        [r - o, r, r + o].forEach((d) => {
-          if (d >= 0 && d < h) {
-            const p = Math.abs(d - this.currentIndex);
-            p < c && (c = p, l = d);
-          }
-        }), this.currentIndex = l;
-      } else {
-        const n = Array.from(this.track.children), r = this.track.querySelectorAll("[data-clone]").length, o = n.length - r;
-        this.currentIndex = Math.max(0, Math.min(t, o - 1));
-      }
-      this.updateSlideAttributes(), this.track.updatePosition(), this.isClickRouting = !1;
-    }
-  }
-  alignIndexToFreeTranslation(t) {
-    if (!this.track) return;
-    const i = parseFloat(this.startPadding) || 0, n = this.getBoundingClientRect()[this.sizeDim], r = Array.from(this.track.children), o = this.options.autoSize ? 0 : this.getSlideSizeWithGap(), h = this.options.loop ? null : this.getBoundaries();
-    let l = 0, c = 1 / 0;
-    const u = this.currentIndex;
-    for (let d = 0; d < r.length; d++) {
-      let p = 0, f = 0;
-      this.options.autoSize ? (p = this.getOffsetForIndex(d), f = this.getOffsetForIndex(d + 1) - p) : (p = d * o, f = o);
-      let g = i;
-      if (this.options.centered ? g += n / 2 - (p + f / 2) : g -= p, h) {
-        const { max: y, min: v } = h;
-        this.options.centered && this.options.autoCentered ? g = Math.max(
-          v,
-          Math.min(y, g)
-        ) : this.options.centered || (d === 0 && (g = 0), g < v && (g = v), g > 0 && (g = 0));
-      }
-      const m = Math.abs(t - g);
-      m < c - 0.5 ? (c = m, l = d) : Math.abs(m - c) <= 0.5 && Math.abs(d - u) < Math.abs(l - u) && (l = d, c = m);
-    }
-    if (this.currentIndex = l, !this.options.loop) {
-      const d = this.getRealMaxIndex();
-      this.currentIndex = Math.min(this.currentIndex, d);
-    }
-    this.updateSlideAttributes(), this.options.loop && this.track && this.track.checkLoopBoundsInstant();
-  }
-  updateNavigation(t) {
-    let i = Array.from(this.querySelectorAll("sx-slider-prev")), n = Array.from(this.querySelectorAll("sx-slider-next"));
-    if (this.options.name) {
-      const o = Array.from(
-        document.querySelectorAll(
-          `sx-slider-prev[name="${this.options.name}"]`
-        )
-      ), h = Array.from(
-        document.querySelectorAll(
-          `sx-slider-next[name="${this.options.name}"]`
-        )
-      );
-      i = [.../* @__PURE__ */ new Set([...i, ...o])], n = [.../* @__PURE__ */ new Set([...n, ...h])];
-    }
-    if (this.options.loop || this.options.rewind) {
-      i.forEach((o) => o.removeAttribute("sx-disabled")), n.forEach((o) => o.removeAttribute("sx-disabled"));
-      return;
-    }
-    this.currentIndex <= 0 ? i.forEach((o) => o.setAttribute("sx-disabled", "")) : i.forEach((o) => o.removeAttribute("sx-disabled"));
-    const r = t ?? this.getRealMaxIndex();
-    this.currentIndex >= r ? n.forEach((o) => o.setAttribute("sx-disabled", "")) : n.forEach((o) => o.removeAttribute("sx-disabled"));
-  }
-  updatePagination(t, i) {
-    let n = Array.from(
-      this.querySelectorAll("sx-slider-pagination")
-    );
-    if (this.options.name) {
-      const r = Array.from(
-        document.querySelectorAll(
-          `sx-slider-pagination[name="${this.options.name}"]`
-        )
-      );
-      n = [.../* @__PURE__ */ new Set([...n, ...r])];
-    }
-    n.forEach((r) => {
-      typeof r.renderBullets == "function" && r.renderBullets(t), typeof r.updateActive == "function" && r.updateActive(i);
-    });
-  }
-}
-function ye() {
-  customElements.get("sx-slider") || customElements.define("sx-slider", be), customElements.get("sx-slider-track") || customElements.define("sx-slider-track", me), customElements.get("sx-slider-slide") || customElements.define("sx-slider-slide", he), customElements.get("sx-slider-progress") || customElements.define("sx-slider-progress", pe), customElements.get("sx-slider-prev") || customElements.define("sx-slider-prev", fe), customElements.get("sx-slider-pagination") || customElements.define("sx-slider-pagination", de), customElements.get("sx-slider-next") || customElements.define("sx-slider-next", ue);
-}
-const z = {
-  duration: 300,
-  closeOnOutsideClick: !0,
-  closeOnEscKey: !0,
-  scrollable: !1,
-  overlay: !0,
-  overlayStyle: "background-color: rgba(0, 0, 0, 0.5);",
-  effect: "zoom",
-  position: "center"
-}, E = class E extends w {
-  constructor() {
-    super();
-    a(this, "isOpen", !1);
-    a(this, "previousActiveElement", null);
-    a(this, "focusableElementsString", 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex]:not([tabindex="-1"]), [contenteditable]');
-    a(this, "backdropEl", null);
-    a(this, "dialogCoreEl", null);
-    a(this, "closeCursorEl", null);
-    a(this, "movingCloseCursor", !1);
-    a(this, "originalContentHTML", "");
-    a(this, "breakpointsConfig", null);
-    a(this, "originalOptions", null);
-    a(this, "resizeRaf", null);
-    a(this, "handleToggleEvent", (t) => {
-      t.detail.name === this.name && (this.isOpen ? this.close() : this.open());
-    });
-    a(this, "handleResize", () => {
-      this.resizeRaf !== null && cancelAnimationFrame(this.resizeRaf), this.resizeRaf = requestAnimationFrame(() => this.applyBreakpoints());
-    });
-    a(this, "handleKeyDown", (t) => {
-      if (this.isOpen) {
-        if (t.key === "Escape") {
-          t.stopPropagation(), this.closeOnEscKey && (t.preventDefault(), this.close());
-          return;
-        }
-        t.key === "Tab" && (t.stopPropagation(), this.trapFocus(t));
-      }
-    });
-    a(this, "handleBackdropClick", (t) => {
-      this.closeOnOutsideClick && this.close();
-    });
-    a(this, "handleBackdropPointerMove", (t) => {
-      !this.closeCursorEl || !this.closeOnOutsideClick || (this.closeCursorEl.style.transform = `translate3d(${t.clientX}px, ${t.clientY}px, 0) translate(-50%, -50%)`, this.closeCursorEl.classList.contains("is-visible") || (this.closeCursorEl.classList.add("is-visible"), this.backdropEl && (this.backdropEl.style.cursor = "none")));
-    });
-    a(this, "handleBackdropPointerLeave", () => {
-      var t;
-      (t = this.closeCursorEl) == null || t.classList.remove("is-visible"), this.backdropEl && (this.backdropEl.style.cursor = "");
-    });
-  }
-  static get observedAttributes() {
-    return ["sx-open", "duration", "scrollable", "overlay", "overlay-style", "effect", "position", "breakpoints"];
-  }
-  get name() {
-    return this.getAttribute("name");
-  }
-  get duration() {
-    const t = this.getAttribute("duration");
-    return W(t, z.duration);
-  }
-  get closeOnOutsideClick() {
-    const t = this.getAttribute("close-on-outside-click");
-    return t !== null ? t !== "false" : z.closeOnOutsideClick;
-  }
-  get closeOnEscKey() {
-    const t = this.getAttribute("close-on-esc-key");
-    return t !== null ? t !== "false" : z.closeOnEscKey;
-  }
-  get scrollable() {
-    const t = this.getAttribute("scrollable");
-    return t !== null ? t !== "false" : z.scrollable;
-  }
-  get overlay() {
-    const t = this.getAttribute("overlay");
-    return t !== null ? t !== "false" : z.overlay;
-  }
-  get overlayStyle() {
-    return this.getAttribute("overlay-style") || z.overlayStyle;
-  }
-  get effect() {
-    return this.getAttribute("effect") || z.effect;
-  }
-  get position() {
-    return this.getAttribute("position") || z.position;
-  }
-  connectedCallback() {
-    this.originalContentHTML = this.innerHTML, this.originalOptions = {
-      duration: this.duration,
-      closeOnOutsideClick: this.closeOnOutsideClick,
-      closeOnEscKey: this.closeOnEscKey,
-      scrollable: this.scrollable,
-      overlay: this.overlay,
-      overlayStyle: this.overlayStyle,
-      effect: this.effect,
-      position: this.position
-    }, this.breakpointsConfig = K.parse(this.getAttribute("breakpoints")), this.render(), this.applyBreakpoints(), window.addEventListener("sx-dialog-toggle", this.handleToggleEvent), window.addEventListener("resize", this.handleResize), this.addEventListener("keydown", this.handleKeyDown);
-  }
-  disconnectedCallback() {
-    var i;
-    window.removeEventListener("sx-dialog-toggle", this.handleToggleEvent), window.removeEventListener("resize", this.handleResize), this.resizeRaf !== null && cancelAnimationFrame(this.resizeRaf), this.removeEventListener("keydown", this.handleKeyDown), this.setInertOnSiblings(!1), (i = this.closeCursorEl) == null || i.remove(), this.closeCursorEl = null;
-    const t = E.openStack.indexOf(this);
-    t !== -1 && E.openStack.splice(t, 1);
-  }
-  applyBreakpoints() {
-    if (!this.breakpointsConfig || !this.originalOptions) return;
-    const t = K.getMatch(
-      window.innerWidth,
-      this.originalOptions,
-      this.breakpointsConfig
-    );
-    this.setAttribute("effect", t.effect), this.setAttribute("position", t.position), this.setAttribute("duration", String(t.duration / 1e3)), this.setAttribute("close-on-outside-click", String(t.closeOnOutsideClick)), this.setAttribute("close-on-esc-key", String(t.closeOnEscKey)), this.setAttribute("scrollable", String(t.scrollable)), this.setAttribute("overlay", String(t.overlay)), this.setAttribute("overlay-style", t.overlayStyle), this.style.setProperty("--sx-duration", `${this.duration}ms`), this.syncOverlay();
-  }
-  syncOverlay() {
-    this.overlay ? (this.backdropEl || (this.backdropEl = document.createElement("div"), this.backdropEl.className = "sx-dialog-backdrop", this.attachBackdropListeners(this.backdropEl), this.insertBefore(this.backdropEl, this.firstChild)), this.backdropEl.setAttribute("style", this.overlayStyle)) : this.backdropEl && (this.detachBackdropListeners(this.backdropEl), this.backdropEl.remove(), this.backdropEl = null);
-  }
-  registerCloseCursor(t) {
-    if (this.closeCursorEl && this.closeCursorEl !== t) {
-      const i = this.closeCursorEl;
-      this.closeCursorEl = null, i.remove();
-    }
-    this.name ? t.setAttribute("name", this.name) : t.removeAttribute("name"), this.movingCloseCursor = !0, document.body.appendChild(t), this.movingCloseCursor = !1, this.closeCursorEl = t;
-  }
-  unregisterCloseCursor(t) {
-    this.movingCloseCursor || this.closeCursorEl === t && (this.closeCursorEl = null);
-  }
-  dispatchLifecycleEvent(t, i = !1) {
-    const n = new CustomEvent(t, {
-      bubbles: !0,
-      composed: !0,
-      cancelable: i,
-      detail: { name: this.name }
-    });
-    return this.dispatchEvent(n), !n.defaultPrevented;
-  }
-  open() {
-    var t;
-    return this.isOpen || !this.dispatchLifecycleEvent("sx-dialog-before-open", !0) ? !1 : (this.isOpen = !0, this.clearDragStyles(), this.dialogCoreEl && (this.dialogCoreEl.scrollTop = 0), E.openStack.push(this), this.style.zIndex = String(E.baseZIndex + E.openStack.length), this.setAttribute("sx-open", ""), (t = this.dialogCoreEl) == null || t.setAttribute("aria-hidden", "false"), this.previousActiveElement = document.activeElement, this.lockScroll(), this.setInertOnSiblings(!0), requestAnimationFrame(() => {
-      this.focusFirstElement(), this.dispatchLifecycleEvent("sx-dialog-after-open");
-    }), !0);
-  }
-  close() {
-    var i;
-    if (!this.isOpen || !this.dispatchLifecycleEvent("sx-dialog-before-close", !0)) return !1;
-    this.isOpen = !1, this.handleBackdropPointerLeave();
-    const t = E.openStack.indexOf(this);
-    return t !== -1 && E.openStack.splice(t, 1), this.style.zIndex = "", this.removeAttribute("sx-open"), (i = this.dialogCoreEl) == null || i.setAttribute("aria-hidden", "true"), this.unlockScroll(), this.setInertOnSiblings(!1), this.previousActiveElement && this.previousActiveElement.focus(), setTimeout(() => {
-      this.dispatchLifecycleEvent("sx-dialog-after-close");
-    }, this.duration), !0;
-  }
-  get coreElement() {
-    return this.dialogCoreEl;
-  }
-  get dragAxis() {
-    return E.DRAG_MAP[this.position].axis;
-  }
-  get dragSign() {
-    return E.DRAG_MAP[this.position].sign;
-  }
-  beginDrag() {
-    this.dialogCoreEl && (this.dialogCoreEl.style.transition = "none");
-  }
-  updateDrag(t) {
-    if (!this.dialogCoreEl) return;
-    const i = this.dragAxis === "y" ? "translateY" : "translateX";
-    this.dialogCoreEl.style.transform = `${i}(${t}px)`;
-  }
-  endDrag(t) {
-    if (!this.dialogCoreEl) return;
-    const i = `${this.duration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
-    if (t) {
-      const n = this.dragAxis === "y" ? "translateY" : "translateX", r = (this.dragAxis === "y" ? window.innerHeight : window.innerWidth) * this.dragSign;
-      this.dialogCoreEl.style.transition = `transform ${i}, opacity ${i}`, this.dialogCoreEl.style.transform = `${n}(${r}px)`, this.dialogCoreEl.style.opacity = "0", this.close() || (this.dialogCoreEl.style.transform = "", this.dialogCoreEl.style.opacity = "");
-    } else
-      this.dialogCoreEl.style.transition = `transform ${i}`, this.dialogCoreEl.style.transform = "";
-  }
-  clearDragStyles() {
-    this.dialogCoreEl && (this.dialogCoreEl.style.transition = "", this.dialogCoreEl.style.transform = "", this.dialogCoreEl.style.opacity = "");
-  }
-  // ✅ Inert background helper
-  setInertOnSiblings(t) {
-    let i = this.parentElement;
-    for (; i && (Array.from(i.children).forEach((n) => {
-      n !== this && n !== this.closeCursorEl && !n.contains(this) && (t ? (n.setAttribute("inert", ""), n.setAttribute("aria-hidden", "true")) : (n.removeAttribute("inert"), n.removeAttribute("aria-hidden")));
-    }), i.tagName !== "BODY"); )
-      i = i.parentElement;
-  }
-  lockScroll() {
-    if (this.scrollable || document.body.style.overflow === "hidden") return;
-    const t = window.innerWidth - document.documentElement.clientWidth;
-    document.body.style.setProperty("--sx-scrollbar-width", `${t}px`), document.body.style.paddingRight = "var(--sx-scrollbar-width)", document.body.style.overflow = "hidden";
-  }
-  unlockScroll() {
-    this.scrollable || setTimeout(() => {
-      Array.from(document.querySelectorAll("sx-dialog[sx-open]")).some((n) => !n.scrollable) || (document.body.style.paddingRight = "", document.body.style.overflow = "", document.body.style.removeProperty("--sx-scrollbar-width"));
-    }, this.duration);
-  }
-  getFocusableElements() {
-    return this.dialogCoreEl ? Array.from(this.dialogCoreEl.querySelectorAll(this.focusableElementsString)).filter((t) => t.tabIndex !== -1 && t.disabled !== !0) : [];
-  }
-  focusFirstElement() {
-    const t = this.querySelector("[autofocus]");
-    if (t) {
-      t.focus();
-      return;
-    }
-    const i = this.getFocusableElements();
-    i.length ? i[0].focus() : this.dialogCoreEl && this.dialogCoreEl.focus();
-  }
-  // ✅ Focus Trap logic (Chặn vòng lặp Tab / Shift+Tab)
-  trapFocus(t) {
-    const i = this.getFocusableElements();
-    if (i.length === 0) {
-      t.preventDefault();
-      return;
-    }
-    const n = i[0], r = i[i.length - 1];
-    t.shiftKey ? document.activeElement === n && (t.preventDefault(), r.focus()) : document.activeElement === r && (t.preventDefault(), n.focus());
-  }
-  attachBackdropListeners(t) {
-    t.addEventListener("click", this.handleBackdropClick), t.addEventListener("pointermove", this.handleBackdropPointerMove), t.addEventListener("pointerleave", this.handleBackdropPointerLeave);
-  }
-  detachBackdropListeners(t) {
-    t.removeEventListener("click", this.handleBackdropClick), t.removeEventListener("pointermove", this.handleBackdropPointerMove), t.removeEventListener("pointerleave", this.handleBackdropPointerLeave);
-  }
-  render() {
-    this.style.setProperty("--sx-duration", `${this.duration}ms`), this.setAttribute("effect", this.effect), this.setAttribute("position", this.position);
-    const t = this.querySelector('[id*="title"], [class*="title"]'), i = this.querySelector('[id*="desc"], [class*="desc"]'), n = t ? `aria-labelledby="${t.id || "sx-dialog-title"}"` : "", r = i ? `aria-describedby="${i.id || "sx-dialog-desc"}"` : "";
-    t && !t.id && (t.id = "sx-dialog-title"), i && !i.id && (i.id = "sx-dialog-desc"), this.innerHTML = `
-      ${this.overlay ? `<div class="sx-dialog-backdrop" style="${this.overlayStyle}"></div>` : ""}
-      <div class="sx-dialog-core" 
-           role="dialog" 
-           aria-modal="true" 
-           aria-hidden="true"
-           tabindex="-1"
-           ${n}
-           ${r}>
-        ${this.originalContentHTML}
-      </div>
-    `, this.backdropEl = this.querySelector(".sx-dialog-backdrop"), this.dialogCoreEl = this.querySelector(".sx-dialog-core"), this.backdropEl && this.attachBackdropListeners(this.backdropEl);
-  }
-};
-a(E, "DRAG_MAP", {
-  center: { axis: "y", sign: 1 },
-  top: { axis: "y", sign: -1 },
-  bottom: { axis: "y", sign: 1 },
-  left: { axis: "x", sign: -1 },
-  right: { axis: "x", sign: 1 },
-  "top-left": { axis: "y", sign: -1 },
-  "top-right": { axis: "y", sign: -1 },
-  "bottom-left": { axis: "y", sign: 1 },
-  "bottom-right": { axis: "y", sign: 1 }
-}), a(E, "baseZIndex", 9999), a(E, "openStack", []);
-let rt = E;
-class xe extends w {
-  constructor() {
-    super(...arguments);
-    a(this, "dialogEl", null);
-    a(this, "observer", null);
-    a(this, "syncActiveState", () => {
-      var t;
-      (t = this.dialogEl) != null && t.hasAttribute("sx-open") ? this.setAttribute("sx-active", "") : this.removeAttribute("sx-active");
-    });
-    a(this, "handleKeyDown", (t) => {
-      (t.key === "Enter" || t.key === " ") && (t.preventDefault(), this.toggleDialog());
-    });
-    a(this, "toggleDialog", () => {
-      const t = this.getAttribute("name");
-      t && window.dispatchEvent(
-        new CustomEvent("sx-dialog-toggle", {
-          detail: { name: t }
-        })
-      );
-    });
-  }
-  connectedCallback() {
-    this.hasAttribute("role") || this.setAttribute("role", "button"), this.hasAttribute("tabindex") || this.setAttribute("tabindex", "0"), this.addEventListener("click", this.toggleDialog), this.addEventListener("keydown", this.handleKeyDown), this.observeDialog();
-  }
-  disconnectedCallback() {
-    var t;
-    this.removeEventListener("click", this.toggleDialog), this.removeEventListener("keydown", this.handleKeyDown), (t = this.observer) == null || t.disconnect(), this.observer = null, this.dialogEl = null;
-  }
-  observeDialog() {
-    const t = this.getAttribute("name");
-    t && (this.dialogEl = Array.from(document.querySelectorAll("sx-dialog")).find(
-      (i) => i.getAttribute("name") === t
-    ) ?? null, this.dialogEl && (this.syncActiveState(), this.observer = new MutationObserver(this.syncActiveState), this.observer.observe(this.dialogEl, { attributes: !0, attributeFilter: ["sx-open"] })));
-  }
-}
-class ve extends w {
-  constructor() {
-    super(...arguments);
-    a(this, "dialogEl", null);
-    a(this, "pointerId", null);
-    a(this, "startPos", 0);
-    a(this, "startTime", 0);
-    a(this, "currentOffset", 0);
-    a(this, "dragging", !1);
-    a(this, "handlePointerDown", (t) => {
-      var i;
-      this.dialogEl = this.closest("sx-dialog"), (i = this.dialogEl) != null && i.coreElement && (this.pointerId = t.pointerId, this.dragging = !0, this.startTime = performance.now(), this.currentOffset = 0, this.startPos = this.dialogEl.dragAxis === "y" ? t.clientY : t.clientX, this.dialogEl.beginDrag(), this.setPointerCapture(t.pointerId), this.addEventListener("pointermove", this.handlePointerMove), this.addEventListener("pointerup", this.handlePointerEnd), this.addEventListener("pointercancel", this.handlePointerEnd));
-    });
-    a(this, "handlePointerMove", (t) => {
-      if (!this.dragging || !this.dialogEl) return;
-      const n = (this.dialogEl.dragAxis === "y" ? t.clientY : t.clientX) - this.startPos, r = this.dialogEl.dragSign;
-      this.currentOffset = n * r > 0 ? n : 0, this.dialogEl.updateDrag(this.currentOffset);
-    });
-    a(this, "handlePointerEnd", (t) => {
-      if (!this.dragging || !this.dialogEl) return;
-      this.dragging = !1, this.removeEventListener("pointermove", this.handlePointerMove), this.removeEventListener("pointerup", this.handlePointerEnd), this.removeEventListener("pointercancel", this.handlePointerEnd), this.pointerId !== null && this.releasePointerCapture(this.pointerId);
-      const i = performance.now() - this.startTime, n = i > 0 ? Math.abs(this.currentOffset) / i : 0, r = this.dialogEl.coreElement.getBoundingClientRect(), o = this.dialogEl.dragAxis === "y" ? r.height : r.width, h = Math.abs(this.currentOffset) > o * this.threshold || n > 0.5;
-      this.dialogEl.endDrag(h);
-    });
-  }
-  connectedCallback() {
-    this.hasAttribute("role") || this.setAttribute("role", "separator"), this.hasAttribute("aria-hidden") || this.setAttribute("aria-hidden", "true"), this.addEventListener("pointerdown", this.handlePointerDown);
-  }
-  disconnectedCallback() {
-    this.removeEventListener("pointerdown", this.handlePointerDown), this.removeEventListener("pointermove", this.handlePointerMove), this.removeEventListener("pointerup", this.handlePointerEnd), this.removeEventListener("pointercancel", this.handlePointerEnd);
-  }
-  get threshold() {
-    const t = Number(this.getAttribute("threshold"));
-    return t > 0 && t < 1 ? t : 0.25;
-  }
-}
-class Se extends w {
-  constructor() {
-    super(...arguments);
-    a(this, "dialogEl", null);
-  }
-  connectedCallback() {
-    var t;
-    this.hasAttribute("aria-hidden") || this.setAttribute("aria-hidden", "true"), this.dialogEl = this.closest("sx-dialog"), (t = this.dialogEl) == null || t.registerCloseCursor(this);
-  }
-  disconnectedCallback() {
-    var t;
-    (t = this.dialogEl) == null || t.unregisterCloseCursor(this), this.dialogEl = null;
-  }
-}
-function Ce() {
-  customElements.get("sx-dialog") || customElements.define("sx-dialog", rt), customElements.get("sx-dialog-trigger") || customElements.define("sx-dialog-trigger", xe), customElements.get("sx-dialog-pull") || customElements.define("sx-dialog-pull", ve), customElements.get("sx-close-cursor") || customElements.define("sx-close-cursor", Se);
-}
-function ke() {
-  le(), Qt(), ye(), Ce();
-}
-const qt = /* @__PURE__ */ new Map();
-function x(s, e) {
-  qt.set(s, e);
-}
-function G(s, e) {
-  const t = qt.get(s);
-  return t ? typeof t == "function" ? t(e) : t : s.startsWith("--") ? we(s, e) : Ee(s, e);
-}
-function we(s, e) {
-  return typeof e == "string" && !Yt(e) ? {
-    type: "discrete",
-    cssKey: s,
-    apply(t, i) {
-      t.style.setProperty(s, i);
-    }
-  } : {
-    type: "numeric",
+function jt(t, e) {
+  const i = typeof getComputedStyle < "u" ? getComputedStyle(document.documentElement).getPropertyValue(t).trim() : "";
+  return b(e) || b(i) ? {
+    kind: "numeric",
     isTransform: !1,
     defaultUnit: "",
-    getCurrent(t) {
-      const i = window.getComputedStyle(t).getPropertyValue(s).trim();
-      return i || console.warn(`[six-js] CSS variable "${s}" not set, defaulting to 0`), _(i);
+    get(r) {
+      return T(getComputedStyle(r).getPropertyValue(t).trim());
     },
-    apply(t, i) {
-      t.style.setProperty(s, `${i.num}${i.unit}`);
-    }
-  };
-}
-function Yt(s) {
-  return /^-?[\d.]+[a-z%]*$/i.test(s.trim());
-}
-function Ee(s, e) {
-  return typeof e == "string" && !Yt(e) ? {
-    type: "discrete",
-    cssKey: s,
-    apply(t, i) {
-      t.style[s] = i;
+    set(r, n) {
+      r.style.setProperty(t, `${n.value}${n.unit}`);
     }
   } : {
-    type: "numeric",
-    isTransform: !1,
-    defaultUnit: "",
-    getCurrent(t) {
-      const i = window.getComputedStyle(t)[s];
-      return i === void 0 ? (console.warn(`[six-js] Invalid CSS property: "${s}"`), { num: 0, unit: "" }) : _(i);
+    kind: "discrete",
+    get(r) {
+      return getComputedStyle(r).getPropertyValue(t).trim();
     },
-    apply(t, i) {
-      t.style[s] = `${i.num}${i.unit}`;
+    set(r, n) {
+      r.style.setProperty(t, n);
     }
   };
 }
-function _(s, e = "") {
-  if (typeof s == "number")
-    return { num: s, unit: e };
-  if (typeof s != "string" || s.length === 0)
-    return { num: 0, unit: e };
-  const t = s.match(/^(-?[\d.]+)([a-z%]*)$/i);
-  return t ? { num: parseFloat(t[1]) || 0, unit: t[2] || e } : { num: parseFloat(s) || 0, unit: e };
+function Gt(t, e) {
+  const i = Vt.has(t) ? "" : "px";
+  return b(e) ? {
+    kind: "numeric",
+    isTransform: !1,
+    defaultUnit: i,
+    get(r) {
+      const n = Y(r, t);
+      return b(n) ? T(n, i) : { value: 0, unit: i };
+    },
+    set(r, n) {
+      r.style[t] = i === "" ? `${n.value}` : `${n.value}${n.unit}`;
+    }
+  } : {
+    kind: "discrete",
+    get(r) {
+      return Y(r, t);
+    },
+    set(r, n) {
+      r.style[t] = n;
+    }
+  };
 }
-const Te = /^([+\-*/])=(-?[\d.]+)([a-z%]*)$/i;
-function Ae(s, e, t, i) {
-  if (typeof s != "string")
-    return _(s, i);
-  const n = s.match(Te);
-  if (!n)
-    return _(s, i);
-  const [, r, o, h] = n, l = parseFloat(o), c = h || t || i;
-  if (isNaN(l))
-    return console.warn(`[six-js] Invalid relative value: "${s}"`), { num: e, unit: c };
-  if (r === "/" && l === 0)
-    return console.warn(`[six-js] Division by zero: "${s}"`), { num: e, unit: c };
-  let u;
-  switch (r) {
+function Zt(t, e) {
+  return b(e) ? {
+    kind: "numeric",
+    isTransform: !1,
+    defaultUnit: "",
+    get(r) {
+      return T(r.getAttribute(t) ?? "0");
+    },
+    set(r, n) {
+      r.setAttribute(t, String(n.value));
+    }
+  } : {
+    kind: "discrete",
+    get(r) {
+      return r.getAttribute(t) ?? "";
+    },
+    set(r, n) {
+      r.setAttribute(t, n);
+    }
+  };
+}
+function rt(t, e) {
+  return b(e) ? {
+    kind: "numeric",
+    isTransform: !1,
+    defaultUnit: "",
+    get(i) {
+      return { value: Number(i[t]) || 0, unit: "" };
+    },
+    set(i, r) {
+      i[t] = r.value;
+    }
+  } : {
+    kind: "discrete",
+    get(i) {
+      return String(i[t] ?? "");
+    },
+    set(i, r) {
+      i[t] = r;
+    }
+  };
+}
+function Jt(t, e, i) {
+  const r = Xt[e];
+  if (r) return Bt(r);
+  if (Ut.has(e)) return Wt(e);
+  if (qt.has(e)) return Kt(e);
+  if (e.startsWith("--")) return jt(e, i);
+  const n = t.style;
+  return n && e in n ? Gt(e, i) : e in t && typeof t[e] == "number" ? rt(e, i ?? t[e]) : typeof t.setAttribute == "function" ? Zt(e, i) : rt(e, i);
+}
+const Qt = /#(?:[0-9a-f]{3,8})\b|rgba?\([^)]*\)|hsla?\([^)]*\)|-?\d*\.?\d+(?:[a-z%]+)?/gi;
+function te(t) {
+  if (t[0] === "#" || /^(rgba?|hsla?)\(/i.test(t))
+    return { type: "color", value: L(t) };
+  const e = t.match(/^(-?\d*\.?\d+)([a-z%]*)$/i);
+  return { type: "number", value: parseFloat(e[1]), unit: e[2] };
+}
+function O(t) {
+  const e = [], i = [];
+  let r = 0;
+  for (const n of t.matchAll(Qt))
+    i.push(t.slice(r, n.index)), e.push(te(n[0])), r = n.index + n[0].length;
+  return i.push(t.slice(r)), { literals: i, tokens: e };
+}
+function ee(t, e) {
+  const i = O(t).tokens, r = O(e).tokens;
+  return i.length === r.length && i.every((n, s) => n.type === r[s].type);
+}
+function ie(t, e, i) {
+  if (!t || t.type !== e.type) {
+    const o = i >= 1 ? e : t ?? e;
+    return o.type === "color" ? V(o.value) : `${o.value}${o.unit}`;
+  }
+  if (e.type === "color")
+    return V(mt(t.value, e.value, i));
+  const r = t.value, n = r + (e.value - r) * i, s = e.unit || t.unit;
+  return `${Math.round(n * 1e4) / 1e4}${s}`;
+}
+function re(t, e, i) {
+  const r = O(t), n = O(e);
+  let s = "";
+  for (let o = 0; o < n.literals.length; o++)
+    s += n.literals[o], o < n.tokens.length && (s += ie(r.tokens[o], n.tokens[o], i));
+  return s;
+}
+const ne = /^(left|right|width|x|marginLeft|marginRight|paddingLeft|paddingRight|borderLeftWidth|borderRightWidth)$/i;
+function se(t) {
+  return ne.test(t);
+}
+function nt(t, e, i, r) {
+  if (!r || r === "px" || r === "deg" || r === "rad" || r === "turn") return i;
+  if (r === "rem") {
+    const n = typeof document < "u" && parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    return i * n;
+  }
+  if (r === "em") {
+    const n = typeof getComputedStyle < "u" && parseFloat(getComputedStyle(t).fontSize) || 16;
+    return i * n;
+  }
+  if (r === "vh") return typeof window < "u" ? i / 100 * window.innerHeight : i;
+  if (r === "vw") return typeof window < "u" ? i / 100 * window.innerWidth : i;
+  if (r === "%") {
+    const n = t.parentElement;
+    if (!n) return i;
+    const s = se(e) ? n.clientWidth : n.clientHeight;
+    return i / 100 * s;
+  }
+  return i;
+}
+const st = /* @__PURE__ */ new Set([
+  "duration",
+  "ease",
+  "delay",
+  "repeat",
+  "repeatDelay",
+  "yoyo",
+  "paused",
+  "overwrite",
+  "onStart",
+  "onUpdate",
+  "onComplete",
+  "onRepeat",
+  "onReverseComplete"
+]), B = /^([+\-*/])=(-?[\d.]+)$/;
+function ot(t, e) {
+  const i = e.match(B);
+  if (!i) return null;
+  const r = parseFloat(i[2]);
+  switch (i[1]) {
     case "+":
-      u = e + l;
-      break;
+      return t + r;
     case "-":
-      u = e - l;
-      break;
+      return t - r;
     case "*":
-      u = e * l;
-      break;
+      return t * r;
     case "/":
-      u = e / l;
-      break;
+      return t / r;
     default:
-      u = e;
+      return t;
   }
-  return { num: u, unit: c };
 }
-const Me = /rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)/i;
-function kt(s) {
-  const e = document.createElement("span");
-  e.style.color = s, e.style.display = "none", document.body.appendChild(e);
-  const t = window.getComputedStyle(e).color;
-  return document.body.removeChild(e), _t(t);
+function oe(t, e) {
+  const i = /* @__PURE__ */ new Set();
+  for (const r in t) st.has(r) || i.add(r);
+  if (e)
+    for (const r in e) st.has(r) || i.add(r);
+  return [...i];
 }
-function _t(s) {
-  const e = s.match(Me);
-  return e ? {
-    r: parseFloat(e[1]),
-    g: parseFloat(e[2]),
-    b: parseFloat(e[3]),
-    a: e[4] !== void 0 ? parseFloat(e[4]) : 1
-  } : { r: 0, g: 0, b: 0, a: 1 };
+function ae(t, e, i, r, n) {
+  const s = i.get(t);
+  let o, a;
+  if (r === void 0)
+    o = s.value, a = s.unit || i.defaultUnit;
+  else if (typeof r == "string" && B.test(r))
+    o = ot(s.value, r), a = s.unit || i.defaultUnit;
+  else {
+    const c = T(r, i.defaultUnit);
+    o = c.value, a = c.unit;
+  }
+  let l, h;
+  if (n === void 0)
+    l = s.value, h = s.unit || i.defaultUnit;
+  else if (typeof n == "string" && B.test(n))
+    l = ot(o, n), h = a;
+  else {
+    const c = T(n, i.defaultUnit);
+    l = c.value, h = c.unit;
+  }
+  return !i.isTransform && h !== a && (o = nt(t, e, o, a), l = nt(t, e, l, h), a = "px", h = "px"), { kind: "numeric", target: t, prop: e, isTransform: i.isTransform, handler: i, start: o, change: l - o, unit: h };
 }
-function Ie(s, e, t) {
-  return {
-    r: s.r + (e.r - s.r) * t,
-    g: s.g + (e.g - s.g) * t,
-    b: s.b + (e.b - s.b) * t,
-    a: s.a + (e.a - s.a) * t
-  };
+function ue(t, e, i, r) {
+  const n = i !== void 0 ? L(String(i)) : e.get(t), s = r !== void 0 ? L(String(r)) : e.get(t);
+  return { kind: "color", target: t, isTransform: !1, handler: e, start: n, end: s };
 }
-function Re(s) {
-  return `rgba(${Math.round(s.r)}, ${Math.round(s.g)}, ${Math.round(s.b)}, ${s.a})`;
+function le(t, e, i, r) {
+  const n = i !== void 0 ? String(i) : e.get(t), s = r !== void 0 ? String(r) : e.get(t);
+  return ee(n, s) ? { kind: "complex", target: t, isTransform: !1, handler: e, start: n, end: s } : { kind: "discrete", target: t, isTransform: !1, handler: e, start: n, end: s };
 }
-const ot = /-?[\d.]+/g;
-function wt(s) {
-  return (s.match(ot) || []).length;
+function he(t, e, i, r) {
+  const n = i !== void 0 ? String(i) : e.get(t), s = r !== void 0 ? String(r) : e.get(t);
+  return { kind: "discrete", target: t, isTransform: !1, handler: e, start: n, end: s };
 }
-function Le(s, e, t) {
-  const i = wt(s), n = wt(e), r = i === n && n > 0;
-  return r || console.warn(`[six-js] "${t}": shape mismatch (${i} vs ${n} numbers), will snap instead of interpolate`), r;
+function ce(t, e, i, r, n) {
+  return i.kind === "numeric" ? ae(t, e, i, r, n) : i.kind === "color" ? ue(t, i, r, n) : i.kind === "complex" ? le(t, i, r, n) : he(t, i, r, n);
 }
-function ze(s, e, t) {
-  const i = (s.match(ot) || []).map(Number);
-  let n = 0;
-  return e.replace(ot, (r) => {
-    const o = parseFloat(r), h = i[n] ?? o;
-    n++;
-    const l = h + (o - h) * t;
-    return String(Math.round(l * 1e3) / 1e3);
+function de(t, e, i, r) {
+  const n = oe(e, r), s = [];
+  for (const o of t)
+    for (const a of n) {
+      let l, h;
+      i === "to" ? h = e[a] : i === "from" ? l = e[a] : (h = a in e ? e[a] : void 0, l = r && a in r ? r[a] : void 0);
+      const c = Jt(o, a, h ?? l);
+      s.push(ce(o, a, c, l, h));
+    }
+  return s;
+}
+function fe(t) {
+  return Math.round(t * 1e4) / 1e4;
+}
+function me(t, e) {
+  switch (t.kind) {
+    case "numeric": {
+      const i = fe(t.start + t.change * e);
+      t.isTransform ? I(t.target)[t.handler.transformKey] = i : t.handler.set(t.target, { value: i, unit: t.unit });
+      return;
+    }
+    case "color":
+      t.handler.set(t.target, mt(t.start, t.end, e));
+      return;
+    case "complex":
+      t.handler.set(t.target, re(t.start, t.end, e));
+      return;
+    case "discrete":
+      t.handler.set(t.target, e >= 1 ? t.end : t.start);
+      return;
+  }
+}
+function pe(t, e, i) {
+  const r = i(e);
+  let n = t.last();
+  for (; n && i(n) > r; )
+    n = n._prev;
+  n ? (e._prev = n, e._next = n._next, n._next ? n._next._prev = e : t.setLast(e), n._next = e) : (e._prev = null, e._next = t.first(), e._next ? e._next._prev = e : t.setLast(e), t.setFirst(e));
+}
+function ge(t, e) {
+  e._prev ? e._prev._next = e._next : t.first() === e && t.setFirst(e._next), e._next ? e._next._prev = e._prev : t.last() === e && t.setLast(e._prev), e._next = null, e._prev = null;
+}
+function* R(t) {
+  let e = t.first();
+  for (; e; ) {
+    const i = e._next;
+    yield e, e = i;
+  }
+}
+function $(t, e) {
+  if (!t || e === void 0) return 0;
+  const i = parseFloat(e);
+  return t === "-" ? -i : i;
+}
+const ye = /^<(?:([+-])=([\d.]+))?$/, _e = /^>(?:([+-])=([\d.]+))?$/, we = /^([+-])=([\d.]+)$/, xe = /^([^\s+\-<>][^+-]*?)(?:([+-])=([\d.]+))?$/;
+function be(t, e) {
+  if (t === void 0) return e.end;
+  if (typeof t == "number") return Math.max(0, t);
+  const i = t.trim();
+  let r = i.match(ye);
+  if (r) return Math.max(0, e.prevStart + $(r[1], r[2]));
+  if (r = i.match(_e), r) return Math.max(0, e.prevEnd + $(r[1], r[2]));
+  if (r = i.match(we), r) return Math.max(0, e.end + $(r[1], r[2]));
+  if (r = i.match(xe), r) {
+    const [, n, s, o] = r, a = e.getLabel(n);
+    return a === void 0 ? (console.warn(`[six] timeline: unknown label "${n}", appending at the current end`), e.end) : Math.max(0, a + $(s, o));
+  }
+  return console.warn(`[six] timeline: invalid position "${t}", appending at the current end`), e.end;
+}
+function pt(t, e, i) {
+  if (typeof i == "number") return t * i;
+  const { each: r, from: n = "start" } = i;
+  let s;
+  return n === "start" ? s = t : n === "end" ? s = e - 1 - t : n === "center" ? s = Math.abs(t - (e - 1) / 2) : s = Math.abs(t - n), s * r;
+}
+function ve(t, e) {
+  const i = e.timeScale(), r = e.totalDuration();
+  return (t - e.startTime()) * i + (i >= 0 ? 0 : r);
+}
+class z extends ft {
+  constructor(i = {}) {
+    super(i);
+    u(this, "_firstChild", null);
+    u(this, "_lastChild", null);
+    u(this, "_cursor", 0);
+    u(this, "_lastAdded", null);
+    u(this, "_lastRenderedLocal", 0);
+    u(this, "_labels", /* @__PURE__ */ new Map());
+    u(this, "_defaultPositionMode");
+    u(this, "_unbounded");
+    u(this, "_childDefaults");
+    this._defaultPositionMode = i.defaultPosition ?? "sequence", this._unbounded = i.unbounded ?? !1, this._childDefaults = i.defaults ?? {}, this._unbounded && (this._dur = 1 / 0, this._tDur = 1 / 0, this._dirty = !1);
+  }
+  // ---- ListHandle<Animation> (backs the generic linked-list helpers) ----
+  first() {
+    return this._firstChild;
+  }
+  setFirst(i) {
+    this._firstChild = i;
+  }
+  last() {
+    return this._lastChild;
+  }
+  setLast(i) {
+    this._lastChild = i;
+  }
+  // ---- children ----
+  defaultPosition() {
+    return this._defaultPositionMode === "now" ? this._tTime : this._cursor;
+  }
+  positionContext() {
+    return {
+      end: this.defaultPosition(),
+      prevStart: this._lastAdded ? this._lastAdded.startTime() : 0,
+      prevEnd: this._lastAdded ? this._lastAdded.endTime() : 0,
+      getLabel: (i) => this._labels.get(i)
+    };
+  }
+  resolvePosition(i) {
+    return be(i, this.positionContext());
+  }
+  add(i, r) {
+    var s;
+    (s = i.parent) == null || s._removeChild(i);
+    const n = this.resolvePosition(r);
+    return i.parent = this, i.startTime(n), pe(this, i, (o) => o.startTime()), this._cursor = Math.max(this._cursor, n + i.totalDuration()), this._lastAdded = i, this._lastRenderedLocal = Math.min(this._lastRenderedLocal, n), this._uncache(), this;
+  }
+  remove(i) {
+    return i.parent === this && (ge(this, i), i.parent = null, this._uncache()), this;
+  }
+  _removeChild(i) {
+    this.remove(i);
+  }
+  /** Cascades to every child before detaching itself from its own parent (if any). */
+  kill() {
+    for (const i of R(this))
+      i.kill();
+    return super.kill(), this;
+  }
+  getChildren() {
+    return [...R(this)];
+  }
+  // ---- labels ----
+  addLabel(i, r) {
+    return this._labels.set(i, this.resolvePosition(r)), this;
+  }
+  getLabelTime(i) {
+    return this._labels.get(i);
+  }
+  // ---- tween sugar ----
+  addTweens(i, r, n, s, o) {
+    const { stagger: a, ...l } = r, h = { ...this._childDefaults, ...l };
+    if (a === void 0)
+      return this.add(new x(i, h, n, s), o), this;
+    const c = F(i), d = this.resolvePosition(o), f = h.delay ?? 0;
+    return c.forEach((g, y) => {
+      const _ = pt(y, c.length, a);
+      this.add(new x(g, { ...h, delay: f + _ }, n, s), d);
+    }), this;
+  }
+  to(i, r, n) {
+    return this.addTweens(i, r, "to", void 0, n);
+  }
+  from(i, r, n) {
+    return this.addTweens(i, r, "from", void 0, n);
+  }
+  fromTo(i, r, n, s) {
+    return this.addTweens(i, n, "fromTo", r, s);
+  }
+  set(i, r, n) {
+    return this.addTweens(i, { ...r, duration: 0 }, "to", void 0, n);
+  }
+  call(i, r) {
+    return this.add(new x(null, { duration: 0, onStart: i }), r), this;
+  }
+  // ---- duration ----
+  _recomputeTotalDuration() {
+    if (this._unbounded) {
+      this._dur = 1 / 0, this._tDur = 1 / 0, this._dirty = !1;
+      return;
+    }
+    let i = 0;
+    for (const r of R(this)) {
+      const n = r.endTime();
+      n > i && (i = n);
+    }
+    this._dur = i, super._recomputeTotalDuration();
+  }
+  // ---- rendering ----
+  _renderIteration(i, r, n, s, o) {
+    const a = Math.min(this._lastRenderedLocal, i), l = Math.max(this._lastRenderedLocal, i);
+    this._lastRenderedLocal = i;
+    for (const h of R(this)) {
+      if (h.paused()) continue;
+      const c = h.startTime();
+      h.endTime() < a || c > l || h.render(ve(i, h), s, o);
+    }
+  }
+}
+function Se(t) {
+  return !Array.isArray(t);
+}
+function Te(t, e, i) {
+  const r = t.filter((o) => o.duration === void 0).length, n = t.reduce((o, a) => o + (a.duration ?? 0), 0), s = e !== void 0 ? r > 0 ? Math.max(0, e - n) / r : 0 : i;
+  return t.map((o) => {
+    const { duration: a, ease: l, ...h } = o;
+    return { duration: a ?? s, ease: l, props: h };
   });
 }
-function Nt(s, e, t) {
-  const i = s.style[e];
-  s.style[e] = t;
-  const n = parseFloat(window.getComputedStyle(s)[e]) || 0;
-  return s.style[e] = i, n;
-}
-const Pe = /^random\((.+)\)$/i;
-function Oe(s) {
-  return /^-?[\d.]+$/.test(s.trim());
-}
-function Be(s) {
-  const e = s.match(Pe);
-  if (!e) return s;
-  const t = e[1].split(",").map((i) => i.trim());
-  if (t.length === 0 || t.length === 1 && t[0] === "")
-    return console.warn(`[six-js] Invalid random() syntax: "${s}"`), s;
-  if (t.length === 2 && t.every(Oe)) {
-    const i = parseFloat(t[0]), n = parseFloat(t[1]);
-    return i + Math.random() * (n - i);
+function Me(t, e, i) {
+  const r = Object.entries(t).map(([s, o]) => {
+    const a = s.trim().match(/^(-?[\d.]+)%$/);
+    return a ? { pos: parseFloat(a[1]) / 100, props: o } : (console.warn(`[six] keyframes: invalid position "${s}", expected e.g. "50%"`), null);
+  }).filter((s) => s !== null).sort((s, o) => s.pos - o.pos), n = [];
+  for (let s = 0; s < r.length; s++) {
+    const o = s === 0 ? 0 : r[s - 1].pos, { ease: a, ...l } = r[s].props;
+    n.push({ duration: Math.max(0, (r[s].pos - o) * e), ease: a ?? i, props: l });
   }
-  return t[Math.floor(Math.random() * t.length)];
+  return n;
 }
-function F(s, e, t) {
-  let i = s;
-  return typeof i == "function" && (i = i(e, t)), typeof i == "string" && (i = Be(i)), i;
-}
-let at = {};
-function Fe(s) {
-  at = { ...at, ...s };
-}
-function Et() {
-  return at;
-}
-function Tt(s, e, t) {
-  return !e || !t.unit || t.unit === "px" ? t : { num: Nt(s, e === "x" ? "left" : "top", `${t.num}${t.unit}`), unit: "px" };
-}
-class pt {
-  constructor(e, t, i = "to", n) {
-    a(this, "duration");
-    a(this, "targets");
-    a(this, "targetTracks", []);
-    a(this, "pointWindows", []);
-    a(this, "activeWindows", /* @__PURE__ */ new Set());
-    a(this, "implicitRefreshers", []);
-    if (typeof e == "string" ? this.targets = Array.from(document.querySelectorAll(e)) : Array.isArray(e) ? this.targets = e.filter((r) => r != null) : this.targets = e ? [e] : [], this.targets.length === 0 && console.warn(`[six-js] No elements matched: "${e}"`), t.keyframes) {
-      const r = Object.keys(t).filter((h) => h !== "duration" && h !== "ease" && h !== "keyframes");
-      r.length > 0 && console.warn(
-        `[six-js] keyframes: property [${r.join(", ")}] ngoài keyframes sẽ bị BỎ QUA hoàn toàn, không cộng dồn với các mốc bên trong keyframes. Đưa chúng vào 1 mốc trong keyframes nếu muốn animate.`
-      );
-      const o = this.buildKeyframeTracks(t.keyframes, t);
-      this.targetTracks = o.tracks, this.pointWindows = o.pointWindows, this.duration = o.duration;
-    } else {
-      const r = this.buildSingleTrackSet(t, i, n);
-      this.targetTracks = r.tracks, this.duration = r.duration;
-    }
-    this.applyWillChange();
+function ke(t, e) {
+  const i = e.keyframes, r = Se(i) ? Me(i, e.duration ?? 0.5, e.ease) : Te(i, e.duration, e.duration ?? 0.5), n = new z(), s = {};
+  for (const o of r) {
+    const a = {};
+    for (const l in o.props)
+      l in s && (a[l] = s[l]);
+    n.fromTo(t, a, { ...o.props, duration: o.duration, ease: o.ease ?? e.ease }), Object.assign(s, o.props);
   }
-  get targetElements() {
+  return n;
+}
+function F(t) {
+  if (t == null) return [];
+  if (typeof t == "string") {
+    const e = Array.from(document.querySelectorAll(t));
+    return e.length === 0 && console.warn(`[six] no elements matched selector "${t}"`), e;
+  }
+  return t instanceof Element ? [t] : Array.from(t).filter((e) => e instanceof Element);
+}
+class x extends ft {
+  constructor(i, r, n = "to", s) {
+    super(r);
+    u(this, "targets");
+    u(this, "mode");
+    u(this, "rawVars");
+    u(this, "rawFromVars");
+    u(this, "ease");
+    u(this, "tracks", []);
+    u(this, "keyframeTimeline", null);
+    const o = Mt();
+    this.targets = F(i), this.mode = n, this.rawVars = r, this.rawFromVars = s, this.ease = kt(r.ease ?? o.ease), r.keyframes ? (this.keyframeTimeline = ke(this.targets, r), this.duration(this.keyframeTimeline.totalDuration())) : this.duration(r.duration ?? o.duration), this.render(0, !0, !0);
+  }
+  targetElements() {
     return this.targets;
   }
-  resolveEase(e) {
-    return e && !D[e] && console.warn(`[six-js] Unknown ease "${e}", falling back to linear`), e && D[e] || D.linear;
+  _onInit() {
+    this.keyframeTimeline || (this.tracks = de(this.targets, this.rawVars, this.mode, this.rawFromVars));
   }
-  resolveDuration(e, t) {
-    let i = e ?? t.duration ?? 0.5;
-    return i < 0 && (console.warn(`[six-js] Negative duration (${i}), using 0 instead`), i = 0), i;
-  }
-  resolveProp(e, t, i, n) {
-    const r = G(t, n ?? i);
-    if (r.type === "discrete") {
-      const c = String(n ?? i);
-      return {
-        key: t,
-        isTransform: !1,
-        state: { kind: "discrete", value: c, apply: r.apply }
-      };
-    }
-    if (r.type === "color") {
-      const c = i !== void 0 ? kt(String(i)) : r.getCurrent(e), u = n !== void 0 ? kt(String(n)) : r.getCurrent(e);
-      return { key: t, isTransform: !1, state: { kind: "color", start: c, end: u, apply: r.apply } };
-    }
-    if (r.type === "complex") {
-      const c = i !== void 0 ? String(i) : r.getCurrent(e), u = n !== void 0 ? String(n) : r.getCurrent(e);
-      return Le(c, u, t), { key: t, isTransform: !1, state: { kind: "complex", start: c, end: u, apply: r.apply } };
-    }
-    let o = i !== void 0 ? _(i, r.defaultUnit) : r.getCurrent(e, t), h = n !== void 0 ? Ae(n, o.num, o.unit, r.defaultUnit) : r.getCurrent(e, t), l;
-    if (r.pxAxis && (o = Tt(e, r.pxAxis, o), h = Tt(e, r.pxAxis, h)), !r.isTransform && h.unit && o.unit && h.unit !== o.unit) {
-      const c = Nt(e, t, `${h.num}${h.unit}`);
-      l = `${h.num}${h.unit}`, h = { num: c, unit: o.unit };
-    }
-    return {
-      key: t,
-      isTransform: r.isTransform,
-      state: {
-        kind: "numeric",
-        start: o.num,
-        end: h.num,
-        unit: h.unit || o.unit,
-        isTransform: r.isTransform,
-        transformFn: r.transformFn,
-        apply: r.apply,
-        snapEnd: l
-      }
-    };
-  }
-  registerImplicitRefresh(e, t, i, n, r) {
-    if (r.kind === "discrete") return;
-    const o = G(t, n ?? i);
-    i === void 0 && (r.kind === "numeric" && o.type === "numeric" ? this.implicitRefreshers.push(() => {
-      r.start = o.getCurrent(e, t).num;
-    }) : r.kind === "color" && o.type === "color" ? this.implicitRefreshers.push(() => {
-      r.start = o.getCurrent(e);
-    }) : r.kind === "complex" && o.type === "complex" && this.implicitRefreshers.push(() => {
-      r.start = o.getCurrent(e);
-    })), n === void 0 && (r.kind === "numeric" && o.type === "numeric" ? this.implicitRefreshers.push(() => {
-      r.end = o.getCurrent(e, t).num;
-    }) : r.kind === "color" && o.type === "color" ? this.implicitRefreshers.push(() => {
-      r.end = o.getCurrent(e);
-    }) : r.kind === "complex" && o.type === "complex" && this.implicitRefreshers.push(() => {
-      r.end = o.getCurrent(e);
-    }));
-  }
-  buildSingleTrackSet(e, t, i) {
-    const n = Et(), r = this.resolveDuration(e.duration, n), o = this.resolveEase(e.ease ?? n.ease), h = /* @__PURE__ */ new Set();
-    for (const c in e) h.add(c);
-    if (i) for (const c in i) h.add(c);
-    h.delete("duration"), h.delete("ease"), h.delete("keyframes");
-    const l = this.targets.map(() => []);
-    return this.targets.forEach((c, u) => {
-      for (const d of h) {
-        let p, f;
-        t === "to" ? f = F(e[d], u, c) : t === "from" ? p = F(e[d], u, c) : (d in e && (f = F(e[d], u, c)), i && d in i && (p = F(i[d], u, c)));
-        const g = G(d, f ?? p);
-        if (g.type === "discrete") {
-          const y = { kind: "discrete", value: String(f ?? p), apply: g.apply };
-          l[u].push({ key: d, isTransform: !1, entries: [{ startTime: 0, endTime: r, easeFn: o, state: y }] });
-          continue;
-        }
-        const m = this.resolveProp(c, d, p, f);
-        m && (l[u].push({
-          key: m.key,
-          isTransform: m.isTransform,
-          entries: [{ startTime: 0, endTime: r, easeFn: o, state: m.state }]
-        }), this.registerImplicitRefresh(c, d, p, f, m.state));
-      }
-    }), { tracks: l, duration: r };
-  }
-  buildKeyframeTracks(e, t) {
-    const i = Et(), n = t.duration, r = t.ease ?? i.ease, o = Array.isArray(e) ? this.normalizeArrayKeyframes(e, n, r, i) : this.normalizePercentKeyframes(e, n, r, i);
-    o.length < 2 && console.warn(`[six-js] keyframes needs at least 2 points, got ${o.length}`);
-    const h = this.targets.map(() => ({})), l = this.targets.map(() => []), c = this.targets.map(() => ({})), u = [];
-    let d = 0, p = 0;
-    for (let f = 0; f < o.length - 1; f++) {
-      const g = o[f], m = o[f + 1], y = d + m.delay, v = y + m.duration;
-      d = v, p = Math.max(p, v);
-      const b = /* @__PURE__ */ new Set();
-      for (const S in m.props) b.add(S);
-      this.targets.forEach((S, C) => {
-        for (const k of b) {
-          const P = F(m.props[k], C, S), X = k in g.props ? F(g.props[k], C, S) : k in h[C] ? h[C][k] : void 0, H = G(k, P);
-          let O, M = !1;
-          if (H.type === "discrete")
-            O = { kind: "discrete", value: String(P), apply: H.apply };
-          else {
-            const Z = this.resolveProp(S, k, X, P);
-            if (!Z) continue;
-            O = Z.state, M = Z.isTransform;
-          }
-          h[C][k] = P, f === 0 && this.registerImplicitRefresh(S, k, X, P, O);
-          const B = { startTime: y, endTime: v, easeFn: m.easeFn, state: O }, yt = c[C][k];
-          yt !== void 0 ? l[C][yt].entries.push(B) : (c[C][k] = l[C].length, l[C].push({ key: k, isTransform: M, entries: [B] }));
-        }
-      }), u.push({
-        startTime: y,
-        endTime: v,
-        onStart: m.onSegmentStart,
-        onUpdate: m.onSegmentUpdate,
-        onComplete: m.onSegmentComplete
-      });
-    }
-    return { tracks: l, pointWindows: u, duration: p };
-  }
-  normalizeArrayKeyframes(e, t, i, n) {
-    const r = [{ duration: 0, delay: 0, easeFn: D.linear, props: {} }], o = e.filter((c) => c.duration === void 0).length, h = e.reduce((c, u) => c + (u.duration ?? 0), 0), l = t !== void 0 ? o > 0 ? Math.max(0, t - h) / o : 0 : n.duration ?? 0.5;
-    for (const c of e) {
-      const { duration: u, ease: d, delay: p, onStart: f, onUpdate: g, onComplete: m, ...y } = c, v = this.resolveDuration(u ?? l, n), b = this.resolveEase(d ?? i);
-      r.push({
-        duration: v,
-        delay: p ?? 0,
-        easeFn: b,
-        props: y,
-        onSegmentStart: f,
-        onSegmentUpdate: g,
-        onSegmentComplete: m
-      });
-    }
-    return r;
-  }
-  normalizePercentKeyframes(e, t, i, n) {
-    const r = this.resolveDuration(t, n), o = Object.entries(e).map(([l, c]) => {
-      const u = l.trim().match(/^(-?[\d.]+)%$/);
-      return u ? { pos: parseFloat(u[1]) / 100, props: c } : (console.warn(`[six-js] keyframes: invalid position "${l}", expected e.g. "50%"`), null);
-    }).filter((l) => l !== null).sort((l, c) => l.pos - c.pos);
-    o.length > 0 && o[0].pos !== 0 && console.warn(`[six-js] keyframes: first position should be "0%", got "${o[0].pos * 100}%"`);
-    const h = [];
-    for (let l = 0; l < o.length; l++) {
-      const { ease: c, delay: u, onStart: d, onUpdate: p, onComplete: f, ...g } = o[l].props, m = l === 0 ? o[0].pos : o[l - 1].pos, y = l === 0 ? 0 : (o[l].pos - m) * r;
-      h.push({
-        duration: Math.max(0, y),
-        delay: u ?? 0,
-        easeFn: this.resolveEase(c ?? i),
-        props: g,
-        onSegmentStart: d,
-        onSegmentUpdate: p,
-        onSegmentComplete: f
-      });
-    }
-    return h;
-  }
-  render(e) {
-    this.targets.forEach((t, i) => {
-      const n = this.targetTracks[i];
-      let r = !1;
-      for (const o of n) {
-        const h = o.entries;
-        let l = h[0];
-        for (const g of h)
-          if (g.startTime <= e) l = g;
-          else break;
-        const c = l.endTime - l.startTime, u = c <= 0 ? e >= l.startTime ? 1 : 0 : Math.min(Math.max((e - l.startTime) / c, 0), 1), d = l.easeFn(u), p = l.state;
-        if (p.kind === "discrete") {
-          e >= l.startTime && p.apply(t, p.value);
-          continue;
-        }
-        if (p.kind === "color") {
-          p.apply(t, Ie(p.start, p.end, d));
-          continue;
-        }
-        if (p.kind === "complex") {
-          p.apply(t, ze(p.start, p.end, d));
-          continue;
-        }
-        const f = p.start + (p.end - p.start) * d;
-        p.isTransform && p.transformFn ? (I(t, p.transformFn, f), r = !0) : u === 1 && e >= l.endTime && p.snapEnd !== void 0 ? t.style[o.key] = p.snapEnd : p.apply(t, { num: f, unit: p.unit });
-      }
-      r && (t.style.transform = Y(t));
-    }), this.updateSegmentCallbacks(e);
-  }
-  updateSegmentCallbacks(e) {
-    if (this.pointWindows.length === 0) return;
-    const t = /* @__PURE__ */ new Set();
-    this.pointWindows.forEach((i, n) => {
-      e >= i.startTime && e <= i.endTime && t.add(n);
-    }), this.activeWindows.forEach((i) => {
-      var n, r;
-      t.has(i) || (r = (n = this.pointWindows[i]).onComplete) == null || r.call(n);
-    }), t.forEach((i) => {
-      var n, r;
-      this.activeWindows.has(i) || (r = (n = this.pointWindows[i]).onStart) == null || r.call(n);
-    }), t.forEach((i) => {
-      var n, r;
-      (r = (n = this.pointWindows[i]).onUpdate) == null || r.call(n);
-    }), this.activeWindows = t;
-  }
-  onStart() {
-    for (const e of this.implicitRefreshers) e();
-    this.applyWillChange();
-  }
-  applyWillChange() {
-    this.targets.forEach((e, t) => {
-      var i;
-      (i = this.targetTracks[t]) != null && i.some((n) => n.isTransform) && (this.targets[t].style.willChange = "transform");
-    });
-  }
-  onComplete() {
-    this.targets.forEach((e, t) => {
-      var i;
-      (i = this.targetTracks[t]) != null && i.some((n) => n.isTransform) && (this.targets[t].style.willChange = "");
-    });
-  }
-  getTouchedProperties() {
-    return this.targets.map((e, t) => ({
-      target: e,
-      keys: this.targetTracks[t].map((i) => i.key)
-    }));
-  }
-}
-class lt {
-  constructor(e, t = {}) {
-    a(this, "animatable");
-    a(this, "elapsed", 0);
-    a(this, "rate", 1);
-    a(this, "running", !1);
-    a(this, "dead", !1);
-    a(this, "listeners", {});
-    a(this, "delay");
-    a(this, "repeat");
-    a(this, "repeatDelay");
-    a(this, "boomerang");
-    a(this, "repeatsDone", 0);
-    a(this, "waitRemaining");
-    a(this, "hasFiredStart", !1);
-    a(this, "isBoomerangReverse", !1);
-    a(this, "tick", (e, t) => {
-      const i = t / 1e3;
-      if (this.waitRemaining > 0) {
-        if (this.waitRemaining -= i, this.waitRemaining > 0) return;
-        const r = -this.waitRemaining;
-        this.waitRemaining = 0, this.fireStartIfNeeded(), this.elapsed += r * this.rate;
-      } else
-        this.fireStartIfNeeded(), this.elapsed += i * this.rate;
-      const n = this.animatable.duration;
-      if (this.elapsed >= n) {
-        this.elapsed = n, this.animatable.render(this.elapsed), this.emit("update"), this.onForwardBoundary();
-        return;
-      }
-      if (this.elapsed <= 0) {
-        this.elapsed = 0, this.animatable.render(this.elapsed), this.emit("update"), this.onBackwardBoundary();
-        return;
-      }
-      this.animatable.render(this.elapsed), this.emit("update");
-    });
-    var i;
-    (i = Ft()) == null || i._capture(this), this.animatable = e, this.delay = Math.max(0, t.delay ?? 0), this.repeat = t.repeat ?? 0, this.repeatDelay = Math.max(0, t.repeatDelay ?? 0), this.boomerang = t.boomerang ?? !1, this.waitRemaining = this.delay, t.autoplay ?? !0 ? this.play() : this.animatable.render(0);
-  }
-  fireStartIfNeeded() {
-    var e, t;
-    this.hasFiredStart || (this.hasFiredStart = !0, (t = (e = this.animatable).onStart) == null || t.call(e), this.emit("start"));
-  }
-  onForwardBoundary() {
-    if (!(this.repeat === -1 || this.repeatsDone < this.repeat)) {
-      this.stop(), this.emit("complete");
+  _renderIteration(i) {
+    if (this.keyframeTimeline) {
+      this.keyframeTimeline.render(i, !0, !0);
       return;
     }
-    this.repeatsDone++, this.emit("repeat"), this.boomerang ? (this.rate = -1, this.isBoomerangReverse = !0) : (this.elapsed = 0, this.rate = 1, this.animatable.render(this.elapsed, !0)), this.repeatDelay > 0 && (this.waitRemaining = this.repeatDelay);
-  }
-  onBackwardBoundary() {
-    if (this.isBoomerangReverse) {
-      if (!(this.repeat === -1 || this.repeatsDone < this.repeat)) {
-        this.stop(), this.emit("complete");
-        return;
-      }
-      this.repeatsDone++, this.emit("repeat"), this.rate = 1, this.isBoomerangReverse = !1, this.repeatDelay > 0 && (this.waitRemaining = this.repeatDelay);
-      return;
-    }
-    this.stop(), this.emit("reverseComplete");
-  }
-  play() {
-    var e, t;
-    return this.dead || this.running ? this : (this.running = !0, this.rate = this.rate < 0 ? this.rate : 1, T.add(this.tick), this.waitRemaining <= 0 && ((t = (e = this.animatable).onStart) == null || t.call(e)), this);
-  }
-  reverse() {
-    var e, t;
-    return this.dead ? this : (this.rate = -1, this.isBoomerangReverse = !1, this.running || (this.running = !0, (t = (e = this.animatable).onStart) == null || t.call(e), T.add(this.tick)), this);
-  }
-  pause() {
-    return this.dead || !this.running ? this : (this.running = !1, T.remove(this.tick), this);
-  }
-  stop() {
-    var e, t;
-    this.running = !1, T.remove(this.tick), (t = (e = this.animatable).onComplete) == null || t.call(e);
-  }
-  seek(e) {
-    return this.dead ? this : (this.elapsed = Math.max(0, Math.min(e, this.animatable.duration)), this.animatable.render(this.elapsed), this.emit("update"), this);
-  }
-  restart() {
-    return this.dead ? this : (this.elapsed = 0, this.rate = 1, this.repeatsDone = 0, this.hasFiredStart = !1, this.isBoomerangReverse = !1, this.waitRemaining = this.delay, this.animatable.render(0, !0), this.play(), this);
-  }
-  reset() {
-    return this.dead ? this : (this.pause(), this.elapsed = 0, this.rate = 1, this.repeatsDone = 0, this.hasFiredStart = !1, this.isBoomerangReverse = !1, this.waitRemaining = this.delay, this.animatable.render(0, !0), this.emit("update"), this);
-  }
-  kill() {
-    return this.dead ? this : (this.pause(), this.dead = !0, this);
-  }
-  on(e, t) {
-    return this.listeners[e] || (this.listeners[e] = /* @__PURE__ */ new Set()), this.listeners[e].add(t), this;
-  }
-  off(e, t) {
-    var i;
-    return (i = this.listeners[e]) == null || i.delete(t), this;
-  }
-  emit(e) {
-    var t;
-    (t = this.listeners[e]) == null || t.forEach((i) => i());
-  }
-  get progress() {
-    return this.animatable.duration === 0 ? 1 : this.elapsed / this.animatable.duration;
-  }
-  get duration() {
-    return this.animatable.duration;
-  }
-  get isRunning() {
-    return this.running;
-  }
-  get isDead() {
-    return this.dead;
-  }
-  getAnimatable() {
-    return this.animatable;
+    const r = this.duration(), n = r ? i / r : 1, s = this.ease(n), o = n > 0 && n < 1, a = /* @__PURE__ */ new Set();
+    for (const l of this.tracks)
+      me(l, s), l.isTransform && a.add(l.target);
+    for (const l of a)
+      Ft(l, I(l), o);
   }
 }
-function ht() {
-  var s;
-  return ((s = window.visualViewport) == null ? void 0 : s.height) ?? window.innerHeight;
-}
-function $(s, e) {
-  return s.ratio * e + s.offsetPx;
-}
-function At(s) {
-  const e = s.trim(), t = e.match(/^(-?[\d.]+)(px)?$/);
-  if (t)
-    return { ratio: 0, offsetPx: parseFloat(t[1]) };
-  const i = e.match(/^(top|center|bottom|[\d.]+%)?\s*(?:([+-]=)([\d.]+)(px|%)?)?$/);
-  if (!i || !i[1] && !i[2])
-    return console.warn(`[six-js] onScroll: unknown position "${s}", using "top"`), { ratio: 0, offsetPx: 0 };
-  const [, n, r, o, h] = i;
-  let l = 0;
-  n === "center" ? l = 0.5 : n === "bottom" ? l = 1 : n != null && n.endsWith("%") && (l = parseFloat(n) / 100);
-  let c = 0;
-  if (r && o) {
-    const u = parseFloat(o), d = r === "+=" ? u : -u;
-    h === "%" ? l += d / 100 : c += d;
+const D = () => typeof performance < "u" ? performance.now() : Date.now();
+class Pe {
+  /** `{ manual: true }` disables real rAF scheduling entirely - useful for deterministic tests/SSR, driven only via `tick()`. */
+  constructor(e = {}) {
+    u(this, "listeners", []);
+    u(this, "i", 0);
+    // live cursor into `listeners` during dispatch, adjusted by remove()
+    u(this, "frame", 0);
+    u(this, "timeMs", 0);
+    u(this, "deltaMs", 0);
+    u(this, "startTime", D());
+    u(this, "lastUpdate", this.startTime);
+    u(this, "lagThreshold", 500);
+    u(this, "adjustedLag", 33);
+    u(this, "gap", 1e3 / 240);
+    u(this, "nextTime", this.gap);
+    u(this, "rafId", null);
+    u(this, "manual");
+    u(this, "loop", () => {
+      this.manual || (this.advance(D() - this.lastUpdate), this.rafId !== null && (this.rafId = this.request(this.loop)));
+    });
+    this.manual = !!e.manual;
   }
-  return { ratio: l, offsetPx: c };
+  request(e) {
+    return typeof requestAnimationFrame == "function" ? requestAnimationFrame(e) : setTimeout(e, 16);
+  }
+  cancel(e) {
+    typeof cancelAnimationFrame == "function" ? cancelAnimationFrame(e) : clearTimeout(e);
+  }
+  advance(e) {
+    (e > this.lagThreshold || e < 0) && (this.startTime += e - this.adjustedLag), this.lastUpdate += e;
+    const i = this.lastUpdate - this.startTime, r = i - this.nextTime;
+    r < 0 || (this.frame++, this.deltaMs = i - this.timeMs * 1e3, this.timeMs = i / 1e3, this.nextTime += r >= this.gap ? r + 4 : this.gap, this.dispatch());
+  }
+  dispatch() {
+    const e = this.timeMs, i = this.deltaMs, r = this.frame;
+    for (this.i = 0; this.i < this.listeners.length; this.i++)
+      this.listeners[this.i](e, i, r);
+  }
+  add(e) {
+    return this.listeners.includes(e) || (this.listeners.push(e), this.wake()), e;
+  }
+  remove(e) {
+    const i = this.listeners.indexOf(e);
+    i !== -1 && (this.listeners.splice(i, 1), i <= this.i && this.i--);
+  }
+  /** Restarts the internal clock (used on wake so a long sleep doesn't register as lag) and starts the rAF loop. */
+  wake() {
+    if (this.manual || this.rafId !== null) return;
+    const e = D();
+    this.startTime = e - this.timeMs * 1e3, this.lastUpdate = e, this.rafId = this.request(this.loop);
+  }
+  sleep() {
+    this.rafId !== null && (this.cancel(this.rafId), this.rafId = null);
+  }
+  /** Forces one synchronous step, bypassing rAF and the overlap-gap gate entirely. Intended for a `{ manual: true }` ticker. */
+  tick(e = 1e3 / 60) {
+    this.frame++, this.deltaMs = e, this.timeMs += e / 1e3, this.lastUpdate = D(), this.startTime = this.lastUpdate - this.timeMs * 1e3, this.nextTime = this.timeMs * 1e3 + this.gap, this.dispatch();
+  }
+  fps(e) {
+    const i = Math.max(1, e);
+    this.gap = 1e3 / i, this.nextTime = this.timeMs * 1e3 + this.gap;
+  }
+  lagSmoothing(e = 500, i = 33) {
+    this.lagThreshold = e || 1 / 0, this.adjustedLag = Math.min(i, this.lagThreshold);
+  }
+  deltaRatio(e = 60) {
+    return this.deltaMs / (1e3 / e);
+  }
+  get time() {
+    return this.timeMs;
+  }
+  get delta() {
+    return this.deltaMs;
+  }
+  get currentFrame() {
+    return this.frame;
+  }
+  get isAwake() {
+    return this.rafId !== null;
+  }
+  get listenerCount() {
+    return this.listeners.length;
+  }
 }
-function Mt(s, e, t) {
-  const i = s.match(/^([+-]=)(\d+(\.\d+)?)$/);
-  if (i) {
-    if (t === void 0)
-      return console.warn(`[six-js] onScroll: "${s}" has nothing to be relative to`), {
-        scrollY: 0,
-        viewportSpec: { ratio: 0, offsetPx: 0 },
-        viewportLabel: s,
-        documentY: 0,
-        triggerLabel: s,
-        triggerSpec: { ratio: 0, offsetPx: 0 }
-      };
-    const d = i[1] === "+=" ? 1 : -1, p = t + d * parseFloat(i[2]);
-    return {
-      scrollY: p,
-      viewportSpec: { ratio: 0, offsetPx: 0 },
-      viewportLabel: s,
-      documentY: p,
-      triggerLabel: s,
-      triggerSpec: { ratio: 0, offsetPx: 0 }
+const W = new Pe(), M = new z({ unbounded: !0, defaultPosition: "now" });
+W.add((t) => M.render(t));
+let K = 0;
+function gt() {
+  K++;
+}
+const Ce = { y: /* @__PURE__ */ new WeakMap(), x: /* @__PURE__ */ new WeakMap() };
+function Re(t, e) {
+  if (t === window) return e === "y" ? window.scrollY : window.scrollX;
+  const i = t;
+  return e === "y" ? i.scrollTop : i.scrollLeft;
+}
+function N(t, e = "y") {
+  const i = Ce[e], r = i.get(t);
+  if (r && r.gen === K) return r.value;
+  const n = Re(t, e);
+  return i.set(t, { gen: K, value: n }), n;
+}
+function $e(t, e = "y") {
+  var r, n;
+  if (t === window)
+    return e === "y" ? ((r = window.visualViewport) == null ? void 0 : r.height) ?? window.innerHeight : ((n = window.visualViewport) == null ? void 0 : n.width) ?? window.innerWidth;
+  const i = t;
+  return e === "y" ? i.clientHeight : i.clientWidth;
+}
+const E = /* @__PURE__ */ new Map(), j = /* @__PURE__ */ new Map();
+function De(t, e) {
+  let i = E.get(t);
+  if (!i) {
+    i = /* @__PURE__ */ new Set(), E.set(t, i);
+    const r = () => {
+      gt(), i.forEach((n) => n());
     };
+    j.set(t, r), t.addEventListener("scroll", r, { passive: !0 });
   }
-  const [n = "top", r = "top"] = s.trim().split(/\s+/), o = At(n), h = At(r), c = window.scrollY + e.top + $(o, e.height), u = $(h, ht());
+  i.add(e);
+}
+function Ae(t, e) {
+  const i = E.get(t);
+  if (i && (i.delete(e), i.size === 0)) {
+    const r = j.get(t);
+    r && t.removeEventListener("scroll", r), j.delete(t), E.delete(t);
+  }
+}
+const G = /* @__PURE__ */ new Set();
+let at = !1;
+function Le() {
+  gt(), G.forEach((t) => t());
+}
+function Ie(t) {
+  G.add(t), !at && typeof window < "u" && (at = !0, window.addEventListener("resize", Le));
+}
+function Ye(t) {
+  G.delete(t);
+}
+function Oe(t) {
   return {
-    scrollY: c - u,
-    viewportSpec: h,
-    viewportLabel: r,
-    documentY: c,
-    triggerLabel: n,
-    triggerSpec: o
+    update(e) {
+      t.totalProgress(e);
+    },
+    kill() {
+    }
   };
 }
-const De = "sixjs:scrollY:";
-function Wt() {
-  return De + location.pathname + location.search;
-}
-function $e() {
-  try {
-    const s = sessionStorage.getItem(Wt());
-    if (s === null) return null;
-    const e = parseFloat(s);
-    return Number.isFinite(e) ? e : null;
-  } catch {
-    return null;
-  }
-}
-function qe() {
-  try {
-    sessionStorage.setItem(Wt(), String(window.scrollY));
-  } catch {
-  }
-}
-function Ye() {
-  var t;
-  const [s] = ((t = performance.getEntriesByType) == null ? void 0 : t.call(performance, "navigation")) ?? [];
-  if (s && "type" in s) {
-    const i = s.type;
-    return i === "reload" || i === "back_forward";
-  }
-  const e = performance.navigation;
-  return (e == null ? void 0 : e.type) === 1 || (e == null ? void 0 : e.type) === 2;
-}
-let It = !1;
-function _e() {
-  if (It) return;
-  It = !0;
-  try {
-    "scrollRestoration" in history && (history.scrollRestoration = "manual");
-  } catch {
-  }
-  const s = Ye() ? $e() : null;
-  s !== null && (window.scrollTo(0, s), window.addEventListener("load", () => window.scrollTo(0, s), { once: !0 }));
-  let e = !1;
-  window.addEventListener(
-    "scroll",
-    () => {
-      e || (e = !0, requestAnimationFrame(() => {
-        e = !1, qe();
-      }));
+function Ee(t, e) {
+  let i = t.totalProgress(), r = i, n = !1;
+  const s = (o, a) => {
+    const l = a / 1e3, h = 1 - Math.exp(-3 * l / Math.max(0.05, e));
+    r += (i - r) * h, Math.abs(i - r) < 5e-4 && (r = i), t.totalProgress(r);
+  };
+  return W.add(s), {
+    update(o) {
+      i = o, n || (n = !0, r = i, t.totalProgress(r));
     },
-    { passive: !0 }
-  );
+    kill() {
+      W.remove(s);
+    }
+  };
 }
-const tt = 20, Rt = 24, Ne = 20;
-class ft {
-  constructor(e, t, i) {
-    a(this, "triggerEl");
-    a(this, "playable");
-    a(this, "options");
-    a(this, "startY", 0);
-    a(this, "endY", 0);
-    a(this, "startViewportSpec", { ratio: 0, offsetPx: 0 });
-    a(this, "endViewportSpec", { ratio: 1, offsetPx: 0 });
-    a(this, "startViewportLabel", "");
-    a(this, "endViewportLabel", "");
-    a(this, "startTriggerY", 0);
-    a(this, "endTriggerY", 0);
-    a(this, "startTriggerLabel", "");
-    a(this, "endTriggerLabel", "");
-    a(this, "startTriggerSpec", { ratio: 0, offsetPx: 0 });
-    a(this, "triggerLabelsCollide", !1);
-    a(this, "smoothedProgress", 0);
-    a(this, "smoothInitialized", !1);
-    a(this, "wasInside", !1);
-    a(this, "lastScrollY", window.scrollY);
-    a(this, "rafPending", !1);
-    a(this, "pinSpacer", null);
-    a(this, "pinOriginalStyles", null);
-    a(this, "pinRectWidth", 0);
-    a(this, "pinRectHeight", 0);
-    a(this, "startMarker", null);
-    a(this, "endMarker", null);
-    a(this, "startTriggerMarker", null);
-    a(this, "endTriggerMarker", null);
-    a(this, "resizeObserver", null);
-    a(this, "recalcRafPending", !1);
-    a(this, "onScrollBound", () => this.requestUpdate());
-    a(this, "onResizeBound", () => this.recalc());
-    a(this, "onLoadBound", () => this.recalc());
-    a(this, "tickerBound", (e, t) => this.tickSmooth(t));
-    var n;
-    _e(), this.triggerEl = e, this.playable = t, this.options = i, i.debug && this.setupDebugMarkers(), this.recalc(), window.addEventListener("scroll", this.onScrollBound, { passive: !0 }), window.addEventListener("resize", this.onResizeBound), (n = window.visualViewport) == null || n.addEventListener("resize", this.onResizeBound), document.readyState === "complete" ? this.recalc() : window.addEventListener("load", this.onLoadBound, { once: !0 }), this.setupResizeObserver(), typeof i.sync == "number" && T.add(this.tickerBound);
-  }
-  setupResizeObserver() {
-    if (typeof ResizeObserver > "u") return;
-    let e = !0;
-    this.resizeObserver = new ResizeObserver(() => {
-      if (e) {
-        e = !1;
-        return;
+const U = /* @__PURE__ */ new WeakMap();
+function ze(t) {
+  let e = U.get(t);
+  if (!e) {
+    const o = t.getBoundingClientRect(), a = getComputedStyle(t), l = document.createElement("div");
+    l.style.position = "relative", l.style.width = `${o.width}px`, l.style.height = `${o.height}px`, t.parentNode.insertBefore(l, t), l.appendChild(t), e = {
+      spacer: l,
+      refCount: 0,
+      rect: o,
+      distance: 0,
+      originalStyles: {
+        position: t.style.position,
+        top: t.style.top,
+        left: t.style.left,
+        width: t.style.width,
+        margin: a.margin,
+        transform: t.style.transform
       }
-      this.recalcRafPending || (this.recalcRafPending = !0, requestAnimationFrame(() => {
-        this.recalcRafPending = !1, this.recalc();
-      }));
-    }), this.resizeObserver.observe(document.body), this.resizeObserver.observe(this.triggerEl);
+    }, U.set(t, e);
   }
-  recalc() {
-    this.smoothInitialized = !1;
-    const e = this.options.start ?? "top bottom", t = this.options.end ?? "bottom top";
-    this.options.sticky && this.setupPin();
-    const i = this.getMeasureRect(), n = Mt(e, i);
-    this.startY = n.scrollY, this.startViewportSpec = n.viewportSpec, this.startViewportLabel = n.viewportLabel, this.startTriggerY = n.documentY, this.startTriggerLabel = n.triggerLabel, this.startTriggerSpec = n.triggerSpec;
-    const r = Mt(t, i, this.startY);
-    this.endY = r.scrollY, this.endViewportSpec = r.viewportSpec, this.endViewportLabel = r.viewportLabel, this.endTriggerY = r.documentY, this.endTriggerLabel = r.triggerLabel, this.endY <= this.startY && (console.warn('[six-js] onScroll: "end" resolves before "start", clamping'), this.endY = this.startY + 1), this.triggerLabelsCollide = Math.abs(this.startTriggerY - this.endTriggerY) < Rt, this.options.sticky && this.updatePinSpacer(), this.updateDebugMarkers(), this.update();
-  }
-  getMeasureRect() {
-    return this.pinSpacer ? { top: this.pinSpacer.getBoundingClientRect().top, height: this.pinRectHeight } : this.triggerEl.getBoundingClientRect();
-  }
-  computeProgress() {
-    const e = window.scrollY;
-    return Math.max(0, Math.min((e - this.startY) / (this.endY - this.startY), 1));
-  }
-  requestUpdate() {
-    this.rafPending || (this.rafPending = !0, requestAnimationFrame(() => {
-      this.rafPending = !1, this.update();
-    }));
-  }
-  update() {
-    var l, c, u, d, p, f, g, m, y, v, b, S;
-    const e = window.scrollY, t = this.computeProgress(), i = e >= this.startY && e <= this.endY, n = e >= this.lastScrollY, r = i && !this.wasInside, o = !i && this.wasInside;
-    r ? n ? (c = (l = this.options).onEnter) == null || c.call(l) : (d = (u = this.options).onEnterBack) == null || d.call(u) : o && (n ? (f = (p = this.options).onLeave) == null || f.call(p) : (m = (g = this.options).onLeaveBack) == null || m.call(g)), this.wasInside = i, this.lastScrollY = e, this.options.sticky && this.applyPinFrame(e), this.updateTriggerMarkerLabelFlip(e);
-    const h = this.options.sync ?? !1;
-    h === !1 ? r && n && ((v = (y = this.playable).play) == null || v.call(y)) : h === !0 && this.playable.seek(t * this.playable.duration), (S = (b = this.options).onUpdate) == null || S.call(b);
-  }
-  tickSmooth(e) {
-    var o, h, l, c;
-    if (typeof this.options.sync != "number") return;
-    const t = this.computeProgress();
-    if (!this.smoothInitialized) {
-      this.smoothInitialized = !0, this.smoothedProgress = t, this.playable.seek(this.smoothedProgress * this.playable.duration), (h = (o = this.options).onUpdate) == null || h.call(o);
-      return;
+  e.refCount++;
+  const i = e, r = () => {
+    t.style.position = i.originalStyles.position, t.style.top = i.originalStyles.top, t.style.left = i.originalStyles.left, t.style.width = i.originalStyles.width, t.style.margin = i.originalStyles.margin;
+  }, n = () => {
+    t.style.position = "fixed", t.style.top = "0px", t.style.left = `${i.rect.left}px`, t.style.width = `${i.rect.width}px`, t.style.margin = "0";
+  }, s = () => {
+    t.style.position = "absolute", t.style.top = `${i.distance}px`, t.style.left = "0px", t.style.width = `${i.rect.width}px`, t.style.margin = "0";
+  };
+  return {
+    setDistance(o) {
+      i.distance = Math.max(0, o), i.spacer.style.height = `${i.rect.height + i.distance}px`;
+    },
+    setPhase(o) {
+      o === "before" ? r() : o === "during" ? n() : s();
+    },
+    revert() {
+      var o;
+      i.refCount--, !(i.refCount > 0) && (t.style.position = i.originalStyles.position, t.style.top = i.originalStyles.top, t.style.left = i.originalStyles.left, t.style.width = i.originalStyles.width, t.style.margin = i.originalStyles.margin, t.style.transform = i.originalStyles.transform, (o = i.spacer.parentNode) == null || o.insertBefore(t, i.spacer), i.spacer.remove(), U.delete(t));
     }
-    const i = Math.max(0.05, this.options.sync), n = e / 1e3, r = 1 - Math.exp(-3 * n / i);
-    this.smoothedProgress += (t - this.smoothedProgress) * r, Math.abs(t - this.smoothedProgress) < 5e-4 && (this.smoothedProgress = t), this.playable.seek(this.smoothedProgress * this.playable.duration), (c = (l = this.options).onUpdate) == null || c.call(l);
-  }
-  setupPin() {
-    var i;
-    if (this.pinSpacer) return;
-    const e = this.triggerEl.getBoundingClientRect(), t = document.createElement("div");
-    t.style.position = "relative", (i = this.triggerEl.parentElement) == null || i.insertBefore(t, this.triggerEl), t.appendChild(this.triggerEl), this.pinOriginalStyles = {
-      position: this.triggerEl.style.position,
-      top: this.triggerEl.style.top,
-      left: this.triggerEl.style.left,
-      width: this.triggerEl.style.width,
-      zIndex: this.triggerEl.style.zIndex,
-      transform: this.triggerEl.style.transform,
-      willChange: this.triggerEl.style.willChange
-    }, this.triggerEl.style.willChange = "transform", this.pinSpacer = t, this.pinRectWidth = e.width, this.pinRectHeight = e.height;
-  }
-  updatePinSpacer() {
-    if (!this.pinSpacer) return;
-    const e = Math.max(0, this.endY - this.startY);
-    this.pinSpacer.style.width = `${this.pinRectWidth}px`, this.pinSpacer.style.height = `${this.pinRectHeight + e}px`;
-  }
-  applyPinFrame(e) {
-    if (!this.pinSpacer) return;
-    const t = this.pinSpacer.getBoundingClientRect(), i = $(this.startViewportSpec, ht()), n = $(this.startTriggerSpec, this.pinRectHeight), r = i - n;
-    let o;
-    e < this.startY ? o = r + (this.startY - e) : e > this.endY ? o = r - (e - this.endY) : o = r, this.triggerEl.style.position = "fixed", this.triggerEl.style.top = "0px", this.triggerEl.style.left = `${t.left}px`, this.triggerEl.style.width = `${this.pinRectWidth}px`, this.triggerEl.style.zIndex = "10", this.triggerEl.style.transform = `translate3d(0, ${o}px, 0)`;
-  }
-  teardownPin() {
-    var e;
-    this.pinSpacer && (this.pinOriginalStyles && Object.assign(this.triggerEl.style, this.pinOriginalStyles), (e = this.pinSpacer.parentElement) == null || e.insertBefore(this.triggerEl, this.pinSpacer), this.pinSpacer.remove(), this.pinSpacer = null);
-  }
-  setupDebugMarkers() {
-    this.startMarker = this.createMarkerLine({ color: "#4ade80", align: "left", position: "fixed" }), this.startTriggerMarker = this.createMarkerLine({ color: "#4ade80", align: "right", position: "absolute" }), this.endMarker = this.createMarkerLine({ color: "#f87171", align: "left", position: "fixed" }), this.endTriggerMarker = this.createMarkerLine({ color: "#f87171", align: "right", position: "absolute" });
-  }
-  createMarkerLine(e) {
-    const { color: t, align: i, position: n } = e, r = document.createElement("div");
-    r.style.cssText = `
-      position: ${n};
-      left: 0;
-      width: 100%;
-      border-top: 2px dashed ${t};
-      z-index: 999999;
-      pointer-events: none;
-      will-change: transform;
-    `;
-    const o = document.createElement("span");
-    return o.style.cssText = `
-      position: absolute;
-      ${i}: 0;
-      background: ${t};
-      color: #000;
-      font: 11px monospace;
-      padding: 2px 6px;
-      white-space: nowrap;
-    `, this.applyLabelSide(o, "above"), r.appendChild(o), document.body.appendChild(r), { line: r, label: o };
-  }
-  applyLabelSide(e, t, i = 0) {
-    const n = i * Ne;
-    t === "above" ? (e.style.top = `${-1 - n}px`, e.style.transform = "translateY(-100%)") : (e.style.top = `${1 + n}px`, e.style.transform = "translateY(0)");
-  }
-  setMarkerPosition(e, t, i, n = 0) {
-    e.line.style.top = `${t}px`, this.applyLabelSide(e.label, i < tt ? "below" : "above", n);
-  }
-  updateTriggerMarkerLabelFlip(e) {
-    if (this.startTriggerMarker) {
-      const t = this.startTriggerY - e;
-      this.applyLabelSide(this.startTriggerMarker.label, t < tt ? "below" : "above", 0);
-    }
-    if (this.endTriggerMarker) {
-      const t = this.endTriggerY - e, i = this.triggerLabelsCollide ? 1 : 0;
-      this.applyLabelSide(this.endTriggerMarker.label, t < tt ? "below" : "above", i);
-    }
-  }
-  updateDebugMarkers() {
-    const e = ht(), t = window.scrollY, i = $(this.startViewportSpec, e), n = $(this.endViewportSpec, e), r = Math.abs(i - n) < Rt;
-    if (this.startMarker && (this.setMarkerPosition(this.startMarker, i, i, 0), this.startMarker.label.textContent = `start: "${this.startViewportLabel}"`), this.endMarker && (this.setMarkerPosition(this.endMarker, n, n, r ? 1 : 0), this.endMarker.label.textContent = `end: "${this.endViewportLabel}"`), this.startTriggerMarker && (this.setMarkerPosition(this.startTriggerMarker, this.startTriggerY, this.startTriggerY - t, 0), this.startTriggerMarker.label.textContent = `start: "${this.startTriggerLabel}"`), this.endTriggerMarker) {
-      const o = this.triggerLabelsCollide ? 1 : 0;
-      this.setMarkerPosition(this.endTriggerMarker, this.endTriggerY, this.endTriggerY - t, o), this.endTriggerMarker.label.textContent = `end: "${this.endTriggerLabel}"`;
-    }
-  }
-  removeDebugMarkers() {
-    var e, t, i, n;
-    (e = this.startMarker) == null || e.line.remove(), (t = this.endMarker) == null || t.line.remove(), (i = this.startTriggerMarker) == null || i.line.remove(), (n = this.endTriggerMarker) == null || n.line.remove(), this.startMarker = null, this.endMarker = null, this.startTriggerMarker = null, this.endTriggerMarker = null;
-  }
-  destroy() {
-    var e, t;
-    window.removeEventListener("scroll", this.onScrollBound), window.removeEventListener("resize", this.onResizeBound), (e = window.visualViewport) == null || e.removeEventListener("resize", this.onResizeBound), window.removeEventListener("load", this.onLoadBound), (t = this.resizeObserver) == null || t.disconnect(), this.resizeObserver = null, T.remove(this.tickerBound), this.teardownPin(), this.removeDebugMarkers();
-  }
+  };
 }
-const Lt = /* @__PURE__ */ new WeakMap();
-let zt = !1;
-function We(s, e, t) {
-  if (t) {
-    t === "auto" && !zt && (zt = !0, console.warn(
-      '[six-js] overwrite: "auto" (chỉ huỷ property trùng) chưa được hỗ trợ đầy đủ, tạm thời xử lý như overwrite: true (huỷ toàn bộ tween cũ trên cùng target).'
-    ));
-    for (const i of s) {
-      let n = Lt.get(i);
-      n || (n = /* @__PURE__ */ new Set(), Lt.set(i, n));
-      for (const o of n)
-        o !== e && o.kill();
-      n.clear(), n.add(e);
-      const r = () => n.delete(e);
-      e.on("complete", r), e.on("reverseComplete", r);
+function Fe(t) {
+  const e = document.createElement("div"), i = document.createElement("div"), r = (n, s) => {
+    n.style.cssText = `position:absolute;left:0;width:100%;border-top:2px dashed ${s};z-index:999999;pointer-events:none;`;
+  };
+  return r(e, "#4ade80"), r(i, "#f87171"), e.setAttribute("data-six-marker", `${t}-start`), i.setAttribute("data-six-marker", `${t}-end`), document.body.appendChild(e), document.body.appendChild(i), {
+    update(n, s) {
+      e.style.top = `${n}px`, i.style.top = `${s}px`;
+    },
+    remove() {
+      e.remove(), i.remove();
     }
-  }
+  };
 }
-function Xe(s, e, t) {
-  if (typeof t == "number")
-    return s * t;
-  const { each: i, from: n = "start" } = t;
-  if (typeof i != "number" || isNaN(i))
-    return console.warn(`[six-js] stagger.each phải là số, nhận được ${i} — dùng 0 thay thế`), 0;
-  let r;
-  return n === "start" ? r = s : n === "end" ? r = e - 1 - s : n === "center" ? r = Math.abs(s - (e - 1) / 2) : r = Math.abs(s - n), r * i;
+const ut = { top: 0, center: 0.5, bottom: 1 };
+function lt(t) {
+  const e = t.trim();
+  if (e in ut) return { ratio: ut[e], offsetPx: 0 };
+  if (e.endsWith("%")) return { ratio: parseFloat(e) / 100, offsetPx: 0 };
+  const i = parseFloat(e);
+  return { ratio: 0, offsetPx: isNaN(i) ? 0 : i };
 }
-class He {
-  constructor(e, t = []) {
-    a(this, "delays");
-    this.playables = e, this.delays = t;
-  }
-  play() {
-    return this.playables.forEach((e) => e.play()), this;
-  }
-  seek(e) {
-    return this.playables.forEach((t, i) => t.seek(e - (this.delays[i] ?? 0))), this;
-  }
-  get duration() {
-    let e = 0;
-    return this.playables.forEach((t, i) => {
-      const n = t.duration + (this.delays[i] ?? 0);
-      n > e && (e = n);
-    }), e;
-  }
-  pause() {
-    return this.playables.forEach((e) => e.pause()), this;
-  }
-  restart() {
-    return this.playables.forEach((e) => e.restart()), this;
-  }
-  reset() {
-    return this.playables.forEach((e) => e.reset()), this;
-  }
-  reverse() {
-    return this.playables.forEach((e) => e.reverse()), this;
-  }
-  kill() {
-    return this.playables.forEach((e) => e.kill()), this;
-  }
-  get all() {
-    return this.playables;
-  }
+function Xe(t, e, i, r) {
+  const [n = "top", s = "top"] = t.trim().split(/\s+/), o = lt(n), a = lt(s), l = i + e.top + o.ratio * e.height + o.offsetPx, h = a.ratio * r + a.offsetPx;
+  return l - h;
 }
-const Ve = /^<\s*(?:([+-]=)\s*([\d.]+))?$/, je = /^>\s*(?:([+-]=)\s*([\d.]+))?$/, Ge = /^([+-]=)\s*([\d.]+)$/, Ue = /^([^\s+-]+)\s*(?:([+-]=)\s*([\d.]+))?$/;
-class Ke {
-  constructor() {
-    a(this, "children", []);
-    a(this, "labels", /* @__PURE__ */ new Map());
-    a(this, "cursor", 0);
-    a(this, "activeChildren", /* @__PURE__ */ new Set());
-    a(this, "lastLocalTime", 0);
+function He(t) {
+  if (t === void 0) return window;
+  if (typeof t == "string") {
+    const e = document.querySelector(t);
+    return e || (console.warn(`[six] ScrollTrigger: scroller "${t}" not found, falling back to window`), window);
   }
-  get duration() {
-    let e = 0;
-    for (const t of this.children) t.end > e && (e = t.end);
+  return t;
+}
+function ht(t) {
+  if (typeof t == "string") {
+    const e = document.querySelector(t);
+    if (!e) throw new Error(`[six] ScrollTrigger: trigger "${t}" not found`);
     return e;
   }
-  resolvePosition(e) {
-    if (e === void 0) return this.cursor;
-    if (typeof e == "number") return Math.max(0, e);
-    const t = e.trim(), i = this.children[this.children.length - 1];
-    let n = t.match(Ve);
-    if (n && t[0] === "<") {
-      const r = i ? i.start : 0;
-      if (!n[1]) return Math.max(0, r);
-      const o = parseFloat(n[2]);
-      return Math.max(0, r + (n[1] === "-=" ? -o : o));
-    }
-    if (n = t.match(je), n && t[0] === ">") {
-      const r = i ? i.end : 0;
-      if (!n[1]) return Math.max(0, r);
-      const o = parseFloat(n[2]);
-      return Math.max(0, r + (n[1] === "-=" ? -o : o));
-    }
-    if (n = t.match(Ge), n) {
-      const r = parseFloat(n[2]);
-      return Math.max(0, this.cursor + (n[1] === "-=" ? -r : r));
-    }
-    if (n = t.match(Ue), n) {
-      const [, r, o, h] = n, l = this.labels.get(r);
-      if (l === void 0)
-        return console.warn(`[six-js] timeline: unknown label "${r}", appending to end`), this.cursor;
-      if (o && h) {
-        const c = parseFloat(h);
-        return Math.max(0, l + (o === "-=" ? -c : c));
-      }
-      return l;
-    }
-    return console.warn(`[six-js] timeline: invalid position "${e}", appending to end`), this.cursor;
-  }
-  add(e, t) {
-    const i = this.resolvePosition(t), n = i + e.duration;
-    return this.children.push({ start: i, end: n, animatable: e }), this.cursor = Math.max(this.cursor, n), i;
-  }
-  addLabel(e, t) {
-    const i = this.resolvePosition(t);
-    return this.labels.set(e, i), i;
-  }
-  getLabelTime(e) {
-    return this.labels.get(e);
-  }
-  render(e, t) {
-    const i = t ? e : Math.min(this.lastLocalTime, e), n = t ? e : Math.max(this.lastLocalTime, e), r = /* @__PURE__ */ new Set();
-    this.children.forEach((o, h) => {
-      o.end >= i && o.start <= n && r.add(h);
-    }), this.activeChildren.forEach((o) => {
-      var h, l;
-      r.has(o) || (l = (h = this.children[o].animatable).onComplete) == null || l.call(h);
-    }), r.forEach((o) => {
-      var h, l;
-      this.activeChildren.has(o) || (l = (h = this.children[o].animatable).onStart) == null || l.call(h);
-    }), this.children.forEach((o) => {
-      const h = e - o.start;
-      (t || h >= 0) && o.animatable.render(h, t);
-    }), this.activeChildren = r, this.lastLocalTime = e;
-  }
-  onStart() {
-  }
-  onComplete() {
-  }
+  return t;
 }
-class gt {
-  constructor(e = {}) {
-    a(this, "engine", new Ke());
-    a(this, "playable");
-    a(this, "defaults");
-    if (this.defaults = e.defaults ?? {}, this.playable = new lt(this.engine, {
-      autoplay: e.onScroll ? !1 : !e.paused,
-      delay: e.delay,
-      repeat: e.repeat,
-      repeatDelay: e.repeatDelay,
-      boomerang: e.boomerang
-    }), e.onStart && this.playable.on("start", e.onStart), e.onUpdate && this.playable.on("update", e.onUpdate), e.onComplete && this.playable.on("complete", e.onComplete), e.onRepeat && this.playable.on("repeat", e.onRepeat), e.onReverseComplete && this.playable.on("reverseComplete", e.onReverseComplete), e.onScroll) {
-      const t = e.onScroll.target, i = typeof t == "string" ? document.querySelector(t) : t;
-      i ? new ft(i, this.playable, e.onScroll) : console.warn("[six-js] timeline onScroll: trigger element not found, cần chỉ định onScroll.target");
-    }
+const w = [];
+class X {
+  constructor(e) {
+    u(this, "vars");
+    u(this, "triggerEl");
+    u(this, "scroller");
+    u(this, "startY", 0);
+    u(this, "endY", 0);
+    u(this, "wasInside", !1);
+    u(this, "lastScroll", 0);
+    u(this, "killed", !1);
+    u(this, "pinHandle", null);
+    u(this, "scrubController", null);
+    u(this, "markerHandle", null);
+    u(this, "boundOnScroll", () => this.update());
+    u(this, "boundOnResize", () => this.refresh());
+    this.vars = e, this.triggerEl = ht(e.trigger), this.scroller = He(e.scroller), e.animation && (e.animation.pause(), e.scrub && (this.scrubController = typeof e.scrub == "number" ? Ee(e.animation, e.scrub) : Oe(e.animation))), e.markers && (this.markerHandle = Fe(String(w.length))), w.push(this), this.refresh(), De(this.scroller, this.boundOnScroll), Ie(this.boundOnResize);
   }
-  buildChildTween(e, t, i, n, r) {
-    const o = { ...this.defaults, ...t }, h = new pt(e, o, i, n);
-    return this.engine.add(h, r), this;
-  }
-  to(e, t, i) {
-    return this.buildChildTween(e, t, "to", void 0, i);
-  }
-  from(e, t, i) {
-    return this.buildChildTween(e, t, "from", void 0, i);
-  }
-  fromTo(e, t, i, n) {
-    return this.buildChildTween(e, i, "fromTo", t, n);
-  }
-  set(e, t, i) {
-    return this.buildChildTween(e, { ...t, duration: 0 }, "to", void 0, i);
-  }
-  call(e, t) {
-    return this.engine.add({ duration: 0, render: () => {
-    }, onStart: e }, t), this;
-  }
-  add(e, t) {
-    let i;
-    return e instanceof gt ? (e.playable.pause(), i = e.engine) : e instanceof lt ? (e.pause(), i = e.getAnimatable()) : i = e, this.engine.add(i, t), this;
-  }
-  addLabel(e, t) {
-    return this.engine.addLabel(e, t), this;
-  }
-  play() {
-    return this.playable.play(), this;
-  }
-  pause() {
-    return this.playable.pause(), this;
-  }
-  reverse() {
-    return this.playable.reverse(), this;
-  }
-  seek(e) {
-    const t = typeof e == "number" ? e : this.engine.getLabelTime(e) ?? 0;
-    return this.playable.seek(t), this;
-  }
-  restart() {
-    return this.playable.restart(), this;
-  }
-  reset() {
-    return this.playable.reset(), this;
-  }
-  kill() {
-    return this.playable.kill(), this;
-  }
-  on(e, t) {
-    return this.playable.on(e, t), this;
-  }
-  off(e, t) {
-    return this.playable.off(e, t), this;
-  }
-  get duration() {
-    return this.playable.duration;
-  }
-  get progress() {
-    return this.playable.progress;
-  }
-  get isRunning() {
-    return this.playable.isRunning;
-  }
-  get isDead() {
-    return this.playable.isDead;
-  }
-}
-function Qe() {
-  return typeof window < "u" && typeof window.matchMedia == "function";
-}
-function Ze(s, e) {
-  typeof s.addEventListener == "function" ? s.addEventListener("change", e) : s.addListener(e);
-}
-function Je(s, e) {
-  typeof s.removeEventListener == "function" ? s.removeEventListener("change", e) : s.removeListener(e);
-}
-class ti {
-  constructor(e, t) {
-    a(this, "entries", []);
-    a(this, "captured", /* @__PURE__ */ new Set());
-    a(this, "teardownFn");
-    a(this, "dead", !1);
-    a(this, "hasRun", !1);
-    a(this, "lastSnapshot");
-    a(this, "rafId", null);
-    a(this, "single");
-    a(this, "handler");
-    a(this, "onChange", () => this.scheduleRun());
-    var i;
-    if ((i = Ft()) == null || i._capture(this), this.handler = t, this.single = typeof e == "string", this.single)
-      this.entries.push({ name: null, query: e, mql: null });
-    else
-      for (const n in e)
-        this.entries.push({ name: n, query: e[n], mql: null });
-    if (!Qe()) {
-      this.run();
-      return;
-    }
-    for (const n of this.entries)
-      n.mql = window.matchMedia(n.query), Ze(n.mql, this.onChange);
-    this.run();
-  }
-  snapshot() {
-    if (this.single) return this.entries[0].mql ? this.entries[0].mql.matches : !1;
-    const e = {};
-    for (const t of this.entries) e[t.name] = t.mql ? t.mql.matches : !1;
-    return e;
-  }
-  snapshotsEqual(e, t) {
-    if (this.single) return e === t;
-    for (const i in e) if (e[i] !== t[i]) return !1;
-    return !0;
-  }
-  requestFrame(e) {
-    return typeof requestAnimationFrame < "u" ? requestAnimationFrame(e) : setTimeout(e, 16);
-  }
-  cancelFrame(e) {
-    if (typeof cancelAnimationFrame < "u") {
-      cancelAnimationFrame(e);
-      return;
-    }
-    clearTimeout(e);
-  }
-  scheduleRun() {
-    this.dead || this.rafId !== null || (this.rafId = this.requestFrame(() => {
-      this.rafId = null, this.run();
-    }));
-  }
-  run() {
-    if (this.dead) return;
-    const e = this.snapshot();
-    if (!(this.hasRun && this.snapshotsEqual(e, this.lastSnapshot))) {
-      this.teardown(), this.lastSnapshot = e, this.hasRun = !0, xt(this);
-      try {
-        const t = this.handler(e, this);
-        this.teardownFn = typeof t == "function" ? t : void 0;
-      } finally {
-        vt();
-      }
-    }
-  }
-  teardown() {
-    this.captured.forEach((e) => e.kill()), this.captured.clear(), this.teardownFn && (this.teardownFn(), this.teardownFn = void 0);
-  }
-  _capture(e) {
-    this.captured.add(e);
-  }
-  track(e) {
-    const t = this;
-    return (...i) => {
-      if (!t.dead) {
-        xt(t);
-        try {
-          return e(...i);
-        } finally {
-          vt();
-        }
-      }
-    };
+  resolvePositionValue(e, i) {
+    let r = e ?? i;
+    if (typeof r == "function" && (r = r()), typeof r == "number") return r;
+    const n = this.triggerEl.getBoundingClientRect(), s = N(this.scroller, "y"), o = $e(this.scroller, "y");
+    return Xe(r, n, s, o);
   }
   refresh() {
-    this.dead || (this.hasRun = !1, this.run());
+    var e, i, r, n;
+    if (!this.killed) {
+      if ((e = this.pinHandle) == null || e.setPhase("before"), this.startY = this.resolvePositionValue(this.vars.start, "top bottom"), this.endY = this.resolvePositionValue(this.vars.end, "bottom top"), this.endY <= this.startY && (this.endY = this.startY + 1), this.vars.pin) {
+        const s = this.vars.pin === !0 ? this.triggerEl : typeof this.vars.pin == "string" ? ht(this.vars.pin) : this.vars.pin;
+        this.pinHandle ?? (this.pinHandle = ze(s)), this.pinHandle.setDistance(this.endY - this.startY);
+      }
+      (i = this.markerHandle) == null || i.update(this.startY, this.endY), this.update(), (n = (r = this.vars).onRefresh) == null || n.call(r, this);
+    }
+  }
+  computeProgress(e) {
+    return Math.max(0, Math.min((e - this.startY) / (this.endY - this.startY), 1));
+  }
+  update() {
+    var s, o, a, l, h, c, d, f, g, y, _, k, v;
+    if (this.killed) return;
+    const e = N(this.scroller, "y"), i = this.computeProgress(e), r = e >= this.startY && e <= this.endY, n = e >= this.lastScroll;
+    this.pinHandle && this.pinHandle.setPhase(e < this.startY ? "before" : e > this.endY ? "after" : "during"), r && !this.wasInside ? (n ? (o = (s = this.vars).onEnter) == null || o.call(s, this) : (l = (a = this.vars).onEnterBack) == null || l.call(a, this), this.scrubController || (h = this.vars.animation) == null || h.play()) : !r && this.wasInside && (n ? (d = (c = this.vars).onLeave) == null || d.call(c, this) : ((g = (f = this.vars).onLeaveBack) == null || g.call(f, this), this.scrubController || (y = this.vars.animation) == null || y.reverse())), this.wasInside = r, this.lastScroll = e, (_ = this.scrubController) == null || _.update(i), (v = (k = this.vars).onUpdate) == null || v.call(k, this);
+  }
+  progress() {
+    return this.computeProgress(N(this.scroller, "y"));
+  }
+  isActive() {
+    return this.wasInside;
   }
   kill() {
-    if (!this.dead) {
-      this.dead = !0, this.rafId !== null && (this.cancelFrame(this.rafId), this.rafId = null), this.teardown();
-      for (const e of this.entries)
-        e.mql && Je(e.mql, this.onChange);
-    }
+    var i, r, n;
+    if (this.killed) return;
+    this.killed = !0, Ae(this.scroller, this.boundOnScroll), Ye(this.boundOnResize), (i = this.pinHandle) == null || i.revert(), (r = this.scrubController) == null || r.kill(), (n = this.markerHandle) == null || n.remove();
+    const e = w.indexOf(this);
+    e !== -1 && w.splice(e, 1);
   }
-  get matches() {
-    return this.snapshot();
+  static create(e) {
+    return new X(e);
   }
-  get isDead() {
-    return this.dead;
+  static refresh() {
+    for (const e of [...w]) e.refresh();
+  }
+  static getAll() {
+    return w;
   }
 }
-function ei(s, e) {
-  return new ti(s, e);
+function Ne(t, e) {
+  return e || (typeof t == "string" || t instanceof Element ? t : F(t)[0]);
 }
-const ii = "0.0.33";
-function A(s, e, t) {
-  return {
-    type: "numeric",
-    isTransform: !0,
-    transformFn: s,
-    pxAxis: t,
-    defaultUnit: e,
-    getCurrent(i) {
-      return { num: ne(i, s), unit: e };
-    },
-    apply(i, n) {
-      I(i, s, n.num);
-    }
-  };
+function ct(t, e, i) {
+  if (!e) return;
+  const r = Ne(t, e.trigger);
+  X.create({ ...e, trigger: r, animation: i });
 }
-function Xt(s, e, t) {
-  const i = A(s, "px", t), n = A(e, "%");
-  return (r) => typeof r == "string" && r.trim().endsWith("%") ? n : i;
-}
-x("x", Xt("x", "xPercent", "x"));
-x("y", Xt("y", "yPercent", "y"));
-x("z", A("z", "px"));
-x("rotate", A("rotate", "deg"));
-x("rotateX", A("rotateX", "deg"));
-x("rotateY", A("rotateY", "deg"));
-x("rotateZ", A("rotateZ", "deg"));
-x("scale", A("scale", ""));
-x("scaleX", A("scaleX", ""));
-x("scaleY", A("scaleY", ""));
-x("skewX", A("skewX", "deg"));
-x("skewY", A("skewY", "deg"));
-function R(s, e) {
-  return {
-    type: "numeric",
-    isTransform: !1,
-    defaultUnit: e,
-    getCurrent(t) {
-      const i = window.getComputedStyle(t)[s];
-      return _(i, e);
-    },
-    apply(t, i) {
-      t.style[s] = `${i.num}${i.unit}`;
-    }
-  };
-}
-x("width", R("width", "px"));
-x("height", R("height", "px"));
-x("top", R("top", "px"));
-x("left", R("left", "px"));
-x("right", R("right", "px"));
-x("bottom", R("bottom", "px"));
-x("borderWidth", R("borderWidth", "px"));
-x("opacity", R("opacity", ""));
-x("fontSize", R("fontSize", "px"));
-x("letterSpacing", R("letterSpacing", "px"));
-function Q(s) {
-  return {
-    type: "color",
-    cssKey: s,
-    getCurrent(e) {
-      const t = window.getComputedStyle(e)[s];
-      return _t(t);
-    },
-    apply(e, t) {
-      e.style[s] = Re(t);
-    }
-  };
-}
-x("backgroundColor", Q("backgroundColor"));
-x("color", Q("color"));
-x("borderColor", Q("borderColor"));
-x("background", Q("backgroundColor"));
-function si(s) {
-  return {
-    type: "discrete",
-    cssKey: s,
-    apply(e, t) {
-      e.style[s] = t;
-    }
-  };
-}
-const ni = [
-  "display",
-  "position",
-  "visibility",
-  "justifyContent",
-  "alignItems",
-  "alignContent",
-  "alignSelf",
-  "flexDirection",
-  "flexWrap",
-  "textAlign",
-  "overflow",
-  "overflowX",
-  "overflowY",
-  "pointerEvents",
-  "cursor",
-  "whiteSpace",
-  "textTransform",
-  "textDecoration",
-  "listStyleType",
-  "float",
-  "clear",
-  "objectFit"
-];
-ni.forEach((s) => x(s, si(s)));
-function mt(s) {
-  return {
-    type: "complex",
-    cssKey: s,
-    getCurrent(e) {
-      const t = window.getComputedStyle(e)[s];
-      return t && t !== "none" ? t : "";
-    },
-    apply(e, t) {
-      e.style[s] = t;
-    }
-  };
-}
-x("boxShadow", mt("boxShadow"));
-x("filter", mt("filter"));
-x("borderRadius", mt("borderRadius"));
-function Pt(s) {
-  return s instanceof HTMLVideoElement || s instanceof HTMLAudioElement;
-}
-x("currentTime", {
-  type: "numeric",
-  isTransform: !1,
-  defaultUnit: "",
-  getCurrent(s) {
-    return { num: Pt(s) ? s.currentTime : 0, unit: "" };
-  },
-  apply(s, e) {
-    Pt(s) && (s.currentTime = e.num);
+function Z(t, e, i, r) {
+  const { stagger: n, scrollTrigger: s, ...o } = e;
+  if (n === void 0) {
+    const c = new x(t, o, i, r);
+    return M.add(c), ct(t, s, c), c;
   }
-});
-console.log(` SixJS v${ii}`);
-let Ot = !1;
-function ri() {
-  Ot || (ke(), Ot = !0);
+  const a = F(t), l = o.delay ?? 0, h = new z();
+  return a.forEach((c, d) => {
+    const f = l + pt(d, a.length, n);
+    h.add(new x(c, { ...o, delay: f }, i, r), 0);
+  }), M.add(h), ct(t, s, h), h;
 }
-function oi(s) {
-  return Array.from(document.querySelectorAll(s));
+function Ue(t, e) {
+  return Z(t, e, "to");
 }
-function ai(s) {
-  const e = s.startsWith("#") ? s.slice(1) : s;
-  return document.getElementById(e);
+function qe(t, e) {
+  return Z(t, e, "from");
 }
-function li(s, e) {
-  const t = new pt(s, { ...e, duration: 0 }, "to");
-  t.render(0), t.onComplete();
+function Ve(t, e, i) {
+  return Z(t, i, "fromTo", e);
 }
-function Ht(s) {
-  return typeof s == "string" ? document.querySelector(s) : Array.isArray(s) ? s.find((e) => e != null) ?? null : s ?? null;
+function Be(t, e) {
+  const i = new x(t, { ...e, duration: 0 });
+  return M.add(i), i;
 }
-function hi(s) {
-  return typeof s == "string" ? Array.from(document.querySelectorAll(s)) : Array.isArray(s) ? s.filter((e) => e != null) : s ? [s] : [];
+function We(t) {
+  const { scrollTrigger: e, ...i } = t ?? {}, r = new z(i);
+  return M.add(r), e && (e.trigger ? X.create({ ...e, trigger: e.trigger, animation: r }) : console.warn("[six] timeline({ scrollTrigger }) requires an explicit trigger - a Timeline has no target to default to")), r;
 }
-function Bt(s, e, t, i, n, r) {
-  const o = new pt(s, e, t, i), h = new lt(o, {
-    autoplay: r.onScroll ? !1 : !r.paused,
-    delay: (r.delay ?? 0) + n,
-    repeat: r.repeat,
-    repeatDelay: r.repeatDelay,
-    boomerang: r.boomerang
-  });
-  if (r.onStart && h.on("start", r.onStart), r.onUpdate && h.on("update", r.onUpdate), r.onComplete && h.on("complete", r.onComplete), r.onRepeat && h.on("repeat", r.onRepeat), r.onReverseComplete && h.on("reverseComplete", r.onReverseComplete), We(o.targetElements, h, r.overwrite), r.onScroll) {
-    const l = Ht(r.onScroll.target ?? s);
-    l ? new ft(l, h, r.onScroll) : console.warn("[six-js] onScroll: trigger element not found");
-  }
-  return h;
+function Ke(t) {
+  Tt(t);
 }
-function bt(s, e, t, i) {
-  const {
-    onScroll: n,
-    stagger: r,
-    delay: o,
-    paused: h,
-    repeat: l,
-    repeatDelay: c,
-    boomerang: u,
-    overwrite: d,
-    onStart: p,
-    onUpdate: f,
-    onComplete: g,
-    onRepeat: m,
-    onReverseComplete: y,
-    ...v
-  } = e, b = { onScroll: n, delay: o, paused: h, repeat: l, repeatDelay: c, boomerang: u, overwrite: d, onStart: p, onUpdate: f, onComplete: g, onRepeat: m, onReverseComplete: y };
-  if (r === void 0)
-    return Bt(s, v, t, i, 0, b);
-  const S = hi(s);
-  S.length === 0 && console.warn("[six-js] stagger: no elements matched"), Object.values(v).some((M) => typeof M == "function") && console.warn(
-    "[six-js] stagger: function value (index, el) => ... luôn nhận index=0 vì mỗi phần tử stagger giờ là 1 tween độc lập, không phải index gốc trong danh sách. Nếu cần giá trị theo index gốc, hãy tự tính mảng giá trị trước thay vì dùng callback."
-  );
-  const k = S.map((M, B) => Xe(B, S.length, r)), P = n ? { ...b, onScroll: void 0, paused: !0 } : b, X = !!n && (n.sync === !0 || typeof n.sync == "number"), H = S.map(
-    (M, B) => Bt(M, v, t, i, X ? 0 : k[B], P)
-  ), O = new He(H, k);
-  if (n) {
-    const M = Ht(n.target ?? s);
-    M ? new ft(M, O, n) : console.warn("[six-js] onScroll: trigger element not found");
-  }
-  return O;
-}
-function ci(s, e) {
-  return bt(s, e, "to");
-}
-function di(s, e) {
-  return bt(s, e, "from");
-}
-function ui(s, e, t) {
-  return bt(s, t, "fromTo", e);
-}
-function pi(s) {
-  return new gt(s);
-}
-const mi = {
-  initElements: ri,
-  getClass: oi,
-  getId: ai,
-  set: li,
-  to: ci,
-  from: di,
-  fromTo: ui,
-  timeline: pi,
-  matchMedia: ei,
-  setDefaults: Fe
+const Ze = {
+  to: Ue,
+  from: qe,
+  fromTo: Ve,
+  set: Be,
+  timeline: We,
+  config: Ke,
+  context: vt
 };
 export {
-  ii as VERSION,
-  mi as six,
-  xi as splitText
+  X as ScrollTrigger,
+  Ge as VERSION,
+  Ze as six
 };

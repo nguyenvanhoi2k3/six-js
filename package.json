@@ -12,7 +12,9 @@
     "javascript",
     "library",
     "animation",
-    "web-components"
+    "tween",
+    "timeline",
+    "scrolltrigger"
   ],
   "module": "./dist/six-js.es.js",
   "types": "./dist/index.d.ts",
@@ -21,12 +23,7 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/six-js.es.js",
       "require": "./dist/six-js.umd.js"
-    },
-    "./split-text": {
-      "types": "./dist/plugins/split-text/index.d.ts",
-      "import": "./dist/split-text.es.js"
-    },
-    "./style.css": "./dist/style.css"
+    }
   },
   "files": [
     "dist"
@@ -43,6 +40,7 @@
     "@types/node": "^22.10.1",
     "concurrently": "^10.0.3",
     "jsdom": "^29.1.1",
+    "playwright": "^1.61.1",
     "typescript": "^5.6.3",
     "vite": "^5.4.11",
     "vite-plugin-dts": "^5.0.2",

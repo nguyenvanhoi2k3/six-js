@@ -3,43 +3,132 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>six-js</title>
-
-    <link rel="stylesheet" href="./dist/style.css" />
+    <title>six-js sandbox</title>
     <link rel="stylesheet" href="./index.css" />
   </head>
 
   <body>
-    <div class="space"></div>
-    <div class="container">
-      <div class="track">
-        <span class="char">Lorem</span>
-        <span class="char">ipsum</span>
-        <span class="char">dolor</span>
-        <span class="char">sit</span>
-        <span class="char">amet</span>
-        <span class="char">consectetur</span>
-        <span class="char">adipiscing</span>
-        <span class="char">elit</span>
-        <span class="char">sed</span>
-        <span class="char">do</span>
-        <span class="char">eiusmod</span>
-        <span class="char">tempor</span>
-        <span class="char">incididunt</span>
-        <span class="char">ut</span>
-        <span class="char">labore</span>
+    <section class="panel">
+      <h1>six-js Phase 1 smoke test</h1>
+      <p>Open the console. Each block below exercises one piece of the engine.</p>
+    </section>
+
+    <section class="panel">
+      <h2>1. six.to() - basic tween</h2>
+      <div class="box" id="tween-box"></div>
+      <button id="tween-replay">replay</button>
+    </section>
+
+    <section class="panel">
+      <h2>2. six.timeline() - sequenced + labels</h2>
+      <div class="box box2" id="tl-a"></div>
+      <div class="box box3" id="tl-b"></div>
+      <button id="tl-replay">replay</button>
+    </section>
+
+    <section class="panel">
+      <h2>3. Nested timeline keeps its own repeat (the bug this rewrite fixes)</h2>
+      <div class="box" id="nested-box"></div>
+      <button id="nested-replay">replay</button>
+    </section>
+
+    <section class="panel">
+      <h2>4. Stagger</h2>
+      <div class="stagger-row">
+        <div class="box small"></div>
+        <div class="box small"></div>
+        <div class="box small"></div>
+        <div class="box small"></div>
+        <div class="box small"></div>
       </div>
-    </div>
+      <button id="stagger-replay">replay</button>
+    </section>
+
     <div class="space"></div>
 
-    <!-- ------------------------------------------------GSAP------------------------------------------------ -->
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+    <section class="panel">
+      <h2>5. ScrollTrigger - scrub</h2>
+      <div class="box" id="scrub-box"></div>
+    </section>
 
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/ScrollTrigger.min.js"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", (event) => {
-        gsap.registerPlugin(ScrollTrigger);
+    <div class="space"></div>
+
+    <section class="panel">
+      <h2>6. ScrollTrigger - pin</h2>
+      <div class="box" id="pin-box"></div>
+    </section>
+
+    <div class="space"></div>
+    <div class="space"></div>
+
+    <script type="module">
+      import { six } from "/src/index.ts";
+
+      window.six = six; // for poking at from the console
+
+      // 1. basic tween
+      function playTween() {
+        six.to("#tween-box", { x: 300, rotation: 180, backgroundColor: "#f87171", duration: 1, ease: "back.out" });
+      }
+      playTween();
+      document.getElementById("tween-replay").addEventListener("click", playTween);
+
+      // 2. timeline with labels
+      function playTimeline() {
+        const tl = six.timeline();
+        tl.to("#tl-a", { x: 250, duration: 0.6, ease: "power2.out" });
+        tl.addLabel("mid");
+        tl.to("#tl-b", { x: 250, duration: 0.6, ease: "power2.out" }, "mid");
+        tl.to("#tl-a", { y: 40, duration: 0.4 }, "mid+=0.3");
+      }
+      playTimeline();
+      document.getElementById("tl-replay").addEventListener("click", playTimeline);
+
+      // 3. nested timeline repeat
+      function playNested() {
+        const inner = six.timeline({ repeat: 2, yoyo: true });
+        inner.to("#nested-box", { x: 200, duration: 0.5, ease: "none" });
+
+        const outer = six.timeline();
+        outer.add(inner);
+      }
+      playNested();
+      document.getElementById("nested-replay").addEventListener("click", playNested);
+
+      // 4. stagger
+      function playStagger() {
+        six.to(".stagger-row .box", { y: -40, duration: 0.5, ease: "power1.out", stagger: 0.1 });
+      }
+      playStagger();
+      document.getElementById("stagger-replay").addEventListener("click", playStagger);
+
+      // 5. ScrollTrigger scrub
+      six.to("#scrub-box", {
+        x: 400,
+        rotation: 360,
+        ease: "none",
+        scrollTrigger: {
+          trigger: "#scrub-box",
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 0.5,
+          markers: true,
+        },
       });
+
+      // 6. ScrollTrigger pin
+      six.timeline({
+        scrollTrigger: {
+          trigger: "#pin-box",
+          start: "top top",
+          end: "+=400",
+          pin: true,
+          scrub: true,
+          markers: true,
+        },
+      }).to("#pin-box", { backgroundColor: "#c6ffb4", rotation: 90, ease: "none" });
+
+      console.log("six-js sandbox loaded", six);
     </script>
   </body>
 </html>
