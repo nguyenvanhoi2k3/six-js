@@ -4,6 +4,7 @@ import { StaggerInput, computeStaggerDelay } from "../timeline/stagger";
 import { rootTimeline } from "../core/root";
 import { GlobalDefaults, setDefaults } from "../core/defaults";
 import { Context, context } from "../core/context";
+import { Breakpoint, BreakpointCallback, BreakpointConditions, BreakpointContext, breakpoint } from "../core/breakpoint";
 import { OnScroll, OnScrollVars } from "../on-scroll/on-scroll";
 import { registerComponents } from "../components";
 import * as utils from "../utils/utils";
@@ -99,6 +100,7 @@ export const six = {
   timeline,
   config,
   context,
+  breakpoint,
   utils,
 };
 
@@ -108,4 +110,4 @@ export function enableElements(): void {
 }
 
 export { OnScroll };
-export type { Context, GlobalDefaults, Tween, Timeline, TweenVars, TimelineVars, OnScrollVars };
+export type { Context, GlobalDefaults, Tween, Timeline, TweenVars, TimelineVars, OnScrollVars, Breakpoint, BreakpointConditions, BreakpointCallback, BreakpointContext };

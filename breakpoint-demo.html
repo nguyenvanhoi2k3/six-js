@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>six.breakpoint() demo</title>
+    <link rel="stylesheet" href="./index.css" />
+    <style>
+      .note {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        font-family: monospace;
+        font-size: 13px;
+        opacity: 0.7;
+      }
+      .hero {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        text-align: center;
+      }
+      .box {
+        width: 140px;
+        height: 140px;
+      }
+      .hero h1 {
+        font-size: 40px;
+      }
+      .hero p {
+        opacity: 0.7;
+      }
+      .reveal {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .card {
+        width: min(500px, 90vw);
+        padding: 60px 32px;
+        border-radius: 16px;
+        background: #1c1f24;
+        border: 1px solid #2a2d33;
+        text-align: center;
+        font-size: 20px;
+        font-weight: 700;
+      }
+      .scope-demo {
+        min-height: 100vh;
+        padding: 40px 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        text-align: center;
+      }
+      .scope-demo p {
+        max-width: 560px;
+        opacity: 0.75;
+      }
+      .pulse-row {
+        display: flex;
+        gap: 40px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .pulse-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+      .pulse-box {
+        width: 90px;
+        height: 90px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+      }
+      .pulse-box.a {
+        background: #7a2e2e;
+      }
+      .pulse-box.b {
+        background: #2e7a4d;
+      }
+      .scope-demo button {
+        padding: 10px 16px;
+        border-radius: 6px;
+        border: 1px solid #3a3d44;
+        background: #1a1c20;
+        color: inherit;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .scope-demo button:hover {
+        background: #26292f;
+      }
+      #btnKillScopeDemo {
+        border-color: #7a2e2e;
+      }
+      #scopeStatus {
+        font-family: monospace;
+        font-size: 13px;
+        opacity: 0.9;
+        min-height: 1.5em;
+      }
+    </style>
+  </head>
+
+  <body>
+    <p class="note" id="note">breakpoint: …</p>
+
+    <section class="hero">
+      <div class="box" id="box"></div>
+      <h1 id="title">six.breakpoint()</h1>
+      <p id="sub">resize past 900px and reload to compare</p>
+    </section>
+
+    <div class="space"></div>
+
+    <section class="reveal">
+      <div class="card" id="card">
+        scroll-linked on desktop, simple reveal on mobile
+      </div>
+    </section>
+
+    <div class="space"></div>
+
+    <section class="scope-demo">
+      <h2>ctx.scope() - captured vs not captured</h2>
+      <p>
+        Click "Pulse A" then "Pulse B" to start both spinning (repeat: -1, never stops on its own). Then click
+        "Kill this breakpoint" - box A keeps spinning forever (its tween was created OUTSIDE any capture), box B
+        stops instantly (its tween was created through <code>ctx.scope()</code>, so it got captured and killed
+        along with everything else).
+      </p>
+      <div class="pulse-row">
+        <div class="pulse-col">
+          <div class="pulse-box a" id="pulseBoxA">A</div>
+          <button id="btnPulseA">Pulse A (not captured)</button>
+        </div>
+        <div class="pulse-col">
+          <div class="pulse-box b" id="pulseBoxB">B</div>
+          <button id="btnPulseB">Pulse B (ctx.scope())</button>
+        </div>
+      </div>
+      <button id="btnKillScopeDemo">Kill this breakpoint now</button>
+      <p id="scopeStatus"></p>
+    </section>
+
+    <script type="module">
+      import { six } from "./dist/six-js.es.js";
+
+      const note = document.getElementById("note");
+      const hero = document.querySelector(".hero");
+      const box = document.getElementById("box");
+      const title = document.getElementById("title");
+      const sub = document.getElementById("sub");
+      const card = document.getElementById("card");
+
+      six.breakpoint(
+        { isDesktop: "(min-width: 900px)", isMobile: "(max-width: 899px)" },
+        (ctx) => {
+          const { isDesktop } = ctx.matches;
+
+          six.set([box, title, sub, card], {
+            opacity: 1,
+            y: 0,
+            rotate: 0,
+            scaleX: 1,
+            scaleY: 1,
+          });
+
+          if (isDesktop) {
+            note.textContent =
+              "breakpoint: desktop — smooth infinite spin + pulse";
+            six.set(hero, { backgroundColor: "#0b1030" });
+            six.set(box, { borderRadius: "50%", backgroundColor: "#5c7cfa" });
+            sub.textContent = "DESKTOP: big circle, slow infinite spin, blue";
+
+            six
+              .timeline()
+              .from(box, { y: 60, opacity: 0, duration: 1 })
+              .from(title, { y: 30, opacity: 0, duration: 0.6 }, "<+=0.2")
+              .from(sub, { opacity: 0, duration: 0.5 }, "<+=0.2");
+
+            six.to(box, { rotate: 360, duration: 4, repeat: -1, ease: "none" });
+            six.to(box, {
+              scaleX: 1.25,
+              scaleY: 1.25,
+              duration: 1.2,
+              repeat: -1,
+              boomerang: true,
+              ease: "sineInOut",
+            });
+            six.to(title, {
+              y: -10,
+              duration: 1.4,
+              repeat: -1,
+              boomerang: true,
+              ease: "sineInOut",
+            });
+
+            card.textContent =
+              "sync: 1 — scroll up/down over this card, it follows your scroll live, both directions";
+            six.set(card, { backgroundColor: "#1c1f24" });
+            six.fromTo(
+              card,
+              {
+                opacity: 0.15,
+                rotate: 0,
+                scaleX: 0.75,
+                scaleY: 0.75,
+                backgroundColor: "#1c1f24",
+              },
+              {
+                opacity: 1,
+                rotate: 360,
+                scaleX: 1,
+                scaleY: 1,
+                backgroundColor: "#5c7cfa",
+                duration: 1,
+                onScroll: { start: "top bottom", end: "bottom top", sync: 1 },
+              },
+            );
+          } else {
+            note.textContent =
+              "breakpoint: mobile — fast infinite blink, no spin";
+            six.set(hero, { backgroundColor: "#2a0b0b" });
+            six.set(box, { borderRadius: "6px", backgroundColor: "#ff6b5d" });
+            sub.textContent = "MOBILE: small square, fast infinite blink, red";
+
+            six
+              .timeline()
+              .from(box, { y: 30, opacity: 0, duration: 0.5 })
+              .from(title, { opacity: 0, duration: 0.4 }, "<+=0.1")
+              .from(sub, { opacity: 0, duration: 0.3 }, "<+=0.1");
+
+            six.to(box, {
+              opacity: 0.3,
+              duration: 0.35,
+              repeat: -1,
+              boomerang: true,
+              ease: "none",
+            });
+
+            card.textContent =
+              "no sync — plays once on the way down, does NOT reverse if you scroll back up";
+            six.set(card, { backgroundColor: "#1c1f24" });
+            six.from(card, {
+              opacity: 0,
+              y: 60,
+              rotate: -6,
+              duration: 0.5,
+              ease: "backOut",
+              onScroll: { start: "top 85%" },
+            });
+          }
+        },
+      );
+
+      const pulseBoxA = document.getElementById("pulseBoxA");
+      const pulseBoxB = document.getElementById("pulseBoxB");
+      const scopeStatus = document.getElementById("scopeStatus");
+
+      const btnPulseA = document.getElementById("btnPulseA");
+      const btnPulseB = document.getElementById("btnPulseB");
+
+      const scopeDemo = six.breakpoint("(min-width: 1px)", (ctx) => {
+        const onPulseA = () => {
+          six.to(pulseBoxA, { rotate: 360, duration: 4, repeat: -1, ease: "none" });
+        };
+        btnPulseA.addEventListener("click", onPulseA);
+
+        const onPulseB = ctx.scope(() => {
+          six.to(pulseBoxB, { rotate: 360, duration: 4, repeat: -1, ease: "none" });
+        });
+        btnPulseB.addEventListener("click", onPulseB);
+
+        scopeStatus.textContent = "breakpoint alive - click Pulse A and Pulse B, then Kill";
+
+        return () => {
+          btnPulseA.removeEventListener("click", onPulseA);
+          btnPulseB.removeEventListener("click", onPulseB);
+        };
+      });
+
+      document.getElementById("btnKillScopeDemo").addEventListener("click", () => {
+        scopeDemo.kill();
+        scopeStatus.textContent = "breakpoint killed - A keeps spinning forever (never captured), B stopped instantly (captured via ctx.scope())";
+      });
+    </script>
+  </body>
+</html>

@@ -82,4 +82,50 @@ describe("Context", () => {
     context(spy);
     expect(spy).toHaveBeenCalledOnce();
   });
+
+  describe("scope()", () => {
+    it("makes the context the active scope while the wrapped function runs, even called later", () => {
+      const ctx = new Context();
+      const wrapped = ctx.scope(() => getActiveScope());
+
+      expect(getActiveScope()).toBeNull(); // not active yet - scope() only wraps, doesn't run
+      expect(wrapped()).toBe(ctx); // now active, for the duration of this one call
+      expect(getActiveScope()).toBeNull(); // and restored again afterward
+    });
+
+    it("captures anything Killable created while the wrapped function runs", () => {
+      const ctx = new Context();
+      const target = { kill: vi.fn() };
+      const wrapped = ctx.scope(() => {
+        getActiveScope()?._capture(target);
+      });
+
+      wrapped();
+      ctx.kill();
+
+      expect(target.kill).toHaveBeenCalledOnce();
+    });
+
+    it("forwards arguments and the return value through to the wrapped function", () => {
+      const ctx = new Context();
+      const wrapped = ctx.scope((a: number, b: number) => a + b);
+
+      expect(wrapped(2, 3)).toBe(5);
+    });
+
+    it("can be called more than once, each call captured independently", () => {
+      const ctx = new Context();
+      const targets = [{ kill: vi.fn() }, { kill: vi.fn() }];
+      const wrapped = ctx.scope((target: { kill: () => void }) => {
+        getActiveScope()?._capture(target);
+      });
+
+      wrapped(targets[0]);
+      wrapped(targets[1]);
+      ctx.kill();
+
+      expect(targets[0].kill).toHaveBeenCalledOnce();
+      expect(targets[1].kill).toHaveBeenCalledOnce();
+    });
+  });
 });

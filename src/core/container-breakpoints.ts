@@ -1,4 +1,4 @@
-export class Breakpoints {
+export class ContainerBreakpoints {
 
 static parse(attributeValue: string | null): Record<number, any> | null {
     if (!attributeValue) return null;

@@ -3,7 +3,7 @@
 import { parseTimeValue } from '../../core/time';
 import type { DialogEffect, DialogOptions, DialogPosition, DialogToggleDetail } from './types';
 import { SafeHTMLElement } from '../../core/safe-element';
-import { Breakpoints } from '../../core/breakpoints';
+import { ContainerBreakpoints } from '../../core/container-breakpoints';
 
 const DEFAULT_OPTIONS: Omit<DialogOptions, 'name'> = {
   duration: 300,
@@ -98,7 +98,7 @@ export class SxDialog extends SafeHTMLElement {
       effect: this.effect,
       position: this.position,
     };
-    this.breakpointsConfig = Breakpoints.parse(this.getAttribute('breakpoints'));
+    this.breakpointsConfig = ContainerBreakpoints.parse(this.getAttribute('breakpoints'));
 
     this.render();
     this.applyBreakpoints();
@@ -135,7 +135,7 @@ export class SxDialog extends SafeHTMLElement {
   private applyBreakpoints() {
     if (!this.breakpointsConfig || !this.originalOptions) return;
 
-    const merged = Breakpoints.getMatch(
+    const merged = ContainerBreakpoints.getMatch(
       window.innerWidth,
       this.originalOptions,
       this.breakpointsConfig,

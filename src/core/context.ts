@@ -43,6 +43,19 @@ export class Context {
     if (!this.dead) this.captured.add(target);
   }
 
+  /**
+   * Wraps `fn` so that whenever the RETURNED function is eventually called - from an event
+   * listener, a timeout, a promise, anything outside this context's own synchronous `run()` call
+   * - anything Killable it creates still gets captured into this context, exactly as if it had
+   * run synchronously inside `run()`. Needed because auto-capture only works while this context is
+   * the active scope, which by definition isn't true anymore once the callback that created it has
+   * already returned - e.g. a click handler registered inside a `six.breakpoint()`/`six.context()`
+   * callback runs later, on its own, with no context active unless it's wrapped like this first.
+   */
+  scope<A extends unknown[], R>(fn: (...args: A) => R): (...args: A) => R {
+    return (...args: A) => this.run(() => fn(...args));
+  }
+
   _capture(target: Killable): void {
     this.add(target);
   }

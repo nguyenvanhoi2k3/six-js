@@ -2,7 +2,7 @@
 import { SliderOptions } from "./types";
 import { SxSliderTrack } from "./slider-track";
 import { sliderRegistry } from "./slider-registry";
-import { Breakpoints } from "../../core/breakpoints";
+import { ContainerBreakpoints } from "../../core/container-breakpoints";
 import { parseTimeValue } from "../../core/time";
 import { SafeHTMLElement } from "../../core/safe-element";
 
@@ -345,7 +345,7 @@ export class SxSlider extends SafeHTMLElement {
     };
 
     this.originalOptions = { ...this.options };
-    this.breakpointsConfig = Breakpoints.parse(
+    this.breakpointsConfig = ContainerBreakpoints.parse(
       this.getAttribute("breakpoints"),
     );
   }
@@ -430,7 +430,7 @@ export class SxSlider extends SafeHTMLElement {
     }
 
     if (this.breakpointsConfig && this.originalOptions) {
-      this.options = Breakpoints.getMatch(
+      this.options = ContainerBreakpoints.getMatch(
         containerSize,
         JSON.parse(JSON.stringify(this.originalOptions)),
         this.breakpointsConfig,

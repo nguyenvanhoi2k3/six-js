@@ -38,7 +38,16 @@
       const track = document.querySelector(".track");
       const words = six.utils.arrayOf(".char");
 
-      const eases = ["quintOut", "quadOut", "sineOut", "backOut", "expoOut", "circOut", "smooth", "bounceOut"];
+      const eases = [
+        "quintOut",
+        "quadOut",
+        "sineOut",
+        "backOut",
+        "expoOut",
+        "circOut",
+        "smooth",
+        "bounceOut",
+      ];
 
       const distance = track.scrollWidth - window.innerWidth;
       const scrollLength = distance * 0.4;
@@ -69,8 +78,13 @@
       const maxRevealProgress = 0.92;
 
       const wordTweens = words.map((word) => {
-        const naturalProgress = (word.offsetLeft - revealViewportRatio * window.innerWidth) / distance;
-        const revealProgress = Math.min(Math.max(naturalProgress, 0), maxRevealProgress);
+        const naturalProgress =
+          (word.offsetLeft - revealViewportRatio * window.innerWidth) /
+          distance;
+        const revealProgress = Math.min(
+          Math.max(naturalProgress, 0),
+          maxRevealProgress,
+        );
 
         return six.to(word, {
           opacity: 1,
