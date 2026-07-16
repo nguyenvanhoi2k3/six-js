@@ -121,6 +121,14 @@ describe("Animation - play/pause/timeScale/reverse", () => {
     a.resume();
     expect(a.reversed()).toBe(true);
   });
+
+  it("play() forces forward playback even after reverse(), unlike resume()", () => {
+    const a = new StubAnimation();
+    a.reverse();
+    expect(a.reversed()).toBe(true);
+    a.play();
+    expect(a.reversed()).toBe(false);
+  });
 });
 
 describe("Animation - restart(includeDelay)", () => {

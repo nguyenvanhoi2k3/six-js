@@ -271,6 +271,7 @@ export abstract class Animation implements ListNode<Animation> {
     const wasPaused = this._ts === 0;
     this._rts = value;
     this._ts = wasPaused ? 0 : value;
+    this.parent?._childResumed?.(this);
     return this;
   }
 
@@ -291,6 +292,7 @@ export abstract class Animation implements ListNode<Animation> {
   }
 
   play(): this {
+    this.reversed(false);
     this.paused(false);
     return this;
   }
@@ -301,12 +303,14 @@ export abstract class Animation implements ListNode<Animation> {
   }
 
   resume(): this {
-    return this.play();
+    this.paused(false);
+    return this;
   }
 
   reverse(): this {
     this.reversed(true);
-    return this.play();
+    this.paused(false);
+    return this;
   }
 
   restart(includeDelay = false): this {

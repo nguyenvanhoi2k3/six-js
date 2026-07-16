@@ -35,6 +35,12 @@ function toChildTotalTime(parentLocalTime: number, child: Animation): number {
   return (parentLocalTime - (child.startTime() as number)) * ts + (ts >= 0 ? 0 : tDur);
 }
 
+function currentLocalTimeOf(tl: Timeline): number {
+  const parent = tl.parent;
+  if (!(parent instanceof Timeline)) return tl.totalTime() as number;
+  return toChildTotalTime(currentLocalTimeOf(parent), tl);
+}
+
 export class Timeline extends Animation implements AnimationParent, ListHandle<Animation> {
   private _firstChild: Animation | null = null;
   private _lastChild: Animation | null = null;
@@ -144,13 +150,14 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
    * begin now, even though it never progressed even slightly beforehand.
    */
   _childResumed(child: Animation): void {
-    if (this._lastRenderedLocal < (child.startTime() as number)) return;
+    const now = currentLocalTimeOf(this);
+    if (now < (child.startTime() as number)) return;
 
     const childTotalTime = child.totalTime() as number;
     const ts = child.timeScale() as number;
     const tDur = child.totalDuration() as number;
     const offset = ts >= 0 ? 0 : tDur;
-    child.startTime(this._lastRenderedLocal - (childTotalTime - offset) / ts);
+    child.startTime(now - (childTotalTime - offset) / ts);
   }
 
   /** Cascades to every child before detaching itself from its own parent (if any). */
@@ -262,6 +269,7 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
       const start = child.startTime() as number;
       const end = child.endTime();
       if (end < lo || start > hi) continue; // fully outside the range this render pass covers
+      if ((child.totalDuration() as number) === 0 && start <= lo) continue;
 
       child.render(toChildTotalTime(localTime, child), suppressEvents, force);
     }

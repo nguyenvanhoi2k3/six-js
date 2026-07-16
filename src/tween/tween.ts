@@ -5,6 +5,7 @@ import { applyTrack, buildTracks, PropertyTrack, TweenMode } from "./property-tr
 import { getTransformCache, renderTransform } from "../animate/transform-cache";
 import { buildKeyframeTimeline, KeyframesInput } from "./keyframes";
 import { Timeline } from "../timeline/timeline";
+import { applyOverwrite } from "./overwrite";
 
 export type { TweenMode } from "./property-track";
 
@@ -13,22 +14,15 @@ export type TweenTarget = Element | Element[] | ArrayLike<Element> | string | nu
 export interface TweenVars extends AnimationVars {
   duration?: number;
   ease?: string | EaseFn;
-  /**
-   * NOT YET IMPLEMENTED - accepted and typed (matching the originally planned architecture,
-   * see `LEGACY_CLEANUP.md`'s sibling doc / the approved Phase 1 plan's `tween/overwrite.ts`)
-   * but currently has zero effect: no active-tween-per-target registry exists, so setting this
-   * silently does nothing rather than erroring. Documented as a real Phase 1 gap in CLAUDE.md -
-   * don't assume it works without checking there first.
-   */
   overwrite?: boolean | "auto";
   keyframes?: KeyframesInput;
   [prop: string]: unknown;
 }
 
-export function resolveTargets(input: TweenTarget): Element[] {
+export function resolveTargets(input: TweenTarget, scope?: Element | Document): Element[] {
   if (input == null) return [];
   if (typeof input === "string") {
-    const found = Array.from(document.querySelectorAll(input));
+    const found = Array.from((scope ?? document).querySelectorAll(input));
     if (found.length === 0) console.warn(`[six] no elements matched selector "${input}"`);
     return found;
   }
@@ -81,7 +75,13 @@ export class Tween extends Animation {
   protected _onInit(): void {
     if (!this.keyframeTimeline) {
       this.tracks = buildTracks(this.targets, this.rawVars, this.mode, this.rawFromVars);
+      applyOverwrite(this, this.rawVars.overwrite, this.tracks);
     }
+  }
+
+  _dropTrack(target: Element, prop: string): void {
+    this.tracks = this.tracks.filter((t) => t.target !== target || t.prop !== prop);
+    if (this.tracks.length === 0) this.kill();
   }
 
   protected _renderIteration(localTime: number): void {

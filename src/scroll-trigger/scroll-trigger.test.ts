@@ -251,6 +251,59 @@ describe("ScrollTrigger - integration", () => {
     expect(animation.progress()).toBe(1);
   });
 
+  it("a trigger already behind the scroll position on construction (e.g. a reload deep into the page) shows its animation instantly complete, not replaying from scratch", () => {
+    const trigger = document.createElement("div");
+    mockRect(trigger, 0, 100);
+    mockViewportHeight(800);
+    scrollTo(5000); // simulates reloading deep into the page
+
+    // fully behind: both start and end are already in the past
+    const behindTarget = document.createElement("div");
+    behindTarget.style.opacity = "0";
+    const behindAnim = new Tween(behindTarget, { opacity: 1, duration: 0.6, ease: "none" });
+    const onEnterBehind = vi.fn();
+    new ScrollTrigger({ trigger, start: 1000, end: 1100, animation: behindAnim, onEnter: onEnterBehind });
+
+    // start already passed, but end is still ahead (currently "inside" its own range)
+    const insideTarget = document.createElement("div");
+    insideTarget.style.opacity = "0";
+    const insideAnim = new Tween(insideTarget, { opacity: 1, duration: 0.6, ease: "none" });
+    const onEnterInside = vi.fn();
+    new ScrollTrigger({ trigger, start: 4000, end: 6000, animation: insideAnim, onEnter: onEnterInside });
+
+    // not reached yet - should stay hidden
+    const aheadTarget = document.createElement("div");
+    aheadTarget.style.opacity = "0";
+    const aheadAnim = new Tween(aheadTarget, { opacity: 1, duration: 0.6, ease: "none" });
+    const onEnterAhead = vi.fn();
+    new ScrollTrigger({ trigger, start: 9000, end: 9100, animation: aheadAnim, onEnter: onEnterAhead });
+
+    expect(behindTarget.style.opacity).toBe("1");
+    expect(onEnterBehind).toHaveBeenCalledOnce();
+    expect(insideTarget.style.opacity).toBe("1");
+    expect(onEnterInside).toHaveBeenCalledOnce();
+    expect(aheadTarget.style.opacity).toBe("0");
+    expect(onEnterAhead).not.toHaveBeenCalled();
+  });
+
+  it("still animates normally (not instantly) for a genuine live-scroll crossing after construction", () => {
+    const trigger = document.createElement("div");
+    mockRect(trigger, 500, 100);
+    mockViewportHeight(800);
+    scrollTo(0);
+
+    const target = document.createElement("div");
+    target.style.opacity = "0";
+    const animation = new Tween(target, { opacity: 1, duration: 0.6, ease: "none" });
+    new ScrollTrigger({ trigger, start: "top top", end: "bottom top", animation });
+
+    expect(target.style.opacity).toBe("0"); // not reached yet at construction
+
+    scrollTo(550); // live crossing
+    expect(animation.paused()).toBe(false);
+    expect(target.style.opacity).not.toBe("1"); // still mid-animation, not snapped straight to done
+  });
+
   it("drives an animation's progress directly in scrub mode", () => {
     const trigger = document.createElement("div");
     mockRect(trigger, 0, 100);
@@ -341,5 +394,98 @@ describe("ScrollTrigger - integration", () => {
 
     st.kill();
     trigger.remove();
+  });
+});
+
+describe("ScrollTrigger - containerAnimation/horizontal", () => {
+  afterEach(() => {
+    ScrollTrigger.getAll().forEach((st) => st.kill());
+    vi.restoreAllMocks();
+  });
+
+  // simulates a word inside a horizontally-scrubbed track: the container moves everything left
+  // by `totalTravel` px total as `container` goes from totalProgress 0 to 1, so the word's own
+  // rect.left is a linear function of the container's current progress.
+  function mockHorizontalWord(el: Element, naturalLeft: number, width: number, container: Tween, totalTravel: number): void {
+    vi.spyOn(el, "getBoundingClientRect").mockImplementation(() => {
+      const left = naturalLeft - totalTravel * (container.totalProgress() as number);
+      return { top: 0, height: 0, bottom: 0, left, right: left + width, width, x: left, y: 0, toJSON: () => ({}) } as DOMRect;
+    });
+  }
+
+  function mockViewportWidth(width: number): void {
+    vi.spyOn(window, "innerWidth", "get").mockReturnValue(width);
+  }
+
+  it("resolves start as a container-progress ratio, based on the trigger's measured position at containerAnimation progress 0 and 1", () => {
+    mockViewportWidth(1000);
+    const container = new Tween(document.createElement("div"), { x: -1000, duration: 1, ease: "none" });
+    const word = document.createElement("span");
+    mockHorizontalWord(word, 800, 100, container, 1000);
+
+    // edge(p) = 800 - 1000p; "left 50%" wants edge(p) = 500 -> p = 0.3
+    const st = new ScrollTrigger({ trigger: word, start: "left 50%", horizontal: true, containerAnimation: container });
+    expect(st.progress()).toBeCloseTo(0, 5); // container is still at progress 0, well before the 0.3 threshold
+  });
+
+  it("fires onEnter exactly when the container's progress crosses the resolved threshold, forward only", () => {
+    mockViewportWidth(1000);
+    const container = new Tween(document.createElement("div"), { x: -1000, duration: 1, ease: "none" });
+    const word = document.createElement("span");
+    mockHorizontalWord(word, 800, 100, container, 1000);
+
+    const onEnter = vi.fn();
+    new ScrollTrigger({ trigger: word, start: "left 50%", horizontal: true, containerAnimation: container, onEnter });
+
+    container.totalProgress(0.1); // before the 0.3 threshold
+    expect(onEnter).not.toHaveBeenCalled();
+
+    container.totalProgress(0.5); // crossed forward past 0.3
+    expect(onEnter).toHaveBeenCalledOnce();
+  });
+
+  it("reacts only to the containerAnimation's own updates, not native page scroll", () => {
+    mockViewportWidth(1000);
+    const container = new Tween(document.createElement("div"), { x: -1000, duration: 1, ease: "none" });
+    const word = document.createElement("span");
+    mockHorizontalWord(word, 800, 100, container, 1000);
+
+    const onEnter = vi.fn();
+    new ScrollTrigger({ trigger: word, start: "left 50%", horizontal: true, containerAnimation: container, onEnter });
+
+    vi.spyOn(window, "scrollY", "get").mockReturnValue(999999);
+    window.dispatchEvent(new Event("scroll"));
+    expect(onEnter).not.toHaveBeenCalled();
+
+    container.totalProgress(0.5);
+    expect(onEnter).toHaveBeenCalledOnce();
+  });
+
+  it("interprets a relative 'end: \"+=N\"' as N pixels of the trigger's own measured travel, converted to an equivalent progress delta", () => {
+    mockViewportWidth(1000);
+    const container = new Tween(document.createElement("div"), { x: -1000, duration: 1, ease: "none" });
+    const word = document.createElement("span");
+    mockHorizontalWord(word, 800, 100, container, 1000); // moves 1000px total across progress 0->1
+
+    const st = new ScrollTrigger({ trigger: word, start: "left 50%", horizontal: true, containerAnimation: container, end: "+=200" });
+    // start = 0.3 (as above); "+=200" of the trigger's own 1000px total travel -> +0.2 progress
+    container.totalProgress(0.3);
+    expect(st.progress()).toBeCloseTo(0, 2);
+    container.totalProgress(0.5); // 0.3 + 0.2 = 0.5, fully through the +=200 span
+    expect(st.progress()).toBeCloseTo(1, 2);
+  });
+
+  it("kill() unsubscribes from the containerAnimation's update event", () => {
+    mockViewportWidth(1000);
+    const container = new Tween(document.createElement("div"), { x: -1000, duration: 1, ease: "none" });
+    const word = document.createElement("span");
+    mockHorizontalWord(word, 800, 100, container, 1000);
+
+    const onEnter = vi.fn();
+    const st = new ScrollTrigger({ trigger: word, start: "left 50%", horizontal: true, containerAnimation: container, onEnter });
+    st.kill();
+
+    container.totalProgress(0.5);
+    expect(onEnter).not.toHaveBeenCalled();
   });
 });

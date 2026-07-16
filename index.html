@@ -9,7 +9,6 @@
 
   <body>
     <div class="space"></div>
-    <div class="box"></div>
     <div class="container">
       <div class="track" style="display: flex; gap: 20px">
         <span class="char">Lorem</span>
@@ -34,35 +33,61 @@
     <script type="module">
       import { six, enableElements } from "./dist/six-js.es.js";
       enableElements();
+
       const container = document.querySelector(".container");
       const track = document.querySelector(".track");
+      const words = six.utils.arrayOf(".char");
+
+      const eases = ["quintOut", "quadOut", "sineOut", "backOut", "expoOut", "circOut", "smooth", "bounceOut"];
 
       const distance = track.scrollWidth - window.innerWidth;
-      six.to(".box", {
-        x: 300,
-        scrollTrigger:{
-          start: "+=100 bottom",
-          end: "top center",
-          debug: true,
-          scrub:true
-        }
+      const scrollLength = distance * 0.4;
+
+      // set each word's hidden starting state once, up front
+      words.forEach((word) => {
+        six.set(word, {
+          opacity: 0,
+          y: six.utils.random(-350, 350),
+          rotate: six.utils.random(-20, 20),
+          scale: six.utils.random(0.7, 1.2),
+        });
       });
 
-      // six.to(track, {
-      //   x: -distance,
-      //   ease: "none",
+      const scrollTween = six.to(track, {
+        x: -distance,
+        ease: "none",
+        scrollTrigger: {
+          trigger: container,
+          start: "center center",
+          end: `+=${scrollLength}`,
+          scrub: 1,
+          pin: true,
+        },
+      });
 
-      //   scrollTrigger: {
-      //     trigger: container,
-      //     start: "center center",
-      //     end: `+=${distance}`,
-      //     scrub: 0.6,
-      //     pin: true,
-      //      onUpdate() {
-      //       console.log("update")
-      //      }
-      //   },
-      // });
+      const revealViewportRatio = 0.7;
+      const maxRevealProgress = 0.92;
+
+      const wordTweens = words.map((word) => {
+        const naturalProgress = (word.offsetLeft - revealViewportRatio * window.innerWidth) / distance;
+        const revealProgress = Math.min(Math.max(naturalProgress, 0), maxRevealProgress);
+
+        return six.to(word, {
+          opacity: 1,
+          y: 0,
+          rotate: 0,
+          scale: 1,
+          duration: six.utils.random(0.45, 1.2),
+          delay: six.utils.random(0, 0.25),
+          ease: six.utils.random(eases),
+          scrollTrigger: {
+            trigger: word,
+            containerAnimation: scrollTween,
+            horizontal: true,
+            start: revealProgress,
+          },
+        });
+      });
     </script>
   </body>
 </html>

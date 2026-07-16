@@ -13,6 +13,8 @@ export interface ScrollTriggerVars {
   end?: PositionValue;
   scrub?: boolean | number;
   pin?: boolean | Element | string;
+  horizontal?: boolean;
+  containerAnimation?: Animation;
   debug?: boolean;
   /** Prefixed onto the debug markers' "start"/"end" labels (`debug: true`) when multiple triggers are on screen at once - omitted (no prefix at all) when not given. */
   id?: string;
@@ -30,7 +32,7 @@ interface EdgeSpec {
   offsetPx: number;
 }
 
-const EDGE_KEYWORDS: Record<string, number> = { top: 0, center: 0.5, bottom: 1 };
+const EDGE_KEYWORDS: Record<string, number> = { top: 0, left: 0, center: 0.5, bottom: 1, right: 1 };
 
 // Matches a trailing "+=N"/"-=N" pixel offset appended directly to an edge token, e.g.
 // "top+=100" (100px past "top") or "30%-=20" (20px before the 30% mark) - GSAP's own compound
@@ -123,6 +125,10 @@ export class ScrollTrigger {
   private wasInside = false;
   private lastScroll = 0;
   private killed = false;
+  private hasHeardContainer = false;
+
+  private containerRect0: { top: number; height: number } = { top: 0, height: 0 };
+  private containerRect1: { top: number; height: number } = { top: 0, height: 0 };
 
   private pinHandle: PinHandle | null = null;
   private scrubController: ScrubController | null = null;
@@ -130,6 +136,16 @@ export class ScrollTrigger {
 
   private readonly boundOnScroll = (): void => this.update();
   private readonly boundOnResize = (): void => this.refresh();
+  // The container's own progress can still be catching up from a stale pre-restoration reading
+  // (see the reload-race comment on createSmoothScrub in scrub.ts) when this child's own
+  // construction-time refresh() ran, so its own first-ever observation of the container may
+  // already be wrong. Treat the first "update" ever heard FROM the container as a recalculation
+  // too (instant), not a live crossing - see the `instant` branch in update() below.
+  private readonly boundOnContainerUpdate = (): void => {
+    const firstContainerUpdate = !this.hasHeardContainer;
+    this.hasHeardContainer = true;
+    this.update(firstContainerUpdate);
+  };
 
   constructor(vars: ScrollTriggerVars) {
     this.vars = vars;
@@ -143,14 +159,61 @@ export class ScrollTrigger {
       }
     }
 
-    if (vars.debug) this.markerHandle = createMarkers(vars.id ?? "");
+    if (vars.debug && !vars.containerAnimation) this.markerHandle = createMarkers(vars.id ?? "");
 
     instances.push(this);
 
     this.refresh();
 
-    addScrollListener(this.scroller, this.boundOnScroll);
+    if (vars.containerAnimation) vars.containerAnimation.on("update", this.boundOnContainerUpdate);
+    else addScrollListener(this.scroller, this.boundOnScroll);
     addResizeListener(this.boundOnResize);
+  }
+
+  private axis(): "x" | "y" {
+    return this.vars.horizontal ? "x" : "y";
+  }
+
+  private axisRect(rect: DOMRect): { top: number; height: number } {
+    return this.vars.horizontal ? { top: rect.left, height: rect.width } : { top: rect.top, height: rect.height };
+  }
+
+  private measureContainerEdges(): void {
+    const anim = this.vars.containerAnimation!;
+    const savedTime = anim.totalTime() as number;
+    const dur = anim.totalDuration() as number;
+
+    anim.seek(0);
+    this.containerRect0 = this.axisRect(this.triggerEl.getBoundingClientRect());
+    anim.seek(dur);
+    this.containerRect1 = this.axisRect(this.triggerEl.getBoundingClientRect());
+    anim.seek(savedTime);
+  }
+
+  private resolveContainerPosition(value: PositionValue | undefined, fallback: string, relativeBase?: number): number {
+    let resolved: PositionValue = value ?? fallback;
+    if (typeof resolved === "function") resolved = resolved();
+    if (typeof resolved === "number") return resolved;
+
+    const relMatch = resolved.trim().match(/^([+-])=(\d+(?:\.\d+)?)$/);
+    if (relMatch && relativeBase !== undefined) {
+      const offsetPx = parseFloat(relMatch[2]) * (relMatch[1] === "-" ? -1 : 1);
+      const span = Math.abs(this.containerRect1.top - this.containerRect0.top);
+      return relativeBase + (span !== 0 ? offsetPx / span : 0);
+    }
+
+    const [triggerToken = "top", viewportToken = "top"] = resolved.trim().split(/\s+/);
+    const triggerEdge = parseEdge(triggerToken);
+    const viewportEdge = parseEdge(viewportToken);
+
+    const edge0 = this.containerRect0.top + triggerEdge.ratio * this.containerRect0.height + triggerEdge.offsetPx;
+    const edge1 = this.containerRect1.top + triggerEdge.ratio * this.containerRect1.height + triggerEdge.offsetPx;
+    const span = edge1 - edge0;
+
+    const viewportSize = getViewportSize(this.scroller, this.axis());
+    const viewportThreshold = viewportEdge.ratio * viewportSize + viewportEdge.offsetPx;
+
+    return span !== 0 ? (viewportThreshold - edge0) / span : 0;
   }
 
   private resolvePositionValue(value: PositionValue | undefined, fallback: string, relativeBase?: number): number {
@@ -170,9 +233,9 @@ export class ScrollTrigger {
     }
 
     const rect = this.triggerEl.getBoundingClientRect();
-    const scrollY = getScroll(this.scroller, "y");
-    const viewportSize = getViewportSize(this.scroller, "y");
-    return resolvePositionString(resolved, rect, scrollY, viewportSize);
+    const scrollY = getScroll(this.scroller, this.axis());
+    const viewportSize = getViewportSize(this.scroller, this.axis());
+    return resolvePositionString(resolved, this.axisRect(rect), scrollY, viewportSize);
   }
 
   /** Viewport-relative pixel offset (from the top of the viewport) that a debug marker line for
@@ -187,7 +250,7 @@ export class ScrollTrigger {
     if (typeof resolved === "function") resolved = resolved();
     if (typeof resolved !== "string" || /^[+-]=\d+(?:\.\d+)?$/.test(resolved.trim())) return 0;
 
-    return resolveViewportEdgeOffset(resolved, getViewportSize(this.scroller, "y"));
+    return resolveViewportEdgeOffset(resolved, getViewportSize(this.scroller, this.axis()));
   }
 
   /** Absolute document-Y that a debug marker's "trigger" line (left-aligned, follows the page)
@@ -201,8 +264,8 @@ export class ScrollTrigger {
     if (typeof resolved !== "string" || /^[+-]=\d+(?:\.\d+)?$/.test(resolved.trim())) return computedY;
 
     const rect = this.triggerEl.getBoundingClientRect();
-    const scrollY = getScroll(this.scroller, "y");
-    return resolveTriggerEdgeY(resolved, rect, scrollY);
+    const scrollY = getScroll(this.scroller, this.axis());
+    return resolveTriggerEdgeY(resolved, this.axisRect(rect), scrollY);
   }
 
   refresh(): void {
@@ -212,9 +275,16 @@ export class ScrollTrigger {
     // transformed state doesn't corrupt this measurement.
     this.pinHandle?.setPhase("before");
 
-    this.startY = this.resolvePositionValue(this.vars.start, "top bottom");
-    this.endY = this.resolvePositionValue(this.vars.end, "bottom top", this.startY);
-    if (this.endY <= this.startY) this.endY = this.startY + 1;
+    if (this.vars.containerAnimation) {
+      this.measureContainerEdges();
+      this.startY = this.resolveContainerPosition(this.vars.start, "top bottom");
+      this.endY = this.resolveContainerPosition(this.vars.end, "bottom top", this.startY);
+      if (this.endY <= this.startY) this.endY = this.startY + 0.0001;
+    } else {
+      this.startY = this.resolvePositionValue(this.vars.start, "top bottom");
+      this.endY = this.resolvePositionValue(this.vars.end, "bottom top", this.startY);
+      if (this.endY <= this.startY) this.endY = this.startY + 1;
+    }
 
     if (this.vars.pin) {
       const pinTarget = this.vars.pin === true ? this.triggerEl : typeof this.vars.pin === "string" ? resolveElement(this.vars.pin) : this.vars.pin;
@@ -233,12 +303,14 @@ export class ScrollTrigger {
       }
     }
 
-    this.markerHandle?.update(
-      this.resolveMarkerTriggerY(this.vars.start, "top bottom", this.startY),
-      this.resolveMarkerTriggerY(this.vars.end, "bottom top", this.endY),
-      this.resolveMarkerViewportY(this.vars.start, "top bottom"),
-      this.resolveMarkerViewportY(this.vars.end, "bottom top"),
-    );
+    if (!this.vars.containerAnimation) {
+      this.markerHandle?.update(
+        this.resolveMarkerTriggerY(this.vars.start, "top bottom", this.startY),
+        this.resolveMarkerTriggerY(this.vars.end, "bottom top", this.endY),
+        this.resolveMarkerViewportY(this.vars.start, "top bottom"),
+        this.resolveMarkerViewportY(this.vars.end, "bottom top"),
+      );
+    }
 
     // Always an instant reposition, never animated - see the long comment on
     // ScrubController.snapTo() in scrub.ts for why this matters (page-reload rewind bug).
@@ -250,10 +322,14 @@ export class ScrollTrigger {
     return Math.max(0, Math.min((scrollY - this.startY) / (this.endY - this.startY), 1));
   }
 
+  private currentPosition(): number {
+    return this.vars.containerAnimation ? (this.vars.containerAnimation.totalProgress() as number) : getScroll(this.scroller, this.axis());
+  }
+
   update(instant = false): void {
     if (this.killed) return;
 
-    const scrollY = getScroll(this.scroller, "y");
+    const scrollY = this.currentPosition();
     const progress = this.computeProgress(scrollY);
     const inside = scrollY >= this.startY && scrollY <= this.endY;
     const goingForward = scrollY >= this.lastScroll;
@@ -272,7 +348,18 @@ export class ScrollTrigger {
     // animation that undoes itself every time the user scrolls back past the trigger is a
     // surprising, usually-unwanted default. Full `toggleActions` string support (independently
     // configuring all 4 crossings) is not implemented - documented Phase 1 scope cut.
-    if (inside && !wasInside) {
+    //
+    // `instant` (not merely "the very first update ever") gates the jump-to-complete branch,
+    // matching this file's own "a recalculation always repositions synchronously and never
+    // animates as a side effect" rule everywhere else, not just once at construction - a LATER
+    // recalculation (window resize, an explicit ScrollTrigger.refresh(), or - for a
+    // containerAnimation child - the container's own first post-construction "update", which may
+    // itself be correcting a stale reading from before, see boundOnContainerUpdate above)
+    // discovering "already past and never yet entered" should also snap, not visibly replay.
+    if (instant && !this.scrubController && !wasInside && scrollY >= this.startY) {
+      this.vars.onEnter?.(this);
+      this.vars.animation?.totalProgress(1);
+    } else if (inside && !wasInside) {
       if (goingForward) {
         this.vars.onEnter?.(this);
         if (!this.scrubController) this.vars.animation?.play();
@@ -302,7 +389,7 @@ export class ScrollTrigger {
   }
 
   progress(): number {
-    return this.computeProgress(getScroll(this.scroller, "y"));
+    return this.computeProgress(this.currentPosition());
   }
 
   isActive(): boolean {
@@ -313,7 +400,8 @@ export class ScrollTrigger {
     if (this.killed) return;
     this.killed = true;
 
-    removeScrollListener(this.scroller, this.boundOnScroll);
+    if (this.vars.containerAnimation) this.vars.containerAnimation.off("update", this.boundOnContainerUpdate);
+    else removeScrollListener(this.scroller, this.boundOnScroll);
     removeResizeListener(this.boundOnResize);
     this.pinHandle?.revert();
     this.scrubController?.kill();

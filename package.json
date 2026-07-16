@@ -23,7 +23,8 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/six-js.es.js",
       "require": "./dist/six-js.umd.js"
-    }
+    },
+    "./style.css": "./dist/style.css"
   },
   "files": [
     "dist"

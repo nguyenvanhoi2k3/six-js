@@ -1,5 +1,6 @@
 import { ticker } from "../core/ticker";
 import { Animation } from "../core/animation";
+import { EASES } from "../easing/easing";
 
 export interface ScrubController {
   /** Scroll-driven: smoothed (or direct, for non-smooth mode). */
@@ -18,12 +19,12 @@ export function createDirectScrub(animation: Animation): ScrubController {
 }
 
 /**
- * Smoothed scrub: each scroll update only retargets where we're headed - the eased approach
- * itself runs continuously off the shared ticker, decoupled from the scroll event stream (so it
- * keeps easing toward the target even after the user stops scrolling). Not implemented as a
- * helper Tween (unlike GSAP's `scrubTween.resetTo(...)`) because Tween is DOM-property-oriented;
- * this drives `animation.totalProgress` directly instead, which is simpler for a single plain
- * numeric value and needs no animate/registry involvement.
+ * Smoothed scrub: matches GSAP's own verified mechanism (ScrollTrigger.js's `scrubDuration`) -
+ * an `ease: "expo"` (expo.out) interpolation from the CURRENT progress to a new target, that
+ * restarts fresh (elapsed reset to 0) every time `update()` retargets it, over exactly
+ * `smoothSeconds` - not a continuous, never-restarting exponential-decay loop (which has a much
+ * weaker initial response than expo.out and visibly lags behind real GSAP for the same declared
+ * scrub number).
  *
  * `snapTo()` vs `update()`: reloading mid-page on a real site is a real, common trigger for a
  * visible bug here - the browser's own async scroll-position restoration on reload doesn't
@@ -44,33 +45,41 @@ export function createDirectScrub(animation: Animation): ScrubController {
  *   land, covering the case where refresh()'s own initial read was already the stale one.
  */
 export function createSmoothScrub(animation: Animation, smoothSeconds: number): ScrubController {
-  let target = animation.totalProgress() as number;
-  let current = target;
+  const duration = Math.max(0.05, smoothSeconds);
+  const ease = EASES.expoOut;
+
+  let from = animation.totalProgress() as number;
+  let to = from;
+  let elapsed = duration;
   let settled = false;
 
   const tick = (_time: number, deltaMs: number): void => {
     settled = true;
-    const dt = deltaMs / 1000;
-    const factor = 1 - Math.exp((-3 * dt) / Math.max(0.05, smoothSeconds));
-    current += (target - current) * factor;
-    if (Math.abs(target - current) < 0.0005) current = target;
-    animation.totalProgress(current);
+    if (elapsed >= duration) return;
+    elapsed = Math.min(duration, elapsed + deltaMs / 1000);
+    animation.totalProgress(from + (to - from) * ease(elapsed / duration));
   };
 
   ticker.add(tick);
 
   return {
     update(targetProgress: number) {
-      target = targetProgress;
       if (!settled) {
-        current = target;
-        animation.totalProgress(current);
+        from = targetProgress;
+        to = targetProgress;
+        elapsed = duration;
+        animation.totalProgress(targetProgress);
+        return;
       }
+      from = animation.totalProgress() as number;
+      to = targetProgress;
+      elapsed = 0;
     },
     snapTo(progress: number) {
-      target = progress;
-      current = progress;
-      animation.totalProgress(current);
+      from = progress;
+      to = progress;
+      elapsed = duration;
+      animation.totalProgress(progress);
     },
     kill() {
       ticker.remove(tick);

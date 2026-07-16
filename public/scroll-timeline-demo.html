@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>six-js — ScrollTrigger + Timeline demo</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: #111318;
+        color: #eaeaf0;
+        font-family: "Segoe UI", system-ui, sans-serif;
+      }
+      code {
+        background: #0d0e13;
+        border: 1px solid #262a36;
+        border-radius: 4px;
+        padding: 1px 5px;
+        font-size: 0.82em;
+        color: #ffd479;
+      }
+
+      .intro,
+      .outro {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 40px;
+      }
+      .intro h1,
+      .outro h2 {
+        font-size: 2.1rem;
+        margin: 0 0 14px;
+      }
+      .intro p,
+      .outro p {
+        max-width: 540px;
+        color: #9a9eb0;
+        line-height: 1.6;
+        margin: 0 0 8px;
+      }
+      .scrollcue {
+        margin-top: 40px;
+        font-size: 0.85rem;
+        color: #9fd0ff;
+        animation: bounce 1.6s infinite;
+      }
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(10px);
+        }
+      }
+
+      .story {
+        position: relative;
+        height: 100vh;
+        overflow: hidden;
+        background: #0b0c10;
+      }
+      .panel {
+        position: absolute;
+        inset: 0;
+      }
+      .panel1 {
+        background: radial-gradient(circle at 30% 30%, #3a63c9, #14161d 70%);
+      }
+      .panel2 {
+        background: radial-gradient(circle at 70% 70%, #7f5af0, #14161d 70%);
+      }
+      .panel3 {
+        background: radial-gradient(circle at 50% 50%, #2cb67d, #14161d 70%);
+      }
+      .content {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        pointer-events: none;
+      }
+      .content h1 {
+        font-size: 3rem;
+        letter-spacing: 0.08em;
+        margin: 0 0 12px;
+      }
+      .content p {
+        max-width: 420px;
+        color: #c8cbe0;
+        margin: 0;
+      }
+
+      .badge {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        z-index: 20;
+        font-family: "Cascadia Code", Consolas, monospace;
+        font-size: 0.76rem;
+        color: #9fd0ff;
+        background: #0d0e13cc;
+        border: 1px solid #262a36;
+        border-radius: 6px;
+        padding: 8px 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="badge" id="progress-badge">timeline progress: 0%</div>
+
+    <div class="intro">
+      <h1>ScrollTrigger + Timeline</h1>
+      <p>
+        One <code>six.timeline({ scrollTrigger })</code> pinned to the section below drives every panel transition
+        as a single scrubbed sequence — sequential <code>.fromTo()</code> chapters, an overlapping <code>"&lt;"</code>
+        position, a percent-based <code>y</code> slide, and a <code>clipPath</code> wipe.
+      </p>
+      <div class="scrollcue">Scroll ↓</div>
+    </div>
+
+    <section class="story">
+      <div class="panel panel1"></div>
+      <div class="panel panel2"></div>
+      <div class="panel panel3"></div>
+      <div class="content">
+        <h1>LANDSCAPES</h1>
+        <p>Beautiful places around the world.</p>
+      </div>
+    </section>
+
+    <div class="outro">
+      <h2>End of the pinned section</h2>
+      <p>The section unpins here — scroll back up to replay the timeline in reverse via <code>scrub</code>.</p>
+    </div>
+
+    <script type="module">
+      import { six } from "../dist/six-js.es.js";
+
+      const storyTl = six.timeline({
+        scrollTrigger: {
+          trigger: ".story",
+          pin: true,
+          scrub: 1,
+          start: "top top",
+          end: "+=3000",
+          markers: true,
+        },
+      });
+
+      storyTl
+        .fromTo(".panel1", { scaleX: 0.7, scaleY: 0.7, opacity: 0 }, { scaleX: 1, scaleY: 1, opacity: 1, duration: 1, ease: "quadOut" })
+        .fromTo(".panel1", { scaleX: 1, scaleY: 1 }, { scaleX: 1.2, scaleY: 1.2, duration: 1, ease: "sineInOut" })
+        .fromTo(".panel2", { y: "100%" }, { y: "0%", duration: 1, ease: "quadOut" }, "<")
+        .fromTo(".panel1", { opacity: 1 }, { opacity: 0, duration: 1, ease: "quadIn" }, "<")
+        .fromTo(".panel2", { scaleX: 1, scaleY: 1 }, { scaleX: 1.15, scaleY: 1.15, duration: 1, ease: "sineInOut" })
+        .fromTo(".panel3", { clipPath: "inset(100% 0% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 1, ease: "quadInOut" })
+        .fromTo(".content h1", { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "backOut" })
+        .fromTo(".content p", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "quadOut" });
+
+      const progressBadge = document.querySelector("#progress-badge");
+      function loop() {
+        progressBadge.textContent = `timeline progress: ${Math.round(storyTl.totalProgress() * 100)}%`;
+        requestAnimationFrame(loop);
+      }
+      loop();
+    </script>
+  </body>
+</html>

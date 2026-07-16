@@ -6,6 +6,10 @@ import { GlobalDefaults, setDefaults } from "../core/defaults";
 import { Context, context } from "../core/context";
 import { ScrollTrigger, ScrollTriggerVars } from "../scroll-trigger/scroll-trigger";
 import { registerComponents } from "../components";
+import * as utils from "../utils/utils";
+import { VERSION } from "../version";
+
+console.log(`sixjs v${VERSION}`);
 
 export type SixTarget = TweenTarget;
 
@@ -95,6 +99,7 @@ export const six = {
   timeline,
   config,
   context,
+  utils,
 };
 
 /** Defines every `sx-*` custom element (dialog, slider, marquee, animate). Each element's own definition is idempotent, so calling this more than once is safe. */

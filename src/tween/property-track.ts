@@ -25,6 +25,7 @@ export interface NumericTrack {
 export interface ColorTrack {
   kind: "color";
   target: Element;
+  prop: string;
   isTransform: false;
   handler: Extract<PropertyHandler, { kind: "color" }>;
   start: RGBA;
@@ -34,6 +35,7 @@ export interface ColorTrack {
 export interface ComplexTrack {
   kind: "complex";
   target: Element;
+  prop: string;
   isTransform: false;
   handler: StringHandler;
   start: string;
@@ -43,6 +45,7 @@ export interface ComplexTrack {
 export interface DiscreteTrack {
   kind: "discrete";
   target: Element;
+  prop: string;
   isTransform: false;
   handler: StringHandler;
   start: string;
@@ -135,35 +138,35 @@ function buildNumericTrack(target: Element, prop: string, handler: Extract<Prope
   return { kind: "numeric", target, prop, isTransform: handler.isTransform, handler, start: startVal, change: endVal - startVal, unit: endUnit };
 }
 
-function buildColorTrack(target: Element, handler: Extract<PropertyHandler, { kind: "color" }>, rawStart: unknown, rawEnd: unknown): ColorTrack {
+function buildColorTrack(target: Element, prop: string, handler: Extract<PropertyHandler, { kind: "color" }>, rawStart: unknown, rawEnd: unknown): ColorTrack {
   const start = rawStart !== undefined ? parseColor(String(rawStart)) : handler.get(target);
   const end = rawEnd !== undefined ? parseColor(String(rawEnd)) : handler.get(target);
-  return { kind: "color", target, isTransform: false, handler, start, end };
+  return { kind: "color", target, prop, isTransform: false, handler, start, end };
 }
 
-function buildComplexOrDiscreteTrack(target: Element, handler: StringHandler, rawStart: unknown, rawEnd: unknown): ComplexTrack | DiscreteTrack {
+function buildComplexOrDiscreteTrack(target: Element, prop: string, handler: StringHandler, rawStart: unknown, rawEnd: unknown): ComplexTrack | DiscreteTrack {
   const start = rawStart !== undefined ? String(rawStart) : handler.get(target);
   const end = rawEnd !== undefined ? String(rawEnd) : handler.get(target);
 
   if (canInterpolateComplex(start, end)) {
-    return { kind: "complex", target, isTransform: false, handler, start, end };
+    return { kind: "complex", target, prop, isTransform: false, handler, start, end };
   }
   // structurally incompatible strings (different token shapes) can't be smoothly interpolated -
   // degrade to a discrete swap using the same get/set.
-  return { kind: "discrete", target, isTransform: false, handler, start, end };
+  return { kind: "discrete", target, prop, isTransform: false, handler, start, end };
 }
 
-function buildDiscreteTrack(target: Element, handler: StringHandler, rawStart: unknown, rawEnd: unknown): DiscreteTrack {
+function buildDiscreteTrack(target: Element, prop: string, handler: StringHandler, rawStart: unknown, rawEnd: unknown): DiscreteTrack {
   const start = rawStart !== undefined ? String(rawStart) : handler.get(target);
   const end = rawEnd !== undefined ? String(rawEnd) : handler.get(target);
-  return { kind: "discrete", target, isTransform: false, handler, start, end };
+  return { kind: "discrete", target, prop, isTransform: false, handler, start, end };
 }
 
 function buildTrack(target: Element, prop: string, handler: PropertyHandler, rawStart: unknown, rawEnd: unknown): PropertyTrack {
   if (handler.kind === "numeric") return buildNumericTrack(target, prop, handler, rawStart, rawEnd);
-  if (handler.kind === "color") return buildColorTrack(target, handler, rawStart, rawEnd);
-  if (handler.kind === "complex") return buildComplexOrDiscreteTrack(target, handler, rawStart, rawEnd);
-  return buildDiscreteTrack(target, handler, rawStart, rawEnd);
+  if (handler.kind === "color") return buildColorTrack(target, prop, handler, rawStart, rawEnd);
+  if (handler.kind === "complex") return buildComplexOrDiscreteTrack(target, prop, handler, rawStart, rawEnd);
+  return buildDiscreteTrack(target, prop, handler, rawStart, rawEnd);
 }
 
 export function buildTracks(targets: readonly Element[], vars: Record<string, unknown>, mode: TweenMode, fromVars?: Record<string, unknown>): PropertyTrack[] {

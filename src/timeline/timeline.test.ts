@@ -195,6 +195,81 @@ describe("Timeline - rendering drives children via the coordinate transform", ()
     tl.totalTime(3.4, true); // 0.4s after resuming
     expect(a.totalTime()).toBeCloseTo(0.4); // animates fresh from 0, not clamped-complete at 1
   });
+
+  it("restart()ing a child that already finished naturally re-anchors it too, not just on resume-from-pause", () => {
+    const tl = new Timeline({ defaultPosition: "now", unbounded: true }); // matches rootTimeline
+    const a = new StubLeaf();
+    a.duration(1);
+
+    tl.totalTime(0, true);
+    tl.add(a); // _start = tl's current local time (0)
+
+    tl.totalTime(1, true); // finishes naturally, never explicitly paused
+    expect(a.totalTime()).toBe(1);
+
+    tl.totalTime(50, true); // the timeline (e.g. root) keeps advancing long after completion
+
+    a.restart();
+    tl.totalTime(50.3, true); // 0.3s after restart
+
+    expect(a.totalTime()).toBeCloseTo(0.3);
+  });
+
+  it("reverse()ing a live child re-anchors it, so it actually plays backward instead of clamping to a stale start", () => {
+    const tl = new Timeline({ defaultPosition: "now", unbounded: true }); // matches rootTimeline
+    const a = new StubLeaf();
+    a.duration(2);
+
+    tl.totalTime(0, true);
+    tl.add(a); // starts "now" (0)
+
+    tl.totalTime(2, true); // finishes naturally
+    expect(a.totalTime()).toBe(2);
+
+    tl.totalTime(5, true); // real time keeps passing before the user reverses it
+
+    a.reverse();
+    tl.totalTime(5.5, true); // 0.5s of reverse playback
+    expect(a.totalTime()).toBeCloseTo(1.5); // played backward from 2, not clamped instantly to 0
+
+    tl.totalTime(10, true); // keeps reversing until fully back to 0
+    expect(a.totalTime()).toBe(0);
+
+    a.play(); // should resume forward, not stay reversed and stuck at 0
+    tl.totalTime(10.3, true);
+    expect(a.totalTime()).toBeCloseTo(0.3);
+  });
+
+  it("re-anchoring a child inside a bounded nested timeline stays correct even after that nested timeline's own span was exceeded and it stopped being actively rendered", () => {
+    const root = new Timeline({ defaultPosition: "now", unbounded: true }); // matches rootTimeline
+    const childA = new StubLeaf();
+    childA.duration(1.4);
+    const childB = new StubLeaf();
+    childB.duration(1);
+
+    const nestParent = new Timeline(); // bounded, own span ends at 2.4
+    nestParent.add(childA, 0);
+    nestParent.add(childB); // sequential, starts at 1.4
+
+    root.totalTime(0, true);
+    root.add(nestParent); // starts "now" (0)
+
+    root.totalTime(0.6, true);
+    expect(childA.totalTime()).toBe(0.6);
+
+    childA.pause();
+
+    // real time keeps advancing well past nestParent's own 2.4s span - root's skip-range
+    // optimization (see Timeline._renderIteration) stops calling nestParent.render() at all
+    // once that happens, so nestParent's OWN notion of "now" would go stale without the fix
+    root.totalTime(5.0, true);
+    expect(childA.totalTime()).toBe(0.6); // still frozen, as expected
+
+    childA.resume();
+    root.totalTime(5.3, true); // 0.3s more after resuming
+
+    expect(childA.totalTime()).toBeCloseTo(0.9); // continues correctly, not stuck at 0.6
+  });
 });
 
 describe("Timeline - nested timelines keep full lifecycle capability", () => {
@@ -315,5 +390,46 @@ describe("Timeline - remove/kill", () => {
     expect(tlA.getChildren()).toEqual([]);
     expect(tlB.getChildren()).toEqual([a]);
     expect(a.parent).toBe(tlB);
+  });
+});
+
+describe("Timeline - zero-duration children (.set()/.call()-style)", () => {
+  it("does not re-render an already-settled zero-duration child on a later tick, so it can't stomp a sibling's value written after it", () => {
+    const tl = new Timeline({ defaultPosition: "now", unbounded: true }); // matches rootTimeline
+
+    tl.totalTime(5, true);
+
+    const setChild = new StubLeaf();
+    setChild.duration(0);
+    tl.add(setChild); // starts "now" (5)
+    setChild.render(0, true, true); // matches a real Tween's own constructor-time self-render
+
+    const laterChild = new StubLeaf();
+    laterChild.duration(0);
+    tl.add(laterChild); // also starts "now" (5), added after setChild
+    laterChild.render(0, true, true);
+
+    const setRendersBefore = setChild.renders.length;
+    const laterRendersBefore = laterChild.renders.length;
+
+    tl.totalTime(5.016, true); // the next real tick
+
+    expect(setChild.renders.length).toBe(setRendersBefore);
+    expect(laterChild.renders.length).toBe(laterRendersBefore);
+  });
+
+  it("still renders a zero-duration child normally once the timeline's playhead genuinely reaches its scheduled (not-yet-reached) position", () => {
+    const tl = new Timeline({ defaultPosition: "now", unbounded: true });
+    const futureChild = new StubLeaf();
+    futureChild.duration(0);
+
+    tl.totalTime(0, true);
+    tl.add(futureChild, 5); // scheduled for local time 5, not "now"
+
+    tl.totalTime(3, true); // hasn't reached 5 yet
+    expect(futureChild.renders).toHaveLength(0);
+
+    tl.totalTime(5.5, true); // playhead crosses 5
+    expect(futureChild.renders.length).toBeGreaterThan(0);
   });
 });
