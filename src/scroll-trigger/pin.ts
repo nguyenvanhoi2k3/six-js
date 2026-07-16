@@ -62,6 +62,7 @@ export function setupPin(pinEl: HTMLElement): PinHandle {
   entry.refCount++;
   const e = entry;
   let pinnedTop = 0;
+  let lastAppliedPhase: PinPhase | null = null;
 
   const applyBefore = (): void => {
     pinEl.style.position = e.originalStyles.position;
@@ -94,11 +95,21 @@ export function setupPin(pinEl: HTMLElement): PinHandle {
     setDistance(distancePx: number) {
       e.distance = Math.max(0, distancePx);
       e.spacer.style.height = `${e.rect.height + e.distance}px`;
+      lastAppliedPhase = null;
     },
     setPinnedTop(topPx: number) {
       pinnedTop = topPx;
+      lastAppliedPhase = null;
     },
     setPhase(phase: PinPhase) {
+      // Every scroll event re-derives the same phase while steadily inside "during" - a real
+      // fast/fling scroll can fire many native "scroll" events per rendered frame, and
+      // rewriting position/top/left/width/margin to the SAME values on every one of them forces
+      // repeated style recalculation on the pinned element for no visual change, which reads as
+      // jitter under fast scrolling. `setPinnedTop`/`setDistance` (the only things that can
+      // change what a given phase should render) reset this so a genuine change is never missed.
+      if (phase === lastAppliedPhase) return;
+      lastAppliedPhase = phase;
       if (phase === "before") applyBefore();
       else if (phase === "during") applyDuring();
       else applyAfter();
