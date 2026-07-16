@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Animation } from "../core/animation";
 import { ticker, TickerListener } from "../core/ticker";
-import { createDirectScrub, createSmoothScrub } from "./scrub";
+import { createDirectSync, createSmoothSync } from "./sync";
 
 class StubAnimation extends Animation {
   protected _renderIteration(): void {}
@@ -21,31 +21,31 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("scrub - createDirectScrub", () => {
+describe("sync - createDirectSync", () => {
   it("sets progress synchronously, 1:1, both via update() and snapTo()", () => {
     const a = new StubAnimation();
     a.duration(1);
-    const scrub = createDirectScrub(a);
+    const sync = createDirectSync(a);
 
-    scrub.update(0.42);
+    sync.update(0.42);
     expect(a.totalProgress()).toBeCloseTo(0.42);
 
-    scrub.snapTo(0.9);
+    sync.snapTo(0.9);
     expect(a.totalProgress()).toBeCloseTo(0.9);
   });
 });
 
-describe("scrub - createSmoothScrub", () => {
-  it("follows an expo.out retarget curve (matching GSAP's verified scrubDuration mechanism), not a slow-starting continuous decay", () => {
+describe("sync - createSmoothSync", () => {
+  it("follows an expo.out retarget curve, not a slow-starting continuous decay", () => {
     const fire = captureTick();
     const a = new StubAnimation();
     a.duration(1);
-    const scrub = createSmoothScrub(a, 1); // 1 second smoothing
+    const sync = createSmoothSync(a, 1); // 1 second smoothing
 
     fire(16); // one tick to pass the "settled" gate
     a.totalProgress(0);
 
-    scrub.update(1); // retarget 0 -> 1 over 1 second
+    sync.update(1); // retarget 0 -> 1 over 1 second
     fire(100); // 0.1s elapsed = 10% of the smoothing duration
 
     // expo.out(0.1) = 1 - 2^-1 = 0.5 - already halfway there, not barely moved
@@ -56,18 +56,18 @@ describe("scrub - createSmoothScrub", () => {
     const fire = captureTick();
     const a = new StubAnimation();
     a.duration(1);
-    const scrub = createSmoothScrub(a, 1);
+    const sync = createSmoothSync(a, 1);
 
     fire(16);
     a.totalProgress(0);
 
-    scrub.update(1);
+    sync.update(1);
     fire(500); // halfway through the 1s smoothing window
     const midway = a.totalProgress() as number;
     expect(midway).toBeGreaterThan(0);
     expect(midway).toBeLessThan(1);
 
-    scrub.update(midway); // retarget to the value it's already sitting at
+    sync.update(midway); // retarget to the value it's already sitting at
     fire(500);
     expect(a.totalProgress()).toBeCloseTo(midway, 5); // no further movement needed
   });
@@ -76,9 +76,9 @@ describe("scrub - createSmoothScrub", () => {
     captureTick();
     const a = new StubAnimation();
     a.duration(1);
-    const scrub = createSmoothScrub(a, 1);
+    const sync = createSmoothSync(a, 1);
 
-    scrub.update(0.8); // no tick has fired yet since creation
+    sync.update(0.8); // no tick has fired yet since creation
     expect(a.totalProgress()).toBe(0.8);
   });
 
@@ -86,10 +86,10 @@ describe("scrub - createSmoothScrub", () => {
     const fire = captureTick();
     const a = new StubAnimation();
     a.duration(1);
-    const scrub = createSmoothScrub(a, 1);
+    const sync = createSmoothSync(a, 1);
 
     fire(16);
-    scrub.snapTo(0.33);
+    sync.snapTo(0.33);
     expect(a.totalProgress()).toBeCloseTo(0.33);
 
     fire(16); // should not move further - already settled at the snapped value

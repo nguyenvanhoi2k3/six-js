@@ -77,7 +77,7 @@ describe("resolveCycle - repeatDelay gap", () => {
   });
 });
 
-describe("resolveCycle - yoyo", () => {
+describe("resolveCycle - boomerang", () => {
   const dur = 1;
   const repeat = 3;
 

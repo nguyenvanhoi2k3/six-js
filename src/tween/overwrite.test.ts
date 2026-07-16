@@ -3,7 +3,7 @@ import { Tween } from "./tween";
 import { Timeline } from "../timeline/timeline";
 
 describe("Tween - overwrite", () => {
-  it("without overwrite, two tweens on the same property keep fighting (no auto-kill, matches GSAP's default)", () => {
+  it("without overwrite, two tweens on the same property keep fighting (no auto-kill by default)", () => {
     const el = document.createElement("div");
     const tl = new Timeline();
 

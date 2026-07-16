@@ -26,11 +26,11 @@ export type TimelineTweenVars = TweenVars & { stagger?: StaggerInput };
 /**
  * (parentLocalTime, child) -> child's own totalTime, expressed purely via Animation's public API
  * (no protected-field access needed). Callers must skip paused children entirely rather than
- * feeding them through this - multiplying by a timeScale of 0 would collapse totalTime to a
+ * feeding them through this - multiplying by a speed of 0 would collapse totalTime to a
  * constant, wiping out the frozen position instead of preserving it.
  */
 function toChildTotalTime(parentLocalTime: number, child: Animation): number {
-  const ts = child.timeScale() as number;
+  const ts = child.speed() as number;
   const tDur = child.totalDuration() as number;
   return (parentLocalTime - (child.startTime() as number)) * ts + (ts >= 0 ? 0 : tDur);
 }
@@ -143,7 +143,7 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
    * position 5), which should keep waiting for that scheduled slot rather than being pulled
    * forward. Checking `child.totalTime() > 0` instead (whether it had "already progressed")
    * would get the single most common real-world case backwards: a `paused: true` tween
-   * attached to the always-on root timeline (e.g. every ScrollTrigger-driven animation, which
+   * attached to the always-on root timeline (e.g. every OnScroll-driven animation, which
    * is created paused and `.play()`d later) has `_start` fixed at its creation moment and a
    * frozen totalTime of exactly 0 - by the time it's resumed, the root's playhead is already
    * long past that `_start`, so it unambiguously HAS "reached" it and must be repositioned to
@@ -154,7 +154,7 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
     if (now < (child.startTime() as number)) return;
 
     const childTotalTime = child.totalTime() as number;
-    const ts = child.timeScale() as number;
+    const ts = child.speed() as number;
     const tDur = child.totalDuration() as number;
     const offset = ts >= 0 ? 0 : tDur;
     child.startTime(now - (childTotalTime - offset) / ts);

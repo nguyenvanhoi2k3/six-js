@@ -8,7 +8,7 @@ export interface AnimationVars {
   delay?: number;
   repeat?: number;
   repeatDelay?: number;
-  yoyo?: boolean;
+  boomerang?: boolean;
   paused?: boolean;
   onStart?: () => void;
   onUpdate?: () => void;
@@ -29,7 +29,7 @@ export interface AnimationParent {
    * Called when a child transitions from paused back to playing. A container's own local time
    * keeps advancing while a child is paused (nothing re-freezes it - it's simply skipped during
    * rendering), so without this hook the child's fixed `_start` would make it resume by jumping
-   * straight to wherever `(currentLocalTime - _start) * timeScale` now lands - effectively
+   * straight to wherever `(currentLocalTime - _start) * speed` now lands - effectively
    * skipping ahead by however long it was paused, instead of continuing from where it left off.
    * Optional because a parentless (or not-yet-parented) Animation has nothing external advancing
    * its time while paused, so no compensation is needed.
@@ -45,7 +45,7 @@ let uid = 0;
  *
  * Time flows top-down as a coordinate transform (see Timeline's parent->child conversion): a
  * container calls `child.render(totalTime)` with `totalTime` already expressed on the child's
- * OWN axis. `render()` here handles everything generic - clamping, delay, repeat/yoyo cycling,
+ * OWN axis. `render()` here handles everything generic - clamping, delay, repeat/boomerang cycling,
  * and start/update/repeat/complete event bookkeeping - then hands off to the abstract
  * `_renderIteration` for the part that differs between a Tween (interpolate properties) and a
  * Timeline (recurse into children).
@@ -54,7 +54,7 @@ export abstract class Animation implements ListNode<Animation> {
   readonly id = ++uid;
 
   parent: AnimationParent | null = null;
-  /** Kept after removal from `parent` (GSAP calls this the "detached parent") so time queries made after removal still resolve. */
+  /** Kept after removal from `parent` (the "detached parent") so time queries made after removal still resolve. */
   protected _dp: AnimationParent | null = null;
 
   _next: Animation | null = null;
@@ -66,15 +66,15 @@ export abstract class Animation implements ListNode<Animation> {
   protected _time = 0;
   protected _tTime = 0;
 
-  /** Functional timeScale - forced to 0 while paused. `_ts === 0` IS the definition of paused. */
+  /** Functional speed - forced to 0 while paused. `_ts === 0` IS the definition of paused. */
   protected _ts = 1;
-  /** Recorded/user timeScale - preserved through pause so resume restores speed+direction. Sign IS the definition of reversed. */
+  /** Recorded/user speed - preserved through pause so resume restores speed+direction. Sign IS the definition of reversed. */
   protected _rts = 1;
 
   protected _delay: number;
   protected _repeat: number;
   protected _repeatDelay: number;
-  protected _yoyo: boolean;
+  protected _boomerang: boolean;
 
   protected _initted = false;
   protected _dirty = true;
@@ -90,7 +90,7 @@ export abstract class Animation implements ListNode<Animation> {
     this._delay = Math.max(0, vars.delay ?? 0);
     this._repeat = vars.repeat ?? 0;
     this._repeatDelay = Math.max(0, vars.repeatDelay ?? 0);
-    this._yoyo = vars.yoyo ?? false;
+    this._boomerang = vars.boomerang ?? false;
 
     if (vars.onStart) this.on("start", vars.onStart);
     if (vars.onUpdate) this.on("update", vars.onUpdate);
@@ -133,8 +133,8 @@ export abstract class Animation implements ListNode<Animation> {
     // (wrong) final DOM state. `force` (used by Timeline to react to ITS OWN iteration changing)
     // and `firstRender` no longer need special-casing here as a result - every render() call
     // does the full pass.
-    const cycle = resolveCycle(clamped - this._delay, this._dur, this._repeat, this._repeatDelay, this._yoyo);
-    const prevCycle = firstRender ? cycle : resolveCycle(prevTotalTime - this._delay, this._dur, this._repeat, this._repeatDelay, this._yoyo);
+    const cycle = resolveCycle(clamped - this._delay, this._dur, this._repeat, this._repeatDelay, this._boomerang);
+    const prevCycle = firstRender ? cycle : resolveCycle(prevTotalTime - this._delay, this._dur, this._repeat, this._repeatDelay, this._boomerang);
     const iterationChanged = cycle.iteration !== prevCycle.iteration;
 
     this._tTime = clamped;
@@ -176,7 +176,7 @@ export abstract class Animation implements ListNode<Animation> {
   }
 
   /**
-   * Applies this animation's own visual state for `localTime` (0..duration, already yoyo-flipped).
+   * Applies this animation's own visual state for `localTime` (0..duration, already boomerang-flipped).
    * `force` means "re-render even if a child's own local time looks unchanged" - propagate it to
    * any children (Timeline does; a leaf Tween has none and can ignore it).
    */
@@ -207,7 +207,7 @@ export abstract class Animation implements ListNode<Animation> {
       return this._tDur;
     }
     const cur = this.totalDuration() as number;
-    if (cur > 0 && value > 0) this.timeScale((this.timeScale() as number) * (cur / value));
+    if (cur > 0 && value > 0) this.speed((this.speed() as number) * (cur / value));
     return this;
   }
 
@@ -221,7 +221,7 @@ export abstract class Animation implements ListNode<Animation> {
     this.parent?._uncache();
   }
 
-  // ---- repeat / yoyo / delay ----
+  // ---- repeat / boomerang / delay ----
 
   repeat(value?: number): number | this {
     if (value === undefined) return this._repeat;
@@ -237,9 +237,9 @@ export abstract class Animation implements ListNode<Animation> {
     return this;
   }
 
-  yoyo(value?: boolean): boolean | this {
-    if (value === undefined) return this._yoyo;
-    this._yoyo = value;
+  boomerang(value?: boolean): boolean | this {
+    if (value === undefined) return this._boomerang;
+    this._boomerang = value;
     return this;
   }
 
@@ -261,12 +261,12 @@ export abstract class Animation implements ListNode<Animation> {
     return this._start + (this.totalDuration() as number) / Math.abs(this._rts || 1);
   }
 
-  // ---- time scale / direction ----
+  // ---- speed / direction ----
 
-  timeScale(value?: number): number | this {
+  speed(value?: number): number | this {
     if (value === undefined) return this._rts;
     // 0 would lose direction (sign) information, so nudge to a value indistinguishable from
-    // zero in practice - mirrors GSAP's tiny-epsilon trick for the same reason.
+    // zero in practice - a tiny-epsilon trick, for the same reason.
     if (value === 0) value = this._rts < 0 ? -1e-8 : 1e-8;
     const wasPaused = this._ts === 0;
     this._rts = value;
@@ -277,7 +277,7 @@ export abstract class Animation implements ListNode<Animation> {
 
   reversed(value?: boolean): boolean | this {
     if (value === undefined) return this._rts < 0;
-    this.timeScale(value ? -Math.abs(this._rts) : Math.abs(this._rts));
+    this.speed(value ? -Math.abs(this._rts) : Math.abs(this._rts));
     return this;
   }
 
@@ -317,7 +317,7 @@ export abstract class Animation implements ListNode<Animation> {
     this._hasStarted = false;
     // totalTime 0 IS the start of the delay window on this animation's own axis (delay occupies
     // [0, _delay); the active portion is [_delay, _tDur) - see the render() doc comment). So
-    // "skip the delay" (the default, matching GSAP) means jumping straight to _delay, not 0;
+    // "skip the delay" (the default) means jumping straight to _delay, not 0;
     // "replay the delay" (includeDelay: true) means going back to the true beginning, 0.
     this.totalTime(includeDelay ? 0 : this._delay, true);
     return this.play();

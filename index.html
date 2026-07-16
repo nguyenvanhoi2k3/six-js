@@ -56,12 +56,12 @@
       const scrollTween = six.to(track, {
         x: -distance,
         ease: "none",
-        scrollTrigger: {
+        onScroll: {
           trigger: container,
           start: "center center",
           end: `+=${scrollLength}`,
-          scrub: 1,
-          pin: true,
+          sync: 1,
+          sticky: true,
         },
       });
 
@@ -80,10 +80,10 @@
           duration: six.utils.random(0.45, 1.2),
           delay: six.utils.random(0, 0.25),
           ease: six.utils.random(eases),
-          scrollTrigger: {
+          onScroll: {
             trigger: word,
-            containerAnimation: scrollTween,
-            horizontal: true,
+            syncTo: scrollTween,
+            axis: "x",
             start: revealProgress,
           },
         });

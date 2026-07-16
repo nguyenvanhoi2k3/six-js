@@ -93,25 +93,25 @@ describe("Animation - basic rendering", () => {
   });
 });
 
-describe("Animation - play/pause/timeScale/reverse", () => {
-  it("paused() reflects timeScale being forced to 0 without losing the recorded rate", () => {
+describe("Animation - play/pause/speed/reverse", () => {
+  it("paused() reflects speed being forced to 0 without losing the recorded rate", () => {
     const a = new StubAnimation();
-    a.timeScale(2);
+    a.speed(2);
     a.pause();
     expect(a.paused()).toBe(true);
-    expect(a.timeScale()).toBe(2); // recorded rate preserved
+    expect(a.speed()).toBe(2); // recorded rate preserved
     a.play();
     expect(a.paused()).toBe(false);
-    expect(a.timeScale()).toBe(2);
+    expect(a.speed()).toBe(2);
   });
 
-  it("reversed() and reverse() are derived from the sign of timeScale, not a separate flag", () => {
+  it("reversed() and reverse() are derived from the sign of speed, not a separate flag", () => {
     const a = new StubAnimation();
     expect(a.reversed()).toBe(false);
     a.reverse();
     expect(a.reversed()).toBe(true);
     expect(a.paused()).toBe(false);
-    expect((a.timeScale() as number) < 0).toBe(true);
+    expect((a.speed() as number) < 0).toBe(true);
   });
 
   it("preserves direction across a pause/resume cycle", () => {
@@ -151,7 +151,7 @@ describe("Animation - restart(includeDelay)", () => {
   });
 });
 
-describe("Animation - repeat/yoyo cycling via totalTime", () => {
+describe("Animation - repeat/boomerang cycling via totalTime", () => {
   it("fires repeat when crossing an iteration boundary while advancing", () => {
     const a = new StubAnimation({ repeat: 2 });
     a.duration(1);
@@ -166,8 +166,8 @@ describe("Animation - repeat/yoyo cycling via totalTime", () => {
     expect(repeats).toBe(2);
   });
 
-  it("reverses local time on odd iterations when yoyo is enabled", () => {
-    const a = new StubAnimation({ repeat: 3, yoyo: true });
+  it("reverses local time on odd iterations when boomerang is enabled", () => {
+    const a = new StubAnimation({ repeat: 3, boomerang: true });
     a.duration(1);
 
     a.totalTime(1.25);

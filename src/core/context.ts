@@ -16,8 +16,8 @@ export function getActiveScope(): ScopeCapture | null {
 /**
  * six.context()-equivalent: anything Killable (Tween/Timeline, or anything else you `.add()`)
  * created while this context's function is running is captured automatically, so a single
- * `revert()`/`kill()` cleans up everything at once. Mirrors GSAP's `gsap.context()`, useful for
- * component-scoped cleanup (e.g. in a framework's unmount hook).
+ * `revert()`/`kill()` cleans up everything at once - useful for component-scoped cleanup (e.g.
+ * in a framework's unmount hook).
  */
 export class Context {
   private captured = new Set<Killable>();

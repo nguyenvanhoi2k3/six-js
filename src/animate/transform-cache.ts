@@ -42,7 +42,7 @@ const RAD2DEG = 180 / Math.PI;
  * the 2D matrix() case is fully decomposed (translate, rotation, scale, skew - via the standard
  * sqrt/atan2 decomposition); an existing matrix3d() only has its translate component read back,
  * with rotation/scale/skew on the 3D axes defaulting to identity. This is a deliberate Phase 1
- * scope cut - full 3D decomposition (GSAP's rotationX/rotationY/rotationZ extraction) is far
+ * scope cut - full 3D decomposition (recovering rotationX/rotationY/rotationZ from the matrix) is far
  * more code for a case that mostly matters when something OTHER than six-js already put a
  * complex 3D transform on the element. Exported standalone (rather than folded into
  * `getComputedStyle` reads) so the decomposition math is unit-testable without a real browser.

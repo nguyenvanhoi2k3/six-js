@@ -7,8 +7,8 @@ function isHorizontalProp(prop: string): boolean {
 /**
  * Converts `value unit` to an equivalent px number for a given target/property, via
  * measurement (root/element font-size, viewport size, parent box size) rather than a fixed
- * ratio - the same values GSAP's CSSPlugin measures, just read through the CSSOM/layout APIs
- * directly instead of a temporary probe element. `%` conversion needs a real laid-out parent
+ * ratio, read directly through the CSSOM/layout APIs instead of a temporary probe element.
+ * `%` conversion needs a real laid-out parent
  * (`clientWidth`/`clientHeight`) and so only produces a meaningful (non-zero) result in a real
  * browser - jsdom does not implement layout.
  */

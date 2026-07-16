@@ -60,7 +60,7 @@ const RESERVED_KEYS = new Set([
   "delay",
   "repeat",
   "repeatDelay",
-  "yoyo",
+  "boomerang",
   "paused",
   "overwrite",
   "onStart",
@@ -169,6 +169,12 @@ function buildTrack(target: Element, prop: string, handler: PropertyHandler, raw
   return buildDiscreteTrack(target, prop, handler, rawStart, rawEnd);
 }
 
+// "scale" has no transform-cache field of its own (only the independent "scaleX"/"scaleY" do) -
+// it's a shorthand that expands into both, each getting its own track (and its own overwrite
+// tracking by `prop`), so a later tween touching only "scaleX" can still surgically overwrite
+// just that half via "auto".
+const SCALE_EXPANSION: Record<string, string[]> = { scale: ["scaleX", "scaleY"] };
+
 export function buildTracks(targets: readonly Element[], vars: Record<string, unknown>, mode: TweenMode, fromVars?: Record<string, unknown>): PropertyTrack[] {
   const keys = collectPropertyKeys(vars, fromVars);
   const tracks: PropertyTrack[] = [];
@@ -187,8 +193,10 @@ export function buildTracks(targets: readonly Element[], vars: Record<string, un
         rawStart = fromVars && key in fromVars ? fromVars[key] : undefined;
       }
 
-      const handler = resolveHandler(target, key, rawEnd ?? rawStart);
-      tracks.push(buildTrack(target, key, handler, rawStart, rawEnd));
+      for (const propKey of SCALE_EXPANSION[key] ?? [key]) {
+        const handler = resolveHandler(target, propKey, rawEnd ?? rawStart);
+        tracks.push(buildTrack(target, propKey, handler, rawStart, rawEnd));
+      }
     }
   }
 

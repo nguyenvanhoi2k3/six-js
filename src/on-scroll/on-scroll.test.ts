@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { parseEdge, resolvePositionString, resolveTriggerEdgeY, resolveViewportEdgeOffset, ScrollTrigger } from "./scroll-trigger";
+import { parseEdge, resolvePositionString, resolveTriggerEdgeY, resolveViewportEdgeOffset, OnScroll } from "./on-scroll";
 import { invalidateReads } from "./observer";
 import { Tween } from "../tween/tween";
 
@@ -84,13 +84,13 @@ describe("resolveTriggerEdgeY / resolveViewportEdgeOffset", () => {
   });
 });
 
-describe("ScrollTrigger - integration", () => {
+describe("OnScroll - integration", () => {
   // window.scrollY/innerHeight are mocked via vi.spyOn(..., "get") (an accessor spy vitest
   // properly tears down in restoreAllMocks()) rather than Object.defineProperty, which would
   // otherwise leave a plain own-property shadowing the getter that persists across tests and
   // corrupts later tests' measurements.
   afterEach(() => {
-    ScrollTrigger.getAll().forEach((st) => st.kill());
+    OnScroll.getAll().forEach((st) => st.kill());
     vi.restoreAllMocks();
   });
 
@@ -115,7 +115,7 @@ describe("ScrollTrigger - integration", () => {
   function scrollTo(y: number): void {
     vi.spyOn(window, "scrollY", "get").mockReturnValue(y);
     // Explicitly invalidate the observer's read cache rather than relying solely on the
-    // dispatched event to do it: before a ScrollTrigger exists (e.g. setting up the initial
+    // dispatched event to do it: before an OnScroll exists (e.g. setting up the initial
     // scroll position ahead of construction), there's no listener attached yet to catch the
     // event, so the cache would otherwise keep serving a stale value from an earlier test.
     invalidateReads();
@@ -129,18 +129,18 @@ describe("ScrollTrigger - integration", () => {
     mockViewportHeight(800);
     scrollTo(0);
 
-    const st = new ScrollTrigger({ trigger });
+    const st = new OnScroll({ trigger });
     expect(st.progress()).toBeCloseTo(800 / 900, 2); // (0 - (-800)) / (100 - (-800))
   });
 
-  it("resolves 'end: \"+=N\"' as N pixels past the resolved start (the pin-distance idiom), not a trigger/viewport edge position", () => {
+  it("resolves 'end: \"+=N\"' as N pixels past the resolved start (the sticky-distance idiom), not a trigger/viewport edge position", () => {
     const trigger = document.createElement("div");
     mockRect(trigger, 0, 100);
     mockViewportHeight(800);
     scrollTo(0);
 
     // start defaults to "top bottom" = -800; end should land at exactly start + 1200
-    const st = new ScrollTrigger({ trigger, end: "+=1200" });
+    const st = new OnScroll({ trigger, end: "+=1200" });
 
     scrollTo(-800 + 600); // halfway through the intended 1200px span
     expect(st.progress()).toBeCloseTo(0.5, 2);
@@ -157,7 +157,7 @@ describe("ScrollTrigger - integration", () => {
     const onEnterBack = vi.fn();
     const onLeaveBack = vi.fn();
 
-    new ScrollTrigger({ trigger, start: "top top", end: "bottom top", onEnter, onLeave, onEnterBack, onLeaveBack });
+    new OnScroll({ trigger, start: "top top", end: "bottom top", onEnter, onLeave, onEnterBack, onLeaveBack });
     // start = scrollY(0)+500 = 500; end = scrollY(0)+500+100 = 600
 
     scrollTo(550); // inside [500,600], scrolling forward
@@ -180,7 +180,7 @@ describe("ScrollTrigger - integration", () => {
     scrollTo(0);
 
     const onUpdate = vi.fn();
-    new ScrollTrigger({ trigger, start: "top top", end: "bottom top", onUpdate });
+    new OnScroll({ trigger, start: "top top", end: "bottom top", onUpdate });
     // start = 500, end = 600 (see the onEnter/onLeave test above for the derivation)
     onUpdate.mockClear(); // ignore the construction-time refresh() call
 
@@ -203,7 +203,7 @@ describe("ScrollTrigger - integration", () => {
     expect(onUpdate).toHaveBeenCalledTimes(3);
   });
 
-  it("plays a paused animation when entering forward (toggle mode, no scrub)", () => {
+  it("plays a paused animation when entering forward (toggle mode, no sync)", () => {
     const trigger = document.createElement("div");
     mockRect(trigger, 500, 100);
     mockViewportHeight(800);
@@ -213,14 +213,14 @@ describe("ScrollTrigger - integration", () => {
     target.style.opacity = "0";
     const animation = new Tween(target, { opacity: 1, duration: 1, ease: "none" });
 
-    new ScrollTrigger({ trigger, start: "top top", end: "bottom top", animation });
+    new OnScroll({ trigger, start: "top top", end: "bottom top", animation });
     expect(animation.paused()).toBe(true); // paused immediately, waiting for scroll
 
     scrollTo(550);
     expect(animation.paused()).toBe(false);
   });
 
-  it("does nothing to the animation on enterBack/leave/leaveBack by default (matches GSAP's default toggleActions 'play none none none')", () => {
+  it("does nothing to the animation on enterBack/leave/leaveBack by default (only a forward crossing of start plays it)", () => {
     const trigger = document.createElement("div");
     mockRect(trigger, 500, 100);
     mockViewportHeight(800);
@@ -230,7 +230,7 @@ describe("ScrollTrigger - integration", () => {
     target.style.opacity = "0";
     const animation = new Tween(target, { opacity: 1, duration: 1, ease: "none" });
 
-    new ScrollTrigger({ trigger, start: "top top", end: "bottom top", animation });
+    new OnScroll({ trigger, start: "top top", end: "bottom top", animation });
     // start = 500, end = 600 (see the onEnter/onLeave test above for the derivation)
 
     scrollTo(550); // enter forward -> plays
@@ -262,21 +262,21 @@ describe("ScrollTrigger - integration", () => {
     behindTarget.style.opacity = "0";
     const behindAnim = new Tween(behindTarget, { opacity: 1, duration: 0.6, ease: "none" });
     const onEnterBehind = vi.fn();
-    new ScrollTrigger({ trigger, start: 1000, end: 1100, animation: behindAnim, onEnter: onEnterBehind });
+    new OnScroll({ trigger, start: 1000, end: 1100, animation: behindAnim, onEnter: onEnterBehind });
 
     // start already passed, but end is still ahead (currently "inside" its own range)
     const insideTarget = document.createElement("div");
     insideTarget.style.opacity = "0";
     const insideAnim = new Tween(insideTarget, { opacity: 1, duration: 0.6, ease: "none" });
     const onEnterInside = vi.fn();
-    new ScrollTrigger({ trigger, start: 4000, end: 6000, animation: insideAnim, onEnter: onEnterInside });
+    new OnScroll({ trigger, start: 4000, end: 6000, animation: insideAnim, onEnter: onEnterInside });
 
     // not reached yet - should stay hidden
     const aheadTarget = document.createElement("div");
     aheadTarget.style.opacity = "0";
     const aheadAnim = new Tween(aheadTarget, { opacity: 1, duration: 0.6, ease: "none" });
     const onEnterAhead = vi.fn();
-    new ScrollTrigger({ trigger, start: 9000, end: 9100, animation: aheadAnim, onEnter: onEnterAhead });
+    new OnScroll({ trigger, start: 9000, end: 9100, animation: aheadAnim, onEnter: onEnterAhead });
 
     expect(behindTarget.style.opacity).toBe("1");
     expect(onEnterBehind).toHaveBeenCalledOnce();
@@ -295,7 +295,7 @@ describe("ScrollTrigger - integration", () => {
     const target = document.createElement("div");
     target.style.opacity = "0";
     const animation = new Tween(target, { opacity: 1, duration: 0.6, ease: "none" });
-    new ScrollTrigger({ trigger, start: "top top", end: "bottom top", animation });
+    new OnScroll({ trigger, start: "top top", end: "bottom top", animation });
 
     expect(target.style.opacity).toBe("0"); // not reached yet at construction
 
@@ -304,7 +304,7 @@ describe("ScrollTrigger - integration", () => {
     expect(target.style.opacity).not.toBe("1"); // still mid-animation, not snapped straight to done
   });
 
-  it("drives an animation's progress directly in scrub mode", () => {
+  it("drives an animation's progress directly in sync mode", () => {
     const trigger = document.createElement("div");
     mockRect(trigger, 0, 100);
     mockViewportHeight(800);
@@ -315,19 +315,19 @@ describe("ScrollTrigger - integration", () => {
     const animation = new Tween(target, { opacity: 1, duration: 1, ease: "none" });
 
     // start = -800, end = 100 -> span of 900
-    new ScrollTrigger({ trigger, animation, scrub: true });
+    new OnScroll({ trigger, animation, sync: true });
 
     scrollTo(-800 + 450); // halfway through the span
     expect(animation.totalProgress()).toBeCloseTo(0.5, 2);
     expect(target.style.opacity).toBe("0.5");
   });
 
-  it("smoothed scrub does not visibly rewind on page reload when the browser's async scroll restoration lands after the first read", () => {
+  it("smoothed sync does not visibly rewind on page reload when the browser's async scroll restoration lands after the first read", () => {
     // Regression test for a real reported bug: reloading mid-page, the browser doesn't always
     // have window.scrollY at the restored position by the time this library's synchronous
     // script runs - construction reads a stale value (here, 0), and the browser's own
     // restoration fires its own native "scroll" event moments later with the real position.
-    // Before the fix, that later event was treated as an ordinary scrub update and SMOOTHED
+    // Before the fix, that later event was treated as an ordinary sync update and SMOOTHED
     // from the stale reading to the real one, i.e. the tween visibly rewound to 0 and eased
     // back into place on every reload - even before any real animation frame (ticker tick) had
     // a chance to occur, so "smoothing" was never actually meaningful for it.
@@ -339,8 +339,8 @@ describe("ScrollTrigger - integration", () => {
     const target = document.createElement("div");
     const animation = new Tween(target, { opacity: 1, duration: 1, ease: "none" });
 
-    // start = -800, end = 100 -> span of 900; scrub as a number selects the smoothed controller
-    new ScrollTrigger({ trigger, animation, scrub: 0.6 });
+    // start = -800, end = 100 -> span of 900; sync as a number selects the smoothed controller
+    new OnScroll({ trigger, animation, sync: 0.6 });
     // construction-time refresh() read the "stale" scrollY = 0, i.e. progress (0-(-800))/900
     expect(animation.totalProgress()).toBeCloseTo(800 / 900, 5);
 
@@ -354,41 +354,41 @@ describe("ScrollTrigger - integration", () => {
     const trigger = document.createElement("div");
     mockRect(trigger, 0, 100);
 
-    const st = new ScrollTrigger({ trigger });
-    expect(ScrollTrigger.getAll()).toContain(st);
+    const st = new OnScroll({ trigger });
+    expect(OnScroll.getAll()).toContain(st);
 
     st.kill();
-    expect(ScrollTrigger.getAll()).not.toContain(st);
+    expect(OnScroll.getAll()).not.toContain(st);
   });
 
-  it("warns instead of crashing when pin is given a value that isn't true/a selector/an Element", () => {
+  it("warns instead of crashing when sticky is given a value that isn't true/a selector/an Element", () => {
     const trigger = document.createElement("div");
     mockRect(trigger, 0, 100);
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    // a plain number (e.g. a typo'd "pin duration") is not a valid pin value in this API
-    expect(() => new ScrollTrigger({ trigger, pin: 0.7 as unknown as true })).not.toThrow();
-    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("pin must be true"));
+    // a plain number (e.g. a typo'd "sticky duration") is not a valid sticky value in this API
+    expect(() => new OnScroll({ trigger, sticky: 0.7 as unknown as true })).not.toThrow();
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("sticky must be true"));
   });
 
-  it("pins a 'center center' trigger at its natural vertically-centered position, not the viewport top", () => {
-    // regression test for a real reported bug: pin always used `top: 0`, so anything pinned via
-    // a non-"top top" start snapped to the viewport's top edge instead of staying where it
-    // naturally sat (e.g. vertically centered) when the pin began.
+  it("sticks a 'center center' trigger at its natural vertically-centered position, not the viewport top", () => {
+    // regression test for a real reported bug: sticking always used `top: 0`, so anything stuck
+    // via a non-"top top" start snapped to the viewport's top edge instead of staying where it
+    // naturally sat (e.g. vertically centered) when it started sticking.
     const trigger = document.createElement("div");
-    document.body.appendChild(trigger); // setupPin() needs a real parent to insert its spacer before
+    document.body.appendChild(trigger); // setupSticky() needs a real parent to insert its spacer before
     const triggerHeight = 150;
     const viewportHeight = 800;
     mockRect(trigger, 0, triggerHeight); // rect.top = 0 at scrollY = 0 (set below)
     mockViewportHeight(viewportHeight);
     scrollTo(0);
 
-    const st = new ScrollTrigger({ trigger, start: "center center", end: "+=500", pin: true });
+    const st = new OnScroll({ trigger, start: "center center", end: "+=500", sticky: true });
 
     // naturalDocTop (rect.top(0) + scrollY(0)) = 0; startY = 0 + 0.5*150 - 0.5*800 = -325
-    // expected pinnedTop = naturalDocTop - startY = 0 - (-325) = 325 (vertically centers a
+    // expected stickyTop = naturalDocTop - startY = 0 - (-325) = 325 (vertically centers a
     // 150px-tall element in an 800px viewport: (800-150)/2 = 325)
-    scrollTo(-325); // scroll to exactly startY so the trigger is pinned
+    scrollTo(-325); // scroll to exactly startY so the trigger sticks
     expect(trigger.style.position).toBe("fixed");
     expect(trigger.style.top).toBe("325px");
 
@@ -397,9 +397,9 @@ describe("ScrollTrigger - integration", () => {
   });
 });
 
-describe("ScrollTrigger - containerAnimation/horizontal", () => {
+describe("OnScroll - syncTo/axis", () => {
   afterEach(() => {
-    ScrollTrigger.getAll().forEach((st) => st.kill());
+    OnScroll.getAll().forEach((st) => st.kill());
     vi.restoreAllMocks();
   });
 
@@ -417,14 +417,14 @@ describe("ScrollTrigger - containerAnimation/horizontal", () => {
     vi.spyOn(window, "innerWidth", "get").mockReturnValue(width);
   }
 
-  it("resolves start as a container-progress ratio, based on the trigger's measured position at containerAnimation progress 0 and 1", () => {
+  it("resolves start as a sync-source-progress ratio, based on the trigger's measured position at syncTo progress 0 and 1", () => {
     mockViewportWidth(1000);
     const container = new Tween(document.createElement("div"), { x: -1000, duration: 1, ease: "none" });
     const word = document.createElement("span");
     mockHorizontalWord(word, 800, 100, container, 1000);
 
     // edge(p) = 800 - 1000p; "left 50%" wants edge(p) = 500 -> p = 0.3
-    const st = new ScrollTrigger({ trigger: word, start: "left 50%", horizontal: true, containerAnimation: container });
+    const st = new OnScroll({ trigger: word, start: "left 50%", axis: "x", syncTo: container });
     expect(st.progress()).toBeCloseTo(0, 5); // container is still at progress 0, well before the 0.3 threshold
   });
 
@@ -435,7 +435,7 @@ describe("ScrollTrigger - containerAnimation/horizontal", () => {
     mockHorizontalWord(word, 800, 100, container, 1000);
 
     const onEnter = vi.fn();
-    new ScrollTrigger({ trigger: word, start: "left 50%", horizontal: true, containerAnimation: container, onEnter });
+    new OnScroll({ trigger: word, start: "left 50%", axis: "x", syncTo: container, onEnter });
 
     container.totalProgress(0.1); // before the 0.3 threshold
     expect(onEnter).not.toHaveBeenCalled();
@@ -444,14 +444,14 @@ describe("ScrollTrigger - containerAnimation/horizontal", () => {
     expect(onEnter).toHaveBeenCalledOnce();
   });
 
-  it("reacts only to the containerAnimation's own updates, not native page scroll", () => {
+  it("reacts only to the syncTo source's own updates, not native page scroll", () => {
     mockViewportWidth(1000);
     const container = new Tween(document.createElement("div"), { x: -1000, duration: 1, ease: "none" });
     const word = document.createElement("span");
     mockHorizontalWord(word, 800, 100, container, 1000);
 
     const onEnter = vi.fn();
-    new ScrollTrigger({ trigger: word, start: "left 50%", horizontal: true, containerAnimation: container, onEnter });
+    new OnScroll({ trigger: word, start: "left 50%", axis: "x", syncTo: container, onEnter });
 
     vi.spyOn(window, "scrollY", "get").mockReturnValue(999999);
     window.dispatchEvent(new Event("scroll"));
@@ -467,7 +467,7 @@ describe("ScrollTrigger - containerAnimation/horizontal", () => {
     const word = document.createElement("span");
     mockHorizontalWord(word, 800, 100, container, 1000); // moves 1000px total across progress 0->1
 
-    const st = new ScrollTrigger({ trigger: word, start: "left 50%", horizontal: true, containerAnimation: container, end: "+=200" });
+    const st = new OnScroll({ trigger: word, start: "left 50%", axis: "x", syncTo: container, end: "+=200" });
     // start = 0.3 (as above); "+=200" of the trigger's own 1000px total travel -> +0.2 progress
     container.totalProgress(0.3);
     expect(st.progress()).toBeCloseTo(0, 2);
@@ -475,14 +475,14 @@ describe("ScrollTrigger - containerAnimation/horizontal", () => {
     expect(st.progress()).toBeCloseTo(1, 2);
   });
 
-  it("kill() unsubscribes from the containerAnimation's update event", () => {
+  it("kill() unsubscribes from the syncTo source's update event", () => {
     mockViewportWidth(1000);
     const container = new Tween(document.createElement("div"), { x: -1000, duration: 1, ease: "none" });
     const word = document.createElement("span");
     mockHorizontalWord(word, 800, 100, container, 1000);
 
     const onEnter = vi.fn();
-    const st = new ScrollTrigger({ trigger: word, start: "left 50%", horizontal: true, containerAnimation: container, onEnter });
+    const st = new OnScroll({ trigger: word, start: "left 50%", axis: "x", syncTo: container, onEnter });
     st.kill();
 
     container.totalProgress(0.5);

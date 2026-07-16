@@ -115,11 +115,11 @@ describe("Timeline - rendering drives children via the coordinate transform", ()
     expect(b.renders.at(-1)?.localTime).toBe(1);
   });
 
-  it("scales a child's local time by the child's own timeScale", () => {
+  it("scales a child's local time by the child's own speed", () => {
     const tl = new Timeline();
     const a = new StubLeaf();
     a.duration(2);
-    a.timeScale(2);
+    a.speed(2);
     tl.add(a);
 
     tl.totalTime(1, true);
@@ -174,8 +174,8 @@ describe("Timeline - rendering drives children via the coordinate transform", ()
     expect(a.totalTime()).toBe(0.5); // starts on schedule once the timeline actually reaches it
   });
 
-  it("resuming a child created paused whose start the timeline has already passed begins it fresh from now (the ScrollTrigger pattern)", () => {
-    // This is the shape every ScrollTrigger-driven, non-scrub animation is created in:
+  it("resuming a child created paused whose start the timeline has already passed begins it fresh from now (the OnScroll pattern)", () => {
+    // This is the shape every OnScroll-driven, non-sync animation is created in:
     // `vars.animation.pause()` runs immediately (attached to the root timeline at "now"),
     // and `.play()` is called much later, once the user actually scrolls into range. By then
     // the (always-advancing) root timeline's playhead is long past the child's original
@@ -275,7 +275,7 @@ describe("Timeline - rendering drives children via the coordinate transform", ()
 describe("Timeline - nested timelines keep full lifecycle capability", () => {
   it("a nested timeline's OWN repeat still works when driven by an outer timeline", () => {
     // this is the exact capability the abandoned prototype lost: nesting must not strip
-    // repeat/yoyo/pause from a child timeline just because it's no longer top-level.
+    // repeat/boomerang/pause from a child timeline just because it's no longer top-level.
     const inner = new Timeline({ repeat: 1 }); // 2 iterations
     const leaf = new StubLeaf();
     leaf.duration(1);

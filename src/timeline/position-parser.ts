@@ -22,7 +22,7 @@ const RELATIVE_RE = /^([+-])=([\d.]+)$/;
 const LABEL_RE = /^([^\s+\-<>][^+-]*?)(?:([+-])=([\d.]+))?$/;
 
 /**
- * Resolves a GSAP-style timeline position parameter: a number (absolute), "<"/">" (the previously
+ * Resolves a timeline position parameter: a number (absolute), "<"/">" (the previously
  * added child's start/end, optionally offset), "+=1"/"-=1" (relative to the timeline's current
  * end/cursor), or a label name (optionally offset). Pure function of a small context object so
  * it's testable without constructing a Timeline.

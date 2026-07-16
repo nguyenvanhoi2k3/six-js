@@ -4,7 +4,7 @@ import { StaggerInput, computeStaggerDelay } from "../timeline/stagger";
 import { rootTimeline } from "../core/root";
 import { GlobalDefaults, setDefaults } from "../core/defaults";
 import { Context, context } from "../core/context";
-import { ScrollTrigger, ScrollTriggerVars } from "../scroll-trigger/scroll-trigger";
+import { OnScroll, OnScrollVars } from "../on-scroll/on-scroll";
 import { registerComponents } from "../components";
 import * as utils from "../utils/utils";
 import { VERSION } from "../version";
@@ -13,9 +13,9 @@ console.log(`sixjs v${VERSION}`);
 
 export type SixTarget = TweenTarget;
 
-/** `scrollTrigger.trigger` defaults to the tween/timeline's own target(s) when omitted. */
-export type SixScrollTriggerVars = Omit<ScrollTriggerVars, "animation" | "trigger"> & { trigger?: Element | string };
-export type SixTweenVars = TweenVars & { stagger?: StaggerInput; scrollTrigger?: SixScrollTriggerVars };
+/** `onScroll.trigger` defaults to the tween/timeline's own target(s) when omitted. */
+export type SixOnScrollVars = Omit<OnScrollVars, "animation" | "trigger"> & { trigger?: Element | string };
+export type SixTweenVars = TweenVars & { stagger?: StaggerInput; onScroll?: SixOnScrollVars };
 
 function resolveTrigger(target: SixTarget, override?: Element | string): Element | string {
   if (override) return override;
@@ -23,19 +23,19 @@ function resolveTrigger(target: SixTarget, override?: Element | string): Element
   return resolveTargets(target)[0];
 }
 
-function attachScrollTrigger(target: SixTarget, vars: SixScrollTriggerVars | undefined, animation: Tween | Timeline): void {
+function attachOnScroll(target: SixTarget, vars: SixOnScrollVars | undefined, animation: Tween | Timeline): void {
   if (!vars) return;
   const trigger = resolveTrigger(target, vars.trigger);
-  ScrollTrigger.create({ ...vars, trigger, animation });
+  OnScroll.create({ ...vars, trigger, animation });
 }
 
 function createTween(target: SixTarget, vars: SixTweenVars, mode: TweenMode, fromVars?: Record<string, unknown>): Tween | Timeline {
-  const { stagger, scrollTrigger, ...rest } = vars;
+  const { stagger, onScroll, ...rest } = vars;
 
   if (stagger === undefined) {
     const tween = new Tween(target, rest, mode, fromVars);
     rootTimeline.add(tween);
-    attachScrollTrigger(target, scrollTrigger, tween);
+    attachOnScroll(target, onScroll, tween);
     return tween;
   }
 
@@ -49,7 +49,7 @@ function createTween(target: SixTarget, vars: SixTweenVars, mode: TweenMode, fro
   });
 
   rootTimeline.add(group);
-  attachScrollTrigger(target, scrollTrigger, group);
+  attachOnScroll(target, onScroll, group);
   return group;
 }
 
@@ -71,17 +71,17 @@ function set(target: SixTarget, vars: Record<string, unknown>): Tween {
   return tween;
 }
 
-export type SixTimelineVars = TimelineVars & { scrollTrigger?: SixScrollTriggerVars };
+export type SixTimelineVars = TimelineVars & { onScroll?: SixOnScrollVars };
 
 function timeline(vars?: SixTimelineVars): Timeline {
-  const { scrollTrigger, ...rest } = vars ?? {};
+  const { onScroll, ...rest } = vars ?? {};
   const tl = new Timeline(rest);
   rootTimeline.add(tl);
-  if (scrollTrigger) {
-    if (!scrollTrigger.trigger) {
-      console.warn("[six] timeline({ scrollTrigger }) requires an explicit trigger - a Timeline has no target to default to");
+  if (onScroll) {
+    if (!onScroll.trigger) {
+      console.warn("[six] timeline({ onScroll }) requires an explicit trigger - a Timeline has no target to default to");
     } else {
-      ScrollTrigger.create({ ...scrollTrigger, trigger: scrollTrigger.trigger, animation: tl });
+      OnScroll.create({ ...onScroll, trigger: onScroll.trigger, animation: tl });
     }
   }
   return tl;
@@ -107,5 +107,5 @@ export function enableElements(): void {
   registerComponents();
 }
 
-export { ScrollTrigger };
-export type { Context, GlobalDefaults, Tween, Timeline, TweenVars, TimelineVars, ScrollTriggerVars };
+export { OnScroll };
+export type { Context, GlobalDefaults, Tween, Timeline, TweenVars, TimelineVars, OnScrollVars };

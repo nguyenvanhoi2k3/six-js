@@ -79,6 +79,21 @@ describe("Tween - transform composition", () => {
     expect(el.style.transform).not.toContain("translate3d");
     expect(el.style.transform).toContain("translate(100px, 0px)");
   });
+
+  it("expands the 'scale' shorthand into both scaleX and scaleY", () => {
+    const el = document.createElement("div");
+    const tw = new Tween(el, { scale: 2, duration: 1, ease: "none" });
+    tw.totalTime(1, true);
+    expect(el.style.transform).toContain("scale(2, 2)");
+  });
+
+  it("still lets 'scaleX'/'scaleY' be animated independently after a 'scale' shorthand tween", () => {
+    const el = document.createElement("div");
+    new Tween(el, { scale: 2, duration: 1, ease: "none" }).totalTime(1, true);
+    const tw = new Tween(el, { scaleX: 0.5, duration: 1, ease: "none" });
+    tw.totalTime(1, true);
+    expect(el.style.transform).toContain("scale(0.5, 2)");
+  });
 });
 
 describe("Tween - color properties", () => {

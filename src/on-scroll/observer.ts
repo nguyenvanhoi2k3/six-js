@@ -3,14 +3,14 @@ export type Axis = "y" | "x";
 export type Listener = () => void;
 
 /**
- * Generic scroll/resize listening + a memoized-read layer, decoupled from ScrollTrigger's own
- * position-parsing/pin/scrub concerns (mirrors GSAP's split between Observer.js and
- * ScrollTrigger.js). Has zero dependency on scroll-trigger.ts - deliberately one-directional.
+ * Generic scroll/resize listening + a memoized-read layer, decoupled from OnScroll's own
+ * position-parsing/sticky/sync concerns. Has zero dependency on on-scroll.ts - deliberately
+ * one-directional.
  */
 
 // Bumped on every scroll/resize/manual invalidate - callers use this to avoid re-reading
 // layout-forcing values (scrollTop, clientHeight, ...) more than once per "generation" no
-// matter how many ScrollTrigger instances ask for them in the same tick.
+// matter how many OnScroll instances ask for them in the same tick.
 let generation = 0;
 
 export function currentGeneration(): number {
@@ -118,7 +118,7 @@ export function addResizeListener(listener: Listener): void {
   if (!resizeAttached && typeof window !== "undefined") {
     resizeAttached = true;
     window.addEventListener("resize", handleResize);
-    // A ScrollTrigger's first refresh() (during construction) can run before images/fonts below
+    // An OnScroll's first refresh() (during construction) can run before images/fonts below
     // the trigger finish loading, measuring against a document that's still going to grow -
     // positions computed from that measurement end up wrong once the remaining content loads in.
     // Re-run once load fires (skipped if it already has - a late listener on an already-fired

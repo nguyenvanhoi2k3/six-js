@@ -1,5 +1,5 @@
 /**
- * Pure repeat/yoyo math shared by Tween and Timeline. Given a position along an animation's
+ * Pure repeat/boomerang math shared by Tween and Timeline. Given a position along an animation's
  * OWN totalTime axis, resolves which iteration that lands in and the local time within it.
  *
  * This function only answers "where are we" for a given totalTime - it does not know or care
@@ -11,9 +11,9 @@
 export interface CycleResult {
   /** 0-indexed iteration number. */
   iteration: number;
-  /** Local time within the iteration, in the range [0, dur]. Already yoyo-flipped if `reversed`. */
+  /** Local time within the iteration, in the range [0, dur]. Already boomerang-flipped if `reversed`. */
   time: number;
-  /** True if this iteration is a yoyo-reversed pass (odd iteration with yoyo enabled). */
+  /** True if this iteration is a boomerang-reversed pass (odd iteration with boomerang enabled). */
   reversed: boolean;
 }
 
@@ -23,7 +23,7 @@ export function totalDurationOf(dur: number, repeat: number, repeatDelay: number
   return dur * (repeat + 1) + repeatDelay * repeat;
 }
 
-export function resolveCycle(totalTime: number, dur: number, repeat: number, repeatDelay: number, yoyo: boolean): CycleResult {
+export function resolveCycle(totalTime: number, dur: number, repeat: number, repeatDelay: number, boomerang: boolean): CycleResult {
   if (dur <= 0) {
     return { iteration: 0, time: 0, reversed: false };
   }
@@ -62,7 +62,7 @@ export function resolveCycle(totalTime: number, dur: number, repeat: number, rep
 
   if (time > dur) time = dur; // inside the repeatDelay gap - hold at the iteration's end value
 
-  const reversed = yoyo && iteration % 2 === 1;
+  const reversed = boomerang && iteration % 2 === 1;
   if (reversed) time = dur - time;
 
   return { iteration, time, reversed };
