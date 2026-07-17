@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>splitText() demo</title>
+    <link rel="stylesheet" href="./index.css" />
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+      section {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        padding: 60px 24px;
+        border-bottom: 1px solid #24262c;
+      }
+      section h2 {
+        font-size: 15px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        opacity: 0.5;
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        margin: 0;
+      }
+      section {
+        position: relative;
+      }
+
+      .hero h1 {
+        font-size: clamp(36px, 7vw, 88px);
+        text-align: center;
+        max-width: 900px;
+      }
+
+      .reveal p {
+        font-size: clamp(20px, 3vw, 32px);
+        max-width: 720px;
+        text-align: center;
+        line-height: 1.4;
+      }
+
+      .skip-demo p {
+        font-size: 24px;
+        max-width: 640px;
+        text-align: center;
+        line-height: 1.6;
+      }
+      .icon {
+        color: #ffb454;
+        font-style: normal;
+      }
+      .readout {
+        font-family: monospace;
+        font-size: 13px;
+        background: #1c1f24;
+        border: 1px solid #2a2d33;
+        border-radius: 8px;
+        padding: 12px 16px;
+        max-width: 640px;
+        text-align: left;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .lifecycle p {
+        font-size: 22px;
+        max-width: 600px;
+        text-align: center;
+      }
+      .controls {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .controls button {
+        padding: 10px 16px;
+        border-radius: 6px;
+        border: 1px solid #3a3d44;
+        background: #1a1c20;
+        color: inherit;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .controls button:hover {
+        background: #26292f;
+      }
+      #status {
+        font-family: monospace;
+        font-size: 13px;
+        opacity: 0.85;
+        min-height: 1.5em;
+      }
+
+      .resize-demo p {
+        font-size: 15px;
+        opacity: 0.7;
+        max-width: 600px;
+        text-align: center;
+        margin: 0 0 12px;
+      }
+      .resize-box {
+        resize: horizontal;
+        overflow: auto;
+        width: 480px;
+        max-width: 90vw;
+        min-width: 200px;
+        border: 1px dashed #3a3d44;
+        border-radius: 8px;
+        padding: 20px;
+      }
+      .resize-box .line {
+        background: rgba(92, 124, 250, 0.12);
+        margin-bottom: 2px;
+      }
+      #lineCount {
+        font-family: monospace;
+        font-size: 13px;
+        opacity: 0.8;
+      }
+    </style>
+  </head>
+
+  <body>
+    <section class="hero">
+      <h2>1. chars + words stagger reveal (autoSplit + wordsClass hidden away)</h2>
+      <h1 id="heroTitle">Split every letter apart.</h1>
+    </section>
+
+    <section class="reveal">
+      <h2>2. overflow: true — GSAP-style clip mask, per line</h2>
+      <p id="revealText">Each line slides up from behind a clipped mask, the same trick GSAP's SplitText overflow option gives you for free.</p>
+    </section>
+
+    <section class="skip-demo">
+      <h2>3. skip + always-on accessibility (aria-label / aria-hidden)</h2>
+      <p id="skipText">Rated <i class="icon">★★★★★</i> by everyone who split their text today.</p>
+      <div class="readout" id="ariaReadout"></div>
+    </section>
+
+    <section class="lifecycle">
+      <h2>4. split() / revert() / kill() lifecycle</h2>
+      <p id="lifecycleText">Click the buttons below and watch this sentence get shredded and restored.</p>
+      <div class="controls">
+        <button id="btnRevert">revert()</button>
+        <button id="btnSplit">split() again</button>
+        <button id="btnKill">kill()</button>
+      </div>
+      <div id="status"></div>
+    </section>
+
+    <section class="resize-demo">
+      <h2>5. hidden autoSplit — drag the corner, lines re-wrap on their own</h2>
+      <p>No autoSplit flag anywhere in this demo's code - it's always on for line splits. Drag the bottom-right corner of the box.</p>
+      <div class="resize-box">
+        <p id="resizeText">Resize this box and these lines will automatically re-split themselves to match the new width, with no code re-running the split by hand.</p>
+      </div>
+      <div id="lineCount"></div>
+    </section>
+
+    <script type="module">
+      import { six, splitText } from "./dist/six-js.es.js";
+
+      // 1. hero: chars stagger up, words fade/skew in behind them
+      const heroSplit = splitText("#heroTitle", {
+        type: "words, chars, lines",
+        wordsClass: "word",
+        charsClass: "char",
+      });
+
+      six.set(heroSplit.chars, { opacity: 0, y: 100, rotate: 10 });
+      six.to(heroSplit.chars, {
+        opacity: 1,
+        y: 0,
+        rotate: 0,
+        duration: 1,
+        stagger: 0.035,
+        ease: "backOut",
+      });
+
+      // 2. overflow mask reveal, staggered by line
+      const revealSplit = splitText("#revealText", {
+        type: "lines",
+        linesClass: "line",
+        overflow: true,
+      });
+
+      six.from(revealSplit.lines, {
+        y: "120%",
+        duration: 1,
+        stagger: 0.15,
+        ease: "expoOut",
+      });
+
+      // 3. skip - the star rating icon is never shredded into chars/words
+      const skipSplit = splitText("#skipText", {
+        type: "words",
+        wordsClass: "word",
+        skip: document.querySelector("#skipText .icon"),
+      });
+      six.from(skipSplit.words, { opacity: 0, y: 20, duration: 0.6, stagger: 0.04 });
+
+      document.getElementById("ariaReadout").textContent =
+        `container aria-label: "${document.getElementById("skipText").getAttribute("aria-label")}"\n` +
+        `first word aria-hidden: ${skipSplit.words[0].getAttribute("aria-hidden")}`;
+
+      // 4. lifecycle playground
+      let lifecycleSplit = splitText("#lifecycleText", { type: "words", wordsClass: "word" });
+      six.from(lifecycleSplit.words, { opacity: 0, y: 15, duration: 0.5, stagger: 0.03 });
+
+      const status = document.getElementById("status");
+      const setStatus = (msg) => (status.textContent = msg);
+      setStatus(`split - ${lifecycleSplit.words.length} words`);
+
+      document.getElementById("btnRevert").addEventListener("click", () => {
+        lifecycleSplit.revert();
+        setStatus("reverted - original HTML restored, still re-splittable");
+      });
+
+      document.getElementById("btnSplit").addEventListener("click", () => {
+        lifecycleSplit.split();
+        six.from(lifecycleSplit.words, { opacity: 0, y: 15, duration: 0.5, stagger: 0.03 });
+        setStatus(`split again - ${lifecycleSplit.words.length} words`);
+      });
+
+      document.getElementById("btnKill").addEventListener("click", () => {
+        lifecycleSplit.kill();
+        setStatus("killed - reverted permanently, split() would now throw");
+      });
+
+      // 5. autoSplit on resize (hidden, always on for line splits) - onSplit fires on every
+      // re-split, including the internal debounced one triggered by the resize watcher, so this
+      // readout stays in sync without a second, independently-timed observer of its own.
+      const lineCount = document.getElementById("lineCount");
+      const resizeSplit = splitText("#resizeText", {
+        type: "lines",
+        linesClass: "line",
+        onSplit: (self) => (lineCount.textContent = `${self.lines.length} line(s)`),
+      });
+    </script>
+  </body>
+</html>
