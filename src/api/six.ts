@@ -6,6 +6,7 @@ import { GlobalDefaults, setDefaults } from "../core/defaults";
 import { Context, context } from "../core/context";
 import { Breakpoint, BreakpointCallback, BreakpointConditions, BreakpointContext, breakpoint } from "../core/breakpoint";
 import { OnScroll, OnScrollVars } from "../on-scroll/on-scroll";
+import { ScrollToOptions, SmoothScroll, smoothScroll, SmoothScrollVars } from "../smooth-scroll/smooth-scroll";
 import { registerComponents } from "../components";
 import * as utils from "../utils/utils";
 import { VERSION } from "../version";
@@ -101,6 +102,7 @@ export const six = {
   config,
   context,
   breakpoint,
+  smoothScroll,
   utils,
 };
 
@@ -109,5 +111,5 @@ export function enableElements(): void {
   registerComponents();
 }
 
-export { OnScroll };
-export type { Context, GlobalDefaults, Tween, Timeline, TweenVars, TimelineVars, OnScrollVars, Breakpoint, BreakpointConditions, BreakpointCallback, BreakpointContext };
+export { OnScroll, SmoothScroll };
+export type { Context, GlobalDefaults, Tween, Timeline, TweenVars, TimelineVars, OnScrollVars, Breakpoint, BreakpointConditions, BreakpointCallback, BreakpointContext, SmoothScrollVars, ScrollToOptions };

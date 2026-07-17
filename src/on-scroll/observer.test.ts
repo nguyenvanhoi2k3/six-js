@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { addResizeListener, addScrollListener, currentGeneration, getScroll, invalidateReads, removeResizeListener, removeScrollListener, setScroll } from "./observer";
+import { addResizeListener, addScrollListener, currentGeneration, getScroll, invalidateReads, removeResizeListener, removeScrollListener, resolveScroller, setScroll } from "./observer";
 
 describe("observer - getScroll memoization", () => {
   afterEach(() => vi.restoreAllMocks());
@@ -129,5 +129,32 @@ describe("observer - resize listeners", () => {
     expect(listener).toHaveBeenCalledOnce();
 
     fresh.removeResizeListener(listener);
+  });
+});
+
+describe("observer - resolveScroller", () => {
+  it("defaults to window when omitted", () => {
+    expect(resolveScroller(undefined)).toBe(window);
+  });
+
+  it("passes an already-resolved Scroller value through unchanged", () => {
+    const el = document.createElement("div");
+    expect(resolveScroller(el)).toBe(el);
+    expect(resolveScroller(window)).toBe(window);
+  });
+
+  it("resolves a selector string via querySelector", () => {
+    const el = document.createElement("div");
+    el.id = "panel";
+    document.body.appendChild(el);
+
+    expect(resolveScroller("#panel")).toBe(el);
+    el.remove();
+  });
+
+  it("falls back to window and warns when a selector matches nothing", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(resolveScroller(".missing")).toBe(window);
+    expect(warn).toHaveBeenCalledOnce();
   });
 });

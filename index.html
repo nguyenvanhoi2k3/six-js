@@ -34,6 +34,8 @@
       import { six, enableElements } from "./dist/six-js.es.js";
       enableElements();
 
+      const smooth = six.smoothScroll();
+
       const container = document.querySelector(".container");
       const track = document.querySelector(".track");
       const words = six.utils.arrayOf(".char");

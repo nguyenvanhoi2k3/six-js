@@ -1,5 +1,5 @@
 import { Animation } from "../core/animation";
-import { addResizeListener, addScrollListener, getScroll, getViewportSize, removeResizeListener, removeScrollListener, Scroller } from "./observer";
+import { addResizeListener, addScrollListener, getScroll, getViewportSize, removeResizeListener, removeScrollListener, resolveScroller, Scroller } from "./observer";
 import { createDirectSync, createSmoothSync, SyncController } from "./sync";
 import { StickyHandle, setupSticky } from "./sticky";
 import { createMarkers, MarkerHandle } from "./markers";
@@ -90,19 +90,6 @@ export function resolveTriggerEdgeY(str: string, triggerRect: { top: number; hei
   const [triggerToken = "top"] = str.trim().split(/\s+/);
   const triggerEdge = parseEdge(triggerToken);
   return scrollY + triggerRect.top + triggerEdge.ratio * triggerRect.height + triggerEdge.offsetPx;
-}
-
-function resolveScroller(scroller: Scroller | string | undefined): Scroller {
-  if (scroller === undefined) return window;
-  if (typeof scroller === "string") {
-    const el = document.querySelector(scroller);
-    if (!el) {
-      console.warn(`[six] OnScroll: scroller "${scroller}" not found, falling back to window`);
-      return window;
-    }
-    return el;
-  }
-  return scroller;
 }
 
 function resolveElement(value: Element | string): Element {

@@ -2,6 +2,20 @@ export type Scroller = Window | Element;
 export type Axis = "y" | "x";
 export type Listener = () => void;
 
+/** Shared by OnScroll and SmoothScroll so a "scroller" string/value resolves identically for both - any divergence here would silently break the two staying in sync. */
+export function resolveScroller(scroller: Scroller | string | undefined): Scroller {
+  if (scroller === undefined) return window;
+  if (typeof scroller === "string") {
+    const el = document.querySelector(scroller);
+    if (!el) {
+      console.warn(`[six] scroller "${scroller}" not found, falling back to window`);
+      return window;
+    }
+    return el;
+  }
+  return scroller;
+}
+
 /**
  * Generic scroll/resize listening + a memoized-read layer, decoupled from OnScroll's own
  * position-parsing/sticky/sync concerns. Has zero dependency on on-scroll.ts - deliberately
