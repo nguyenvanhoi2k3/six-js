@@ -45,7 +45,25 @@ export class Tween extends Animation {
   private tracks: PropertyTrack[] = [];
   private keyframeTimeline: Timeline | null = null;
 
-  constructor(target: TweenTarget, vars: TweenVars, mode: TweenMode = "to", fromVars?: Record<string, unknown>) {
+  /**
+   * `renderInitial` (engine-internal - Timeline is the only caller that ever passes `false`):
+   * whether to self-render at t=0 synchronously here in the constructor. Correct/desired for a
+   * genuinely-standalone tween (or one about to be added to the root timeline at "now") so e.g.
+   * a `.from()` tween's starting values are visible right away rather than waiting for the next
+   * tick - but WRONG for a tween scheduled at a later position within a sequenced timeline
+   * (ordinary chained `.to()`s, or a keyframe segment): rendering it now, before its own turn,
+   * writes its progress-0 state into shared per-element mutable state (the transform cache) that
+   * a currently-active sibling targeting the same property may already be mid-animation on -
+   * this second, premature write silently clobbers the active sibling's just-computed value the
+   * instant this tween is constructed, and - since a not-yet-reached child is deliberately never
+   * re-rendered until its scheduled position is actually reached (Timeline._renderIteration's
+   * skip-range check) - nothing ever corrects it back, leaving a visible glitch/jump for the
+   * entire span before this tween's real turn arrives. Timeline.addTweens() passes `false`
+   * whenever the resolved position isn't actually "now" for that timeline, and defers this
+   * tween's first real render (and lazily-triggered _onInit()/track-building) to whenever the
+   * timeline's own cascade naturally reaches it instead.
+   */
+  constructor(target: TweenTarget, vars: TweenVars, mode: TweenMode = "to", fromVars?: Record<string, unknown>, renderInitial = true) {
     super(vars);
 
     const defaults = getDefaults();
@@ -63,9 +81,7 @@ export class Tween extends Animation {
       this.duration(vars.duration ?? defaults.duration);
     }
 
-    // Render the initial (t=0) visual state immediately and silently, so e.g. a `.from()`
-    // tween's starting values are visible right away rather than waiting for the next tick.
-    this.render(0, true, true);
+    if (renderInitial) this.render(0, true, true);
   }
 
   targetElements(): readonly Element[] {

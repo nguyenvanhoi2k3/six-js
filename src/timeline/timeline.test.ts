@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Animation } from "../core/animation";
 import { Timeline } from "./timeline";
+import { Tween } from "../tween/tween";
 
 interface RenderCall {
   totalTime: number;
@@ -431,5 +432,43 @@ describe("Timeline - zero-duration children (.set()/.call()-style)", () => {
 
     tl.totalTime(5.5, true); // playhead crosses 5
     expect(futureChild.renders.length).toBeGreaterThan(0);
+  });
+});
+
+describe("Timeline - chained .to() calls on the same target/property", () => {
+  it("does not let a later-added segment's construction-time self-render clobber an earlier segment's in-progress value", () => {
+    // Regression test: Tween's constructor unconditionally self-rendered at t=0 - fine for a
+    // standalone tween (or one landing at a timeline's actual "now"), but wrong for a tween
+    // scheduled at a LATER position in a sequenced timeline: constructing the second .to() here
+    // used to immediately write its own from-state (x read as whatever the DOM/cache currently
+    // held, i.e. the ORIGINAL untouched value) into the shared per-element transform cache, and
+    // since a not-yet-reached child is deliberately skipped by Timeline's own render until its
+    // scheduled position is reached, nothing ever corrected it - so the moment the timeline's
+    // playhead crossed from segment 1 into segment 2, x visibly snapped back to the original
+    // value instead of continuing from segment 1's actual end.
+    const el = document.createElement("div");
+    const tl = new Timeline();
+    tl.to(el, { x: 100, duration: 1, ease: "none" });
+    tl.to(el, { x: 300, duration: 1, ease: "none" });
+
+    tl.totalTime(1, true); // exact boundary between the two segments
+    expect(el.style.transform).toBe("translate(100px, 0px)"); // must continue from segment 1's end, not snap to 0
+
+    tl.totalTime(1.5, true); // halfway through segment 2
+    expect(el.style.transform).toBe("translate3d(200px, 0px, 0px)"); // 100 -> 300, halfway
+  });
+
+  it("defers a later segment's own from-value read to when it actually starts playing, not to construction time", () => {
+    const el = document.createElement("div");
+    const tl = new Timeline();
+    tl.to(el, { x: 100, duration: 1, ease: "none" });
+    // No explicit "from" for opacity - should read whatever opacity actually IS once this
+    // segment's own turn arrives, not whatever it was at construction time.
+    tl.to(el, { opacity: 1, duration: 1, ease: "none" });
+
+    el.style.opacity = "0.2"; // changes AFTER both segments were already constructed
+
+    tl.totalTime(1.5, true); // halfway through segment 2
+    expect(el.style.opacity).toBe("0.6"); // (0.2 -> 1) halfway, using the value read at its real start
   });
 });

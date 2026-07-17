@@ -43,6 +43,18 @@ sx-slider-next {
   user-select: none;
 }
 
+/* !important because consumer CSS commonly sets `display` on these same
+   selectors for custom pagination effects (fraction/snake/dynamic) or
+   custom nav styling - a plain type+attribute selector there outranks the
+   browser's default `[hidden] { display: none }` rule, so without this
+   the slider would carry `hidden` while remaining visually shown whenever
+   it has nothing left to scroll to. */
+sx-slider-prev[hidden],
+sx-slider-next[hidden],
+sx-slider-pagination[hidden] {
+  display: none !important;
+}
+
 /* pagination */
 .sx-slider-pagination-bullet{
   cursor: pointer;

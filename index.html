@@ -9,12 +9,19 @@
   </head>
 
   <body>
-    <div class="space">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Officia, assumenda eaque repudiandae odit deserunt unde! Asperiores soluta itaque molestiae eos?</div>
+    <div class="space">
+      Lorem, ipsum dolor sit amet consectetur adipisicing elit. Officia,
+      assumenda eaque repudiandae odit deserunt unde! Asperiores soluta itaque
+      molestiae eos?
+    </div>
+    <div class="box"></div>
     <sx-dialog-trigger name="dialog1">Open</sx-dialog-trigger>
-    <sx-dialog name="dialog1" scrollable="scrollbar">
-      Content
-    </sx-dialog>
-    <div class="space">Lorem, ipsum dolor sit amet consectetur adipisicing elit. Officia, assumenda eaque repudiandae odit deserunt unde! Asperiores soluta itaque molestiae eos?</div>
+    <sx-dialog name="dialog1" scrollable="scrollbar"> Content </sx-dialog>
+    <div class="space">
+      Lorem, ipsum dolor sit amet consectetur adipisicing elit. Officia,
+      assumenda eaque repudiandae odit deserunt unde! Asperiores soluta itaque
+      molestiae eos?
+    </div>
     <div class="container">
       <div class="track" style="display: flex; gap: 20px">
         <span class="char">Lorem</span>
@@ -39,10 +46,14 @@
     <script type="module">
       import { six, enableElements } from "./dist/six-js.es.js";
       enableElements();
-
-      const smooth = six.smoothScroll({
+      six.to(".box", {
+        keyframes: [
+          { x: 200, duration: 1 },
+          { y: -40, ease: "backOut", duration: 1 },
+          { x: 0, y: 0, rotate: 360, duration: 1.2 },
+        ],
       });
-
+      const smooth = six.smoothScroll({});
 
       const container = document.querySelector(".container");
       const track = document.querySelector(".track");

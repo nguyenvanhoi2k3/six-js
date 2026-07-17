@@ -11,7 +11,30 @@ export class SxSlider extends SafeHTMLElement {
   private originalOptions!: SliderOptions;
   private breakpointsConfig: Record<number, any> | null = null;
   private currentIndex: number = 0;
+  // Which pagination dot is active, for non-loop sliders. Tracked as a
+  // step count (incremented/decremented by exactly 1 on next()/prev()),
+  // deliberately NOT derived from currentIndex - a per-move step that lands
+  // between two dots (e.g. prev() off a boundary-clamped last stop landing
+  // on a slide index between stop[n-2] and stop[n-1]) has no exact dot
+  // match, and a "nearest stop" lookup at that position would pick the
+  // dot the click stepped AWAY from, not the one being moved toward. Any
+  // direct jump (goTo/sync/drag-snap/initial index) instead recomputes this
+  // via findStopIndex() since there's no "step" to preserve there.
+  private currentStopIndex: number = 0;
+  // Signature of the last stops array seen by updateSlideAttributes() -
+  // when it changes (per-view/per-move changing via a breakpoint or
+  // attribute edit, on a slider that's already initialized and staying
+  // non-loop) currentStopIndex is recomputed fresh, since a step count
+  // tracked against the old grid has no meaning against a new one. Left
+  // null until the first render so that pass doesn't skip recomputing too.
+  private lastStopsKey: string | null = null;
   private lastFiredIndex: number = -1;
+  // Whether there are more real slides than fit in one view at once - set
+  // in updateLayout() (from the same `isShort` measurement used for
+  // centerIfShort) and read by both nav/pagination visibility here and by
+  // SxSliderTrack's dragStart, so all three agree on when the slider has
+  // nothing to slide to and should go fully static.
+  public canScroll: boolean = true;
   private track: SxSliderTrack | null = null;
   private resizeObserver!: ResizeObserver;
   public originalSlidesCount: number = 0;
@@ -423,6 +446,12 @@ export class SxSlider extends SafeHTMLElement {
     let slides = Array.from(this.track.children) as HTMLElement[];
     if (slides.length === 0) return;
 
+    // Set below whenever currentIndex changes for a reason other than
+    // next()/prev() (which maintain currentStopIndex incrementally) -
+    // consumed once slide sizing finishes and getRealMaxIndex() is
+    // reliable, since it's stale/zero-sized before that in this pass.
+    let needsStopIndexRecompute = false;
+
     if (!this.options.loop) {
       slides.forEach((slide, idx) => {
         slide.setAttribute("data-real-index", idx.toString());
@@ -469,6 +498,7 @@ export class SxSlider extends SafeHTMLElement {
         0,
         Math.min(this.currentIndex, slides.length - 1),
       );
+      needsStopIndexRecompute = true;
     }
 
     const cloneCount = this.track.querySelectorAll("[data-clone]").length;
@@ -486,6 +516,7 @@ export class SxSlider extends SafeHTMLElement {
         this.currentIndex = currentCloneCount + validStartIndex;
       } else {
         this.currentIndex = validStartIndex;
+        needsStopIndexRecompute = true;
       }
       this.isFirstInit = false;
     }
@@ -560,6 +591,15 @@ export class SxSlider extends SafeHTMLElement {
       isShort = totalSize < containerSize;
     } else {
       isShort = realSlideCount < this.options.perView;
+    }
+
+    this.canScroll = !isShort;
+
+    if (needsStopIndexRecompute && !this.options.loop) {
+      this.currentStopIndex = this.findStopIndex(
+        this.getStops(this.getRealMaxIndex()),
+        this.currentIndex,
+      );
     }
 
     if (this.options.centerIfShort && isShort) {
@@ -766,33 +806,31 @@ export class SxSlider extends SafeHTMLElement {
 
     const maxIdx = isLoop ? realSlideCount - 1 : this.getRealMaxIndex();
     this.updateNavigation(isLoop ? undefined : maxIdx);
-    const resolvedPerMove = this.getResolvedPerMove();
-    let bulletIndexes: number[] = [];
+    const bulletIndexes = this.canScroll ? this.getStops(maxIdx) : [];
 
-    if (resolvedPerMove > 1 && !this.options.autoSize) {
-      let i = 0;
-      while (i < maxIdx) {
-        bulletIndexes.push(i);
-        i += resolvedPerMove;
-      }
-      if (i !== maxIdx) {
-        bulletIndexes.push(maxIdx);
-      }
+    // Loop mode has no per-move step tracking (see next()/prev()'s loop
+    // branch), so its active dot is still derived by nearest-stop lookup.
+    // Non-loop uses the maintained step count (see currentStopIndex), but
+    // falls back to a fresh lookup whenever the stops grid itself has
+    // changed since the last render (see lastStopsKey) - e.g. a breakpoint
+    // changing per-view - since a step count tracked against the old grid
+    // doesn't mean anything against the new one.
+    let activeBulletIndex: number;
+    if (isLoop) {
+      activeBulletIndex = this.findStopIndex(bulletIndexes, targetActiveReal);
     } else {
-      for (let i = 0; i <= maxIdx; i++) {
-        bulletIndexes.push(i);
+      const stopsKey = bulletIndexes.join(",");
+      if (this.lastStopsKey !== stopsKey) {
+        this.currentStopIndex = this.findStopIndex(
+          bulletIndexes,
+          targetActiveReal,
+        );
+        this.lastStopsKey = stopsKey;
       }
-    }
-
-    let activeBulletIndex = bulletIndexes.indexOf(targetActiveReal);
-
-    if (activeBulletIndex === -1) {
-      for (let i = bulletIndexes.length - 1; i >= 0; i--) {
-        if (targetActiveReal >= bulletIndexes[i]) {
-          activeBulletIndex = i;
-          break;
-        }
-      }
+      activeBulletIndex = Math.max(
+        0,
+        Math.min(this.currentStopIndex, bulletIndexes.length - 1),
+      );
     }
 
     this.updatePagination(bulletIndexes, activeBulletIndex);
@@ -861,6 +899,10 @@ export class SxSlider extends SafeHTMLElement {
       this.currentIndex = bestTarget;
     } else {
       this.currentIndex = Math.max(0, Math.min(realIndex, realSlideCount - 1));
+      this.currentStopIndex = this.findStopIndex(
+        this.getStops(this.getRealMaxIndex()),
+        this.currentIndex,
+      );
     }
 
     this.isClickRouting = true;
@@ -947,6 +989,12 @@ export class SxSlider extends SafeHTMLElement {
 
   public setCurrentIndex(val: number) {
     this.currentIndex = val;
+    if (!this.options.loop) {
+      this.currentStopIndex = this.findStopIndex(
+        this.getStops(this.getRealMaxIndex()),
+        this.currentIndex,
+      );
+    }
     this.updateSlideAttributes();
   }
 
@@ -996,51 +1044,100 @@ export class SxSlider extends SafeHTMLElement {
     return Math.max(1, this.options.perMove as number);
   }
 
+  // The pagination dots for a non-loop slider: every `per-move` slides,
+  // with a final stop clamped to maxIdx when the count doesn't divide
+  // evenly (e.g. [0, 3, 4] for 7 slides / perView 3 / perMove 3).
+  private getStops(maxIdx: number): number[] {
+    const moveBy = this.getResolvedPerMove();
+    const stops: number[] = [];
+
+    if (moveBy > 1 && !this.options.autoSize) {
+      // Push every grid point strictly before maxIdx, then maxIdx itself
+      // unconditionally - safe from duplicates since the loop never
+      // reaches maxIdx (it only pushes values < maxIdx). The previous
+      // "push maxIdx only if the loop counter didn't already land on it"
+      // check was wrong: the loop checks `i < maxIdx` BEFORE pushing, so
+      // when maxIdx divides evenly by moveBy the counter reaches maxIdx
+      // right as the loop exits without ever having pushed it, silently
+      // dropping the real last stop (e.g. maxIdx=6, moveBy=3 -> [0,3],
+      // missing 6 entirely).
+      for (let i = 0; i < maxIdx; i += moveBy) {
+        stops.push(i);
+      }
+      stops.push(maxIdx);
+    } else {
+      for (let i = 0; i <= maxIdx; i++) {
+        stops.push(i);
+      }
+    }
+    return stops;
+  }
+
+  // Which entry of `stops` a direct jump to `index` (goTo/sync/drag-snap/
+  // initial index - anything that isn't next()/prev() itself) should mark
+  // active: an exact match if `index` happens to land on one, else the
+  // nearest stop at or before it.
+  private findStopIndex(stops: number[], index: number): number {
+    const exact = stops.indexOf(index);
+    if (exact !== -1) return exact;
+    for (let i = stops.length - 1; i >= 0; i--) {
+      if (index >= stops[i]) return i;
+    }
+    return 0;
+  }
+
   public next() {
     if (!this.track) return;
     const moveBy = this.getResolvedPerMove();
-    const alignOffset = this.options.loop ? this.getCloneCount() : 0;
-    const remainder =
-      (((this.currentIndex - alignOffset) % moveBy) + moveBy) % moveBy;
-    const step = remainder !== 0 ? moveBy - remainder : moveBy;
 
     if (this.options.loop) {
+      const alignOffset = this.getCloneCount();
+      const remainder =
+        (((this.currentIndex - alignOffset) % moveBy) + moveBy) % moveBy;
+      const step = remainder !== 0 ? moveBy - remainder : moveBy;
       this.currentIndex += step;
-      this.updateSlideAttributes();
-      this.track.updatePosition();
     } else {
       const maxIndex = this.getRealMaxIndex();
+      const numStops = this.getStops(maxIndex).length;
       if (this.currentIndex < maxIndex) {
-        this.currentIndex = Math.min(maxIndex, this.currentIndex + step);
+        // A full per-move step, only shrinking it when it would overshoot
+        // the real content boundary - the pagination dot just advances by
+        // exactly 1 regardless of how far the slide index itself moved.
+        const step = Math.min(moveBy, maxIndex - this.currentIndex);
+        this.currentIndex += step;
+        this.currentStopIndex = Math.min(this.currentStopIndex + 1, numStops - 1);
       } else if (this.options.rewind) {
         this.currentIndex = 0;
+        this.currentStopIndex = 0;
       }
-      this.updateSlideAttributes();
-      this.track.updatePosition();
     }
+    this.updateSlideAttributes();
+    this.track.updatePosition();
   }
 
   public prev() {
     if (!this.track) return;
     const moveBy = this.getResolvedPerMove();
-    const alignOffset = this.options.loop ? this.getCloneCount() : 0;
-    const remainder =
-      (((this.currentIndex - alignOffset) % moveBy) + moveBy) % moveBy;
-    const step = remainder !== 0 ? remainder : moveBy;
 
     if (this.options.loop) {
+      const alignOffset = this.getCloneCount();
+      const remainder =
+        (((this.currentIndex - alignOffset) % moveBy) + moveBy) % moveBy;
+      const step = remainder !== 0 ? remainder : moveBy;
       this.currentIndex -= step;
-      this.updateSlideAttributes();
-      this.track.updatePosition();
     } else {
       if (this.currentIndex > 0) {
-        this.currentIndex = Math.max(0, this.currentIndex - step);
+        const step = Math.min(moveBy, this.currentIndex);
+        this.currentIndex -= step;
+        this.currentStopIndex = Math.max(this.currentStopIndex - 1, 0);
       } else if (this.options.rewind) {
-        this.currentIndex = this.getRealMaxIndex();
+        const maxIndex = this.getRealMaxIndex();
+        this.currentIndex = maxIndex;
+        this.currentStopIndex = this.getStops(maxIndex).length - 1;
       }
-      this.updateSlideAttributes();
-      this.track.updatePosition();
     }
+    this.updateSlideAttributes();
+    this.track.updatePosition();
   }
 
   public goTo(index: number, isClick: boolean = false) {
@@ -1076,6 +1173,10 @@ export class SxSlider extends SafeHTMLElement {
       const realSlideCount = slides.length - cloneCount;
 
       this.currentIndex = Math.max(0, Math.min(index, realSlideCount - 1));
+      this.currentStopIndex = this.findStopIndex(
+        this.getStops(this.getRealMaxIndex()),
+        this.currentIndex,
+      );
     }
 
     this.updateSlideAttributes();
@@ -1153,6 +1254,10 @@ export class SxSlider extends SafeHTMLElement {
     if (!this.options.loop) {
       const maxIdx = this.getRealMaxIndex();
       this.currentIndex = Math.min(this.currentIndex, maxIdx);
+      this.currentStopIndex = this.findStopIndex(
+        this.getStops(maxIdx),
+        this.currentIndex,
+      );
     }
 
     this.updateSlideAttributes();
@@ -1179,6 +1284,20 @@ export class SxSlider extends SafeHTMLElement {
       prevBtns = [...new Set([...prevBtns, ...extPrev])] as HTMLElement[];
       nextBtns = [...new Set([...nextBtns, ...extNext])] as HTMLElement[];
     }
+
+    if (!this.canScroll) {
+      prevBtns.forEach((b) => {
+        b.setAttribute("hidden", "");
+        b.setAttribute("sx-disabled", "");
+      });
+      nextBtns.forEach((b) => {
+        b.setAttribute("hidden", "");
+        b.setAttribute("sx-disabled", "");
+      });
+      return;
+    }
+    prevBtns.forEach((b) => b.removeAttribute("hidden"));
+    nextBtns.forEach((b) => b.removeAttribute("hidden"));
 
     if (this.options.loop || this.options.rewind) {
       prevBtns.forEach((b) => b.removeAttribute("sx-disabled"));
@@ -1215,6 +1334,11 @@ export class SxSlider extends SafeHTMLElement {
     }
 
     paginations.forEach((p) => {
+      if (!this.canScroll) {
+        p.setAttribute("hidden", "");
+        return;
+      }
+      p.removeAttribute("hidden");
       if (typeof p.renderBullets === "function") {
         p.renderBullets(bulletIndexes);
       }

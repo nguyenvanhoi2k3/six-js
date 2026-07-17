@@ -190,18 +190,24 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
     const { stagger, ...rest } = vars;
     const merged: TweenVars = { ...this._childDefaults, ...rest };
 
+    // Resolve the position BEFORE constructing anything, so a child scheduled anywhere other
+    // than this timeline's actual current moment is built with renderInitial=false - see the
+    // long comment on Tween's constructor for why a premature self-render at a non-"now"
+    // position corrupts shared per-element state instead of just being a harmless no-op.
+    const start = this.resolvePosition(position);
+    const renderInitial = Math.abs(start - currentLocalTimeOf(this)) < 1e-9;
+
     if (stagger === undefined) {
-      this.add(new Tween(target, merged, mode, fromVars), position);
+      this.add(new Tween(target, merged, mode, fromVars, renderInitial), start);
       return this;
     }
 
     const elements = resolveTargets(target);
-    const start = this.resolvePosition(position);
     const baseDelay = merged.delay ?? 0;
 
     elements.forEach((el, index) => {
       const staggerDelay = computeStaggerDelay(index, elements.length, stagger);
-      this.add(new Tween(el, { ...merged, delay: baseDelay + staggerDelay }, mode, fromVars), start);
+      this.add(new Tween(el, { ...merged, delay: baseDelay + staggerDelay }, mode, fromVars, renderInitial), start);
     });
 
     return this;

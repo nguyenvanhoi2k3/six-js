@@ -214,6 +214,7 @@ export class SxSliderTrack extends SafeHTMLElement {
 
   private dragStart(event: MouseEvent | TouchEvent) {
     if (!this.sliderCha || this.sliderCha.options.drag === "false") return;
+    if (!this.sliderCha.canScroll) return;
     if (this.isResetting) return;
 
     this.attachWindowDragListeners();

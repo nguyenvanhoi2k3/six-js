@@ -63,6 +63,34 @@ describe("Tween keyframes - array form", () => {
     tw.totalTime(1.5, true);
     expect(a.style.opacity).toBe("0.5");
   });
+
+  it("does not let a later segment's construction leak its start value into an earlier segment's still-untouched property", () => {
+    // Regression test: every segment used to be built as an ordinary Tween, whose constructor
+    // unconditionally self-renders at t=0 - correct for a genuinely-standalone tween, but wrong
+    // for a keyframe segment scheduled later in the internal timeline. Segment 2 (y) and segment
+    // 3 (x, y, rotate) both got constructed - and thus self-rendered their OWN from-state - purely
+    // as a side effect of the outer Tween's constructor building the whole sequence up front, long
+    // before segment 1 (x) had ever actually played. Since x/y share one mutable per-element
+    // transform cache, segment 3's premature self-render wrote y=-40 into it immediately, and
+    // because a not-yet-reached child is deliberately never re-rendered until its own scheduled
+    // position is reached, nothing ever corrected it - leaving y visibly sitting at -40 for the
+    // entire span segment 1 was supposed to be playing alone.
+    const a = el();
+    const tw = new Tween(a, {
+      keyframes: [
+        { x: 200, duration: 1 },
+        { y: -40, ease: "backOut", duration: 1 },
+        { x: 0, y: 0, rotate: 360, duration: 1.2 },
+      ],
+    });
+
+    // Nothing has played yet - the element must still be untouched, not jumped to a later
+    // segment's from-state.
+    expect(a.style.transform).toBe("none");
+
+    tw.totalTime(0.5, true);
+    expect(a.style.transform).toBe("translate3d(100px, 0px, 0px)"); // segment 1 halfway; y still untouched
+  });
 });
 
 describe("Tween keyframes - percent-object form", () => {
