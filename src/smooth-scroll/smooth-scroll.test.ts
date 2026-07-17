@@ -34,6 +34,12 @@ function wheel(deltaY: number, extra: Partial<WheelEventInit> = {}): WheelEvent 
   return new WheelEvent("wheel", { deltaY, cancelable: true, ...extra });
 }
 
+// Plain Event (not a full jsdom TouchEvent, which has spotty constructor support) - onTouchMove
+// only ever reads e.cancelable/calls e.preventDefault(), so a same-type Event works identically.
+function touchMove(): Event {
+  return new Event("touchmove", { cancelable: true });
+}
+
 function runUntilSettled(fire: (deltaMs: number) => void, maxTicks = 600): void {
   for (let i = 0; i < maxTicks; i++) fire(16);
 }
@@ -134,6 +140,26 @@ describe("SmoothScroll - wheel-driven smoothing", () => {
     ss.kill();
   });
 
+  it("respects a veto from another (earlier-run) listener that already called preventDefault - does not move the page", () => {
+    const fire = captureTick();
+    const el = makeScroller(1000, 3000);
+
+    // Simulates an external lock (e.g. sx-dialog's own scroll lock) registered BEFORE
+    // SmoothScroll - order matters here (see the class doc's capture-phase comment for how a
+    // real integration guarantees this deterministically); this test only needs to prove
+    // SmoothScroll's own half of the contract: once event.defaultPrevented is already true by
+    // the time its handler runs, it must not move the page at all.
+    el.addEventListener("wheel", (e) => e.preventDefault());
+    const ss = new SmoothScroll({ scroller: el, lerp: 0.5 });
+
+    el.dispatchEvent(wheel(300));
+    fire(16);
+    expect(el.scrollTop).toBe(0);
+    expect(ss.isScrolling).toBe(false);
+
+    ss.kill();
+  });
+
   it("dispatches a synchronous native-shaped 'scroll' event within the same tick, before the async native one", () => {
     const fire = captureTick();
     const el = makeScroller(1000, 3000);
@@ -174,6 +200,49 @@ describe("SmoothScroll - stop/start", () => {
     el.dispatchEvent(wheel(300));
     runUntilSettled(fire);
     expect(el.scrollTop).toBe(300);
+
+    ss.kill();
+  });
+
+  it("stop() also blocks touch-drag scrolling (preventDefault on touchmove), not just wheel", () => {
+    captureTick();
+    const el = makeScroller(1000, 3000);
+    const ss = new SmoothScroll({ scroller: el });
+    ss.stop();
+
+    const evt = touchMove();
+    const spy = vi.spyOn(evt, "preventDefault");
+    el.dispatchEvent(evt);
+    expect(spy).toHaveBeenCalledOnce();
+
+    ss.kill();
+  });
+
+  it("touch is otherwise left fully native - touchmove is never prevented while not stopped/locked", () => {
+    captureTick();
+    const el = makeScroller(1000, 3000);
+    const ss = new SmoothScroll({ scroller: el });
+
+    const evt = touchMove();
+    const spy = vi.spyOn(evt, "preventDefault");
+    el.dispatchEvent(evt);
+    expect(spy).not.toHaveBeenCalled();
+
+    ss.kill();
+  });
+
+  it("a locked in-flight scrollTo also blocks touch, symmetric with wheel", () => {
+    const fire = captureTick();
+    const el = makeScroller(1000, 3000);
+    const ss = new SmoothScroll({ scroller: el, lerp: 0.1 });
+
+    ss.scrollTo(500, { lock: true });
+    fire(16); // still mid-flight, locked
+
+    const evt = touchMove();
+    const spy = vi.spyOn(evt, "preventDefault");
+    el.dispatchEvent(evt);
+    expect(spy).toHaveBeenCalledOnce();
 
     ss.kill();
   });

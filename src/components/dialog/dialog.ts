@@ -32,6 +32,80 @@ export class SxDialog extends SafeHTMLElement {
   private static readonly baseZIndex = 9999;
   private static readonly openStack: SxDialog[] = [];
 
+  // Background scroll lock - two independent levels, each open dialog's own `scrollable`
+  // (DialogScrollable: false | "scrollbar" | true - see types.ts) decides which it contributes:
+  // - false (absolute): CSS `overflow: hidden` (hides the native scrollbar - nothing left to
+  //   grab-drag either) PLUS wheel/touch preventDefault, kept BOTH active together deliberately -
+  //   overflow:hidden alone can't reliably stop a JS-driven scroller like six-js's SmoothScroll
+  //   plugin (it moves the page via an explicit scrollTo() call, not the browser's native
+  //   overflow-gated wheel behavior), so the preventDefault half is load-bearing even here.
+  // - "scrollbar" (partial): wheel/touch preventDefault only, no CSS change - native scrollbar
+  //   stays visible, no flicker - but its thumb can still be mouse-dragged, since no JS API can
+  //   intercept that. An intentionally accepted gap for this mode, not a bug.
+  // - true: doesn't contribute to either lock at all.
+  // Deliberately NOT using six-js's SmoothScroll plugin here - dialog.ts stays independent of the
+  // core engine/plugins (matches the rest of src/components/), so this reimplements just the
+  // "block wheel + touch while locked" slice standalone.
+  private static scrollLockAttached = false;
+
+  private static needsWheelTouchLock(): boolean {
+    return SxDialog.openStack.some((d) => d.scrollable !== true);
+  }
+
+  private static needsCssLock(): boolean {
+    return SxDialog.openStack.some((d) => d.scrollable === false);
+  }
+
+  private static applyCssLockIfNeeded(): void {
+    if (!SxDialog.needsCssLock()) return;
+    if (document.documentElement.style.overflow === 'hidden') return;
+
+    // Locks <html> (document.documentElement), not (only) <body> - a real bug, not just a
+    // refactor artifact: <body> normally has auto height, meaning it already grows to fully
+    // contain its own content with nothing left to clip/scroll on its OWN box, so
+    // `body.style.overflow = 'hidden'` alone visually does nothing in the common case. It's
+    // <html> - the root, and document.scrollingElement in standards-mode documents like this one
+    // - that actually owns the page's scrollbar/scroll position, so it's <html> that needs
+    // locking. (Also locking <body> here as a harmless extra safety net for a page rendered in
+    // quirks mode, where <body> is the scrolling element instead.)
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.documentElement.style.setProperty('--sx-scrollbar-width', `${scrollbarWidth}px`);
+    document.documentElement.style.paddingRight = 'var(--sx-scrollbar-width)';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+  }
+
+  private static removeCssLockIfNoLongerNeeded(delayMs: number): void {
+    setTimeout(() => {
+      if (SxDialog.needsCssLock()) return;
+      document.documentElement.style.paddingRight = '';
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.removeProperty('--sx-scrollbar-width');
+      document.body.style.overflow = '';
+    }, delayMs);
+  }
+
+  private static preventScrollIfLocked = (e: Event): void => {
+    if (SxDialog.needsWheelTouchLock() && e.cancelable) e.preventDefault();
+  };
+
+  private static ensureScrollLockListeners(): void {
+    if (SxDialog.scrollLockAttached) return;
+    SxDialog.scrollLockAttached = true;
+    // capture: true is load-order-independent and load-bearing, not incidental: a page may ALSO
+    // run six-js's SmoothScroll plugin, whose own wheel handler moves the page via an explicit
+    // scrollTo() call - invisible to a plain preventDefault() from a bubble-phase listener, since
+    // that only suppresses the BROWSER's native wheel-scroll behavior, not other JS code's own
+    // scroll writes. The capture phase always runs, for every listener on every node, before the
+    // bubble phase starts - so a capture-phase listener here is guaranteed to fire (and call
+    // preventDefault(), setting event.defaultPrevented before any bubble-phase code inspects it)
+    // ahead of SmoothScroll's bubble-phase one, regardless of which was constructed/attached
+    // first in the page's own script. SmoothScroll's onWheel checks event.defaultPrevented for
+    // exactly this reason - see its own comment for the other half of this contract.
+    window.addEventListener('wheel', SxDialog.preventScrollIfLocked, { passive: false, capture: true });
+    window.addEventListener('touchmove', SxDialog.preventScrollIfLocked, { passive: false, capture: true });
+  }
+
   private isOpen = false;
   private previousActiveElement: HTMLElement | null = null;
   private focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex]:not([tabindex="-1"]), [contenteditable]';
@@ -67,9 +141,11 @@ export class SxDialog extends SafeHTMLElement {
     const attr = this.getAttribute('close-on-esc-key');
     return attr !== null ? attr !== 'false' : DEFAULT_OPTIONS.closeOnEscKey; 
   }
-  get scrollable(): DialogOptions['scrollable'] { 
+  get scrollable(): DialogOptions['scrollable'] {
     const attr = this.getAttribute('scrollable');
-    return attr !== null ? attr !== 'false' : DEFAULT_OPTIONS.scrollable; 
+    if (attr === null) return DEFAULT_OPTIONS.scrollable;
+    if (attr === 'scrollbar') return 'scrollbar';
+    return attr !== 'false';
   }
   get overlay(): DialogOptions['overlay'] { 
     const attr = this.getAttribute('overlay');
@@ -86,6 +162,8 @@ export class SxDialog extends SafeHTMLElement {
   }
 
   connectedCallback() {
+    SxDialog.ensureScrollLockListeners();
+
     // Lưu lại HTML Light DOM ban đầu do người dùng viết
     this.originalContentHTML = this.innerHTML;
     this.originalOptions = {
@@ -228,7 +306,11 @@ export class SxDialog extends SafeHTMLElement {
     // ✅ Restore focus sau khi đóng (Lưu lại element kích hoạt)
     this.previousActiveElement = document.activeElement as HTMLElement;
 
-    this.lockScroll();
+    // Wheel/touch lock is fully dynamic (needsWheelTouchLock() reads openStack live on every
+    // event) - openStack.push() above is all the state it needs. The CSS lock (scrollable:
+    // false only) still needs an explicit apply here, since it's a one-time style write, not
+    // something re-evaluated per event.
+    SxDialog.applyCssLockIfNeeded();
     // ✅ Inert background (Chặn Screen Reader đọc các phần tử ngoài Dialog)
     this.setInertOnSiblings(true);
 
@@ -255,7 +337,10 @@ export class SxDialog extends SafeHTMLElement {
     this.removeAttribute('sx-open');
     this.dialogCoreEl?.setAttribute('aria-hidden', 'true');
 
-    this.unlockScroll();
+    // Delayed by this.duration so the CSS lock doesn't release mid-close-animation (matches the
+    // original lockScroll/unlockScroll's own timing) - only actually removes it once no other
+    // open dialog still needs it (openStack.splice() above already reflects this one leaving).
+    SxDialog.removeCssLockIfNoLongerNeeded(this.duration);
     // ✅ Gỡ bỏ inert để trang hoạt động bình thường trở lại
     this.setInertOnSiblings(false);
 
@@ -342,31 +427,6 @@ export class SxDialog extends SafeHTMLElement {
       if (parent.tagName === 'BODY') break;
       parent = parent.parentElement;
     }
-  }
-
-  private lockScroll() {
-    if (this.scrollable) return; 
-    if (document.body.style.overflow === 'hidden') return; 
-
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-    document.body.style.setProperty('--sx-scrollbar-width', `${scrollbarWidth}px`);
-    document.body.style.paddingRight = 'var(--sx-scrollbar-width)';
-    document.body.style.overflow = 'hidden';
-  }
-
-  private unlockScroll() {
-    if (this.scrollable) return; 
-    
-    setTimeout(() => {
-      const openDialogs = Array.from(document.querySelectorAll('sx-dialog[sx-open]'));
-      const hasLockedDialog = openDialogs.some(d => !(d as any).scrollable);
-      
-      if (!hasLockedDialog) {
-        document.body.style.paddingRight = '';
-        document.body.style.overflow = '';
-        document.body.style.removeProperty('--sx-scrollbar-width');
-      }
-    }, this.duration);
   }
 
   private handleKeyDown = (e: KeyboardEvent) => {

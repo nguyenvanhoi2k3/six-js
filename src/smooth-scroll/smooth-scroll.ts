@@ -79,10 +79,13 @@ const DEFAULT_LERP = 0.1;
  *   alongside six-js's own Tween/Timeline, so *some* element resizing while the user is mid
  *   wheel-scroll is a routine occurrence, not a rare edge case, and shouldn't keep interrupting
  *   their scroll.
- * - Touch is left completely native (no listener at all) - matches Lenis's OWN default
+ * - Touch scrolling itself is left fully native - matches Lenis's OWN default
  *   (`syncTouch: false`) rather than a fabricated "safer default"; real touch momentum already
- *   feels right and reimplementing it in JS is a well-known way to make it feel worse. Not
- *   offered as a toggle in v1 - a documented scope cut, not an oversight.
+ *   feels right and reimplementing it in JS is a well-known way to make it feel worse. No
+ *   touch-smoothing toggle in v1 - a documented scope cut, not an oversight. The one exception:
+ *   a touchmove listener DOES exist purely to preventDefault while stopped/locked (see
+ *   onTouchMove) - added specifically so stop() (e.g. for a modal) actually freezes the
+ *   background on touch devices too, not just wheel; it does nothing at all otherwise.
  * - No `infinite` looping mode - needs the consumer to duplicate DOM content to work at all, and
  *   isn't needed for the ask this plugin exists to satisfy (correctness + OnScroll integration).
  * - Method/event naming matches six-js's own vocabulary, not Lenis's: `kill()` not `destroy()`
@@ -119,6 +122,7 @@ export class SmoothScroll {
   private resizeObserver: ResizeObserver | null = null;
 
   private readonly boundWheel = (e: WheelEvent): void => this.onWheel(e);
+  private readonly boundTouchMove = (e: TouchEvent): void => this.onTouchMove(e);
   private readonly boundNativeScroll = (): void => this.onNativeScroll();
   private readonly boundWindowResize = (): void => this.onWindowResize();
   private readonly boundTick: TickerListener = (_time, deltaMs): void => this.tick(deltaMs);
@@ -137,6 +141,11 @@ export class SmoothScroll {
     getActiveScope()?._capture(this);
 
     this.scroller.addEventListener("wheel", this.boundWheel as EventListener, { passive: false });
+    // Touch itself stays native/unsmoothed (see the class doc) - this listener only ever
+    // preventDefaults while stopped/locked, so a modal-style stop() also blocks touch-drag
+    // scrolling of the background, not just wheel. { passive: false } is required for
+    // preventDefault to have any effect here.
+    this.scroller.addEventListener("touchmove", this.boundTouchMove as EventListener, { passive: false });
     // Not addScrollListener() (OnScroll's shared listener-Set) - registering a raw native
     // listener directly means this ALSO receives this instance's own synthetic dispatch from
     // applyScroll() (see onNativeScroll's `this.animating` guard), which is required - it's how
@@ -171,7 +180,14 @@ export class SmoothScroll {
   }
 
   private onWheel(e: WheelEvent): void {
-    if (this.killed || e.ctrlKey) return;
+    // Respects a veto from some OTHER listener that already called preventDefault() on this same
+    // event (e.g. sx-dialog's own scroll lock while a modal is open) - SmoothScroll moving the
+    // page via an explicit scrollTo() call is otherwise completely invisible to anything that
+    // only calls preventDefault(), since that only suppresses the BROWSER's own default wheel
+    // behavior, not other JS code's independent scroll writes. This is why such a veto must be
+    // registered in the capture phase (fires before this bubble-phase listener regardless of
+    // script load order) - see sx-dialog's own comment on this for the other half of the contract.
+    if (this.killed || e.ctrlKey || e.defaultPrevented) return;
 
     const { deltaX, deltaY } = normalizeWheel(e, getViewportSize(this.scroller, "x"), getViewportSize(this.scroller, "y"), this.vars.wheelMultiplier ?? 1);
     // Horizontal instances deliberately accept whichever axis of input is larger (so an ordinary
@@ -189,6 +205,12 @@ export class SmoothScroll {
     this.pendingOnComplete = undefined;
     const target = clamp(0, this.limit, this.motion.target + delta);
     this.retarget(target, this.resolveMotionVars());
+  }
+
+  /** Touch is otherwise left fully native (see the class doc) - this exists ONLY to block it while stopped/locked, e.g. so a modal's stop() actually freezes the background on mobile too, not just wheel. */
+  private onTouchMove(e: TouchEvent): void {
+    if (this.killed || !(this.stopped || this.locked)) return;
+    if (e.cancelable) e.preventDefault();
   }
 
   /** Reconciles internal state after a scroll this instance didn't cause itself - scrollbar drag, keyboard (Home/End/PageDown/Space), native touch (untouched by default), or any other code's own programmatic scroll. Guarded on `animating` because this also receives this instance's OWN synthetic + trailing-native events from applyScroll(), which must be ignored - see the class doc. */
@@ -327,7 +349,7 @@ export class SmoothScroll {
     this.retarget(clamped, this.resolveMotionVars(opts));
   }
 
-  /** Freezes scrolling: wheel input is swallowed (preventDefault, no movement) until start(). Cancels any in-flight motion at its current position - matches how a modal opening should freeze the page exactly where it is, not finish animating first. */
+  /** Freezes scrolling: wheel AND touch-drag input are swallowed (preventDefault, no movement) until start() - note this does NOT prevent dragging the native scrollbar thumb itself, which no JS API can intercept. Cancels any in-flight motion at its current position - matches how a modal opening should freeze the page exactly where it is, not finish animating first. */
   stop(): void {
     if (this.killed || this.stopped) return;
     this.stopped = true;
@@ -379,6 +401,7 @@ export class SmoothScroll {
     this.killed = true;
 
     this.scroller.removeEventListener("wheel", this.boundWheel as EventListener);
+    this.scroller.removeEventListener("touchmove", this.boundTouchMove as EventListener);
     this.scroller.removeEventListener("scroll", this.boundNativeScroll);
     removeResizeListener(this.boundWindowResize);
     this.resizeObserver?.disconnect();
