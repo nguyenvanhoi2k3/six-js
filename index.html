@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>six-js sandbox</title>
     <link rel="stylesheet" href="./index.css" />
-    <link rel="stylesheet" href="./dist/style.css" />
+    <link rel="stylesheet" href="./dist/components.css" />
   </head>
 
   <body>
@@ -44,8 +44,10 @@
     <div class="space"></div>
 
     <script type="module">
-      import { six, enableElements } from "./dist/six-js.es.js";
-      enableElements();
+      import { six } from "./dist/index.js";
+      import { SmoothScroll } from "./dist/SmoothScroll.js";
+      import { registerDialog } from "./dist/Components.js";
+      registerDialog();
       six.to(".box", {
         keyframes: [
           { x: 200, duration: 1 },
@@ -53,7 +55,7 @@
           { x: 0, y: 0, rotate: 360, duration: 1.2 },
         ],
       });
-      const smooth = six.smoothScroll({});
+      const smooth = new SmoothScroll({});
 
       const container = document.querySelector(".container");
       const track = document.querySelector(".track");
@@ -123,6 +125,9 @@
           },
         });
       });
+
+
+
     </script>
   </body>
 </html>

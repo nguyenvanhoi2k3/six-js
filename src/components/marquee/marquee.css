@@ -1,0 +1,41 @@
+/* six-js\src\components\marquee\marquee.css
+   Part of the single combined `components.css` (see CLAUDE.md's Components section) - light-DOM
+   only, no shadow root: a consumer must explicitly `import "@six-js/core/components.css"` (or
+   `<link>` it) once for any `sx-*` tag to be styled at all - not auto-injected by registerX().
+   sx-marquee used real Shadow DOM before this reverted it - see marquee.ts's render(). */
+sx-marquee {
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  --sx-marquee-gap: 16px;
+}
+
+sx-marquee[direction="up"], sx-marquee[direction="down"] {
+  height: 100%;
+}
+
+sx-marquee > .container {
+  display: flex;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+sx-marquee[direction="up"] > .container,
+sx-marquee[direction="down"] > .container {
+  flex-direction: column;
+}
+
+sx-marquee-inner {
+  display: flex !important;
+  flex-shrink: 0;
+  white-space: nowrap;
+  gap: var(--sx-marquee-gap) !important;
+  will-change: transform;
+}
+
+sx-marquee[direction="up"] sx-marquee-inner,
+sx-marquee[direction="down"] sx-marquee-inner {
+  flex-direction: column !important;
+  white-space: normal;
+}

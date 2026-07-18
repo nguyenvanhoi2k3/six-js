@@ -1,17 +1,6 @@
 // src/jsx.d.ts
 declare module "*.css";
 
-/* ---------- sx-animate ---------- */
-interface SxAnimateAttrs {
-  type?: "fade" | "fade-up" | "fade-down" | "fade-left" | "fade-right";
-  strength?: number | string;
-  easing?: string;
-  duration?: number | string;
-  delay?: number | string;
-  cascade?: boolean | "";
-  replay?: boolean | "";
-}
-
 /* ---------- sx-marquee ---------- */
 interface SxMarqueeAttrs {
   direction?: "left" | "right" | "up" | "down";
@@ -70,9 +59,6 @@ interface SxSliderProgressAttrs {
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      // animate
-      "sx-animate": Omit<JSX.IntrinsicElements["div"], "type"> & SxAnimateAttrs;
-
       // marquee
       "sx-marquee": JSX.IntrinsicElements["div"] & SxMarqueeAttrs;
       "sx-marquee-inner": JSX.IntrinsicElements["div"];
@@ -99,10 +85,6 @@ declare global {
   namespace React {
     namespace JSX {
       interface IntrinsicElements {
-        // animate
-        "sx-animate": Omit<JSX.IntrinsicElements["div"], "type"> &
-          SxAnimateAttrs;
-
         // marquee
         "sx-marquee": JSX.IntrinsicElements["div"] & SxMarqueeAttrs;
         "sx-marquee-inner": JSX.IntrinsicElements["div"];

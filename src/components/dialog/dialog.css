@@ -1,5 +1,7 @@
-/* six-js\src\components\modal\modal.css */
-
+/* six-js\src\components\dialog\dialog.css
+   Part of the single combined `components.css` (see CLAUDE.md's Components section) - light-DOM
+   only, no shadow root: a consumer must explicitly `import "@six-js/core/components.css"` (or
+   `<link>` it) once for any `sx-*` tag to be styled at all - not auto-injected by registerX(). */
 sx-dialog {
   position: fixed;
   inset: 0;

@@ -6,16 +6,15 @@ import { GlobalDefaults, setDefaults } from "../core/defaults";
 import { Context, context } from "../core/context";
 import { Breakpoint, BreakpointCallback, BreakpointConditions, BreakpointContext, breakpoint } from "../core/breakpoint";
 import { OnScroll, OnScrollVars } from "../plugins/on-scroll/on-scroll";
-import { ScrollToOptions, SmoothScroll, smoothScroll, SmoothScrollVars } from "../plugins/smooth-scroll/smooth-scroll";
-import { burst, BurstController, BurstVars } from "../plugins/burst/burst";
-import { svgMotion, DrawAnimation, MorphAnimation, MotionPathAnimation, SvgDrawVars, SvgMorphVars, SvgMotionPathVars, SvgShapeInput } from "../plugins/svg-motion/svg-motion";
-import { scrambleText, ScrambleTextAnimation, OdometerAnimation, ScrambleTextVars, ScrambleTextMode, OdometerVars } from "../plugins/scramble-text/scramble-text";
+import { ScrollToOptions, SmoothScroll, SmoothScrollVars } from "../plugins/smooth-scroll/smooth-scroll";
+import { BurstController, BurstVars } from "../plugins/burst/burst";
+import { DrawAnimation, MorphAnimation, MotionPathAnimation, SvgDrawVars, SvgMorphVars, SvgMotionPathVars, SvgShapeInput } from "../plugins/svg-motion/svg-motion";
+import { ScrambleTextAnimation, OdometerAnimation, ScrambleTextVars, ScrambleTextMode, OdometerVars } from "../plugins/scramble-text/scramble-text";
 import { ScrambleTextCharSet } from "../plugins/scramble-text/char-sets";
-import { registerComponents } from "../components";
+import { watchForUnregisteredElements } from "../core/unregistered-elements";
 import * as utils from "../utils/utils";
-import { VERSION } from "../version";
 
-console.log(`sixjs v${VERSION}`);
+watchForUnregisteredElements();
 
 export type SixTarget = TweenTarget;
 
@@ -85,7 +84,7 @@ function timeline(vars?: SixTimelineVars): Timeline {
   rootTimeline.add(tl);
   if (onScroll) {
     if (!onScroll.trigger) {
-      console.warn("[six] timeline({ onScroll }) requires an explicit trigger - a Timeline has no target to default to");
+      console.warn("[six-js] timeline({ onScroll }) requires an explicit trigger");
     } else {
       OnScroll.create({ ...onScroll, trigger: onScroll.trigger, animation: tl });
     }
@@ -106,17 +105,8 @@ export const six = {
   config,
   context,
   breakpoint,
-  smoothScroll,
-  burst,
-  svgMotion,
-  scrambleText,
   utils,
 };
-
-/** Defines every `sx-*` custom element (dialog, slider, marquee, animate). Each element's own definition is idempotent, so calling this more than once is safe. */
-export function enableElements(): void {
-  registerComponents();
-}
 
 export { OnScroll, SmoothScroll };
 export type { Context, GlobalDefaults, Tween, Timeline, TweenVars, TimelineVars, OnScrollVars, Breakpoint, BreakpointConditions, BreakpointCallback, BreakpointContext, SmoothScrollVars, ScrollToOptions, BurstVars, BurstController };

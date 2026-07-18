@@ -121,7 +121,7 @@ export class SplitText {
   }
 
   split(vars: SplitTextVars = this.vars): this {
-    if (this.dead) throw new Error("[six] cannot split() a killed splitText()");
+    if (this.dead) throw new Error("[six-js] cannot split() a killed splitText()");
     if (this.isSplit) this.revert();
     this.vars = vars;
 

@@ -165,7 +165,7 @@
     <section>
       <h2>1. draw — line reveal (0% → 100%)</h2>
       <p>
-        <code>six.svgMotion.draw(target, vars)</code> animates
+        <code>DrawSVG(target, vars)</code> animates
         stroke-dasharray/dashoffset to draw a shape's outline in, out, or as a
         moving "comet" segment. Works on any single path, or a whole selector
         of shapes at once (staggered).
@@ -209,7 +209,7 @@
     <section>
       <h2>2. morph — shape ↔ shape</h2>
       <p>
-        <code>six.svgMotion.morph(target, toShape, vars)</code> animates a
+        <code>MorphSVG(target, toShape, vars)</code> animates a
         path's own <code>d</code> into another shape's - a
         <code>&lt;circle&gt;</code>, <code>&lt;path&gt;</code>, or any other
         basic shape all work as <code>toShape</code>, since non-path shapes
@@ -234,7 +234,7 @@
     <section>
       <h2>3. motionPath — move along an SVG path</h2>
       <p>
-        <code>six.svgMotion.motionPath(target, vars)</code> moves a plain DOM
+        <code>MotionPath(target, vars)</code> moves a plain DOM
         element along a guide path, with optional <code>autoRotate</code> to
         face the direction of travel. Guide path shown dashed for reference.
       </p>
@@ -276,11 +276,12 @@
     </section>
 
     <script type="module">
-      import { six } from "./dist/six-js.es.js";
+      import { six } from "./dist/index.js";
+      import { DrawSVG, MorphSVG, MotionPath } from "./dist/SvgMotion.js";
 
       // ---------------- 1. draw ----------------
 
-      const signatureAnim = six.svgMotion.draw("#signature-path", {
+      const signatureAnim = DrawSVG("#signature-path", {
         duration: 2,
         ease: "sineInOut",
       });
@@ -288,7 +289,7 @@
         signatureAnim.restart(true);
       });
 
-      const lettersAnim = six.svgMotion.draw(".letter", {
+      const lettersAnim = DrawSVG(".letter", {
         duration: 1,
         ease: "cubicOut",
         stagger: 0.3,
@@ -301,7 +302,7 @@
       // reset jump at each repeat - `from`/`to` are exactly one full lap apart (100%), so the
       // window overshoots past 100% and wraps seamlessly (dash offset/array are modular over the
       // path's own length - see draw.ts's own doc comment on this).
-      six.svgMotion.draw("#comet-circle", {
+      DrawSVG("#comet-circle", {
         duration: 2.5,
         ease: "none",
         from: "0% 15%",
@@ -318,7 +319,7 @@
       let currentMorph = null;
       function morphTo(toShapeId) {
         currentMorph?.kill();
-        currentMorph = six.svgMotion.morph("#morph-target", toShapeId, { duration: 0.9, ease: "cubicInOut" });
+        currentMorph = MorphSVG("#morph-target", toShapeId, { duration: 0.9, ease: "cubicInOut" });
       }
       document.getElementById("morph-star").addEventListener("click", () => morphTo("#shape-star"));
       document.getElementById("morph-blob").addEventListener("click", () => morphTo("#shape-blob"));
@@ -326,7 +327,7 @@
 
       // ---------------- 3. motionPath ----------------
 
-      const plane = six.svgMotion.motionPath(".plane", {
+      const plane = MotionPath(".plane", {
         path: "#wave-path",
         duration: 4,
         ease: "none",
@@ -340,7 +341,7 @@
       document.getElementById("plane-restart").addEventListener("click", () => plane.restart(true));
 
       // swarm: 5 dots on the same path, staggered, looping
-      six.svgMotion.motionPath(".dot", {
+      MotionPath(".dot", {
         path: "#wave-path",
         duration: 3,
         ease: "none",
@@ -349,7 +350,7 @@
       });
 
       // sub-range + boomerang: only the middle 50% of the path, back and forth forever
-      six.svgMotion.motionPath(".pinger", {
+      MotionPath(".pinger", {
         path: "#wave-path",
         duration: 1.6,
         ease: "sineInOut",

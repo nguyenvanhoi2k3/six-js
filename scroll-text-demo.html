@@ -42,7 +42,8 @@
     <div class="spacer" style="opacity: 0.15">— hết —</div>
 
     <script type="module">
-      import { six, splitText } from "./dist/six-js.es.js";
+      import { six } from "./dist/index.js";
+      import { SplitText } from "./dist/SplitText.js";
 
       // ONE master Timeline for the whole paragraph, synced to ONE scroll range - not one
       // independent trigger per line. Independent per-line triggers (the previous version of this
@@ -53,7 +54,7 @@
       // is enough to guarantee line N+1 never starts before line N is fully lit: no manual
       // sequencing math needed, it falls straight out of Timeline's own default behavior. Scroll
       // then just scrubs ONE progress value (0..1) across that whole ordered sequence via `sync`.
-      const split = splitText("#text", { type: "chars, lines", charsClass: "char", linesClass: "line" });
+      const split = new SplitText("#text", { type: "chars, lines", charsClass: "char", linesClass: "line" });
 
       six.set(split.chars, { opacity: 0.15 }); // dim by default
 

@@ -125,7 +125,7 @@ export function motionPath(target: TweenTarget, vars: SvgMotionPathVars): Motion
   const elements = resolveTargets(target);
 
   if (elements.length === 0) {
-    console.warn("[six] svgMotion.motionPath() requires at least one resolvable target");
+    console.warn("[six-js] motionPath() requires a resolvable target");
     const empty = new Timeline();
     rootTimeline.add(empty);
     return empty;

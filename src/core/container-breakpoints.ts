@@ -11,7 +11,7 @@ static parse(attributeValue: string | null): Record<number, any> | null {
 
       return JSON.parse(fixedJson);
     } catch (e) {
-      console.warn("SixJS: Lỗi cú pháp JSON ở thuộc tính breakpoints", e);
+      console.warn("[six-js] invalid JSON in \"breakpoints\" attribute", e);
       return null;
     }
   }

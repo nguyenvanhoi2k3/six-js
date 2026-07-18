@@ -3,7 +3,11 @@
   "author": "Hội Nguyễn",
   "version": "0.0.33",
   "type": "module",
-  "sideEffects": true,
+  "sideEffects": [
+    "./dist/index.js",
+    "./dist/six-js.umd.js",
+    "./dist/Components.js"
+  ],
   "publishConfig": {
     "access": "public"
   },
@@ -16,22 +20,57 @@
     "timeline",
     "scrolltrigger"
   ],
-  "module": "./dist/six-js.es.js",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/six-js.es.js",
+      "import": "./dist/index.js",
       "require": "./dist/six-js.umd.js"
     },
-    "./style.css": "./dist/style.css"
+    "./OnScroll": {
+      "types": "./dist/OnScroll.d.ts",
+      "import": "./dist/OnScroll.js",
+      "require": "./dist/OnScroll.umd.js"
+    },
+    "./SmoothScroll": {
+      "types": "./dist/SmoothScroll.d.ts",
+      "import": "./dist/SmoothScroll.js",
+      "require": "./dist/SmoothScroll.umd.js"
+    },
+    "./SplitText": {
+      "types": "./dist/SplitText.d.ts",
+      "import": "./dist/SplitText.js",
+      "require": "./dist/SplitText.umd.js"
+    },
+    "./ScrambleText": {
+      "types": "./dist/ScrambleText.d.ts",
+      "import": "./dist/ScrambleText.js",
+      "require": "./dist/ScrambleText.umd.js"
+    },
+    "./Burst": {
+      "types": "./dist/Burst.d.ts",
+      "import": "./dist/Burst.js",
+      "require": "./dist/Burst.umd.js"
+    },
+    "./SvgMotion": {
+      "types": "./dist/SvgMotion.d.ts",
+      "import": "./dist/SvgMotion.js",
+      "require": "./dist/SvgMotion.umd.js"
+    },
+    "./Components": {
+      "types": "./dist/Components.d.ts",
+      "import": "./dist/Components.js",
+      "require": "./dist/Components.umd.js"
+    },
+    "./components.css": "./dist/components.css"
   },
   "files": [
     "dist"
   ],
   "scripts": {
     "gen-version": "node -e \"const fs = require('fs'); const pkg = require('./package.json'); fs.writeFileSync('./src/version.ts', `export const VERSION = '${pkg.version}';\\n`);\"",
-    "build": "npm run gen-version && vite build && vite build --config vite.umd.config.ts",
+    "build": "npm run gen-version && vite build && node scripts/build-umd.mjs",
     "dev": "npm run gen-version && vite build --watch",
     "sandbox": "vite",
     "test": "vitest run",

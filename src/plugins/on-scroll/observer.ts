@@ -8,7 +8,7 @@ export function resolveScroller(scroller: Scroller | string | undefined): Scroll
   if (typeof scroller === "string") {
     const el = document.querySelector(scroller);
     if (!el) {
-      console.warn(`[six] scroller "${scroller}" not found, falling back to window`);
+      console.warn(`[six-js] scroller "${scroller}" not found, using window`);
       return window;
     }
     return el;

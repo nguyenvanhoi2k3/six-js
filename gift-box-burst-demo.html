@@ -146,7 +146,7 @@
     <h1>🎁 gift box → burst</h1>
     <p class="hint">
       A gift box falls in, lands with a squash, the lid pops open, then
-      <code>six.burst()</code> fires confetti out from the opening - a
+      <code>Burst()</code> fires confetti out from the opening - a
       <code>six.timeline()</code> sequencing three ordinary tweens plus one
       <code>burst()</code> call.
     </p>
@@ -193,7 +193,8 @@
     </svg>
 
     <script type="module">
-      import { six } from "./dist/six-js.es.js";
+      import { six } from "./dist/index.js";
+      import { Burst } from "./dist/Burst.js";
 
       const gift = document.getElementById("gift");
       const lid = document.getElementById("box-lid");
@@ -224,7 +225,7 @@
           // means "same start time as the previous step", so this fires the instant the lid
           // starts popping open, not after it finishes rotating.
           .call(() => {
-            currentBurst = six.burst(originMarker, {
+            currentBurst = Burst(originMarker, {
               targets: ".confetti-tpl",
               clone: 28,
               spread: [-20, 20], // mostly upward fan (0 = up), fairly wide

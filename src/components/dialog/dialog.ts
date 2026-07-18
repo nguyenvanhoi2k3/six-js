@@ -129,17 +129,17 @@ export class SxDialog extends SafeHTMLElement {
   }
 
   get name(): DialogOptions['name'] { return this.getAttribute('name'); }
-  get duration(): DialogOptions['duration'] { 
+  get duration(): DialogOptions['duration'] {
     const attr = this.getAttribute('duration');
     return parseTimeValue(attr, DEFAULT_OPTIONS.duration);
   }
-  get closeOnOutsideClick(): DialogOptions['closeOnOutsideClick'] { 
+  get closeOnOutsideClick(): DialogOptions['closeOnOutsideClick'] {
     const attr = this.getAttribute('close-on-outside-click');
-    return attr !== null ? attr !== 'false' : DEFAULT_OPTIONS.closeOnOutsideClick; 
+    return attr !== null ? attr !== 'false' : DEFAULT_OPTIONS.closeOnOutsideClick;
   }
-  get closeOnEscKey(): DialogOptions['closeOnEscKey'] { 
+  get closeOnEscKey(): DialogOptions['closeOnEscKey'] {
     const attr = this.getAttribute('close-on-esc-key');
-    return attr !== null ? attr !== 'false' : DEFAULT_OPTIONS.closeOnEscKey; 
+    return attr !== null ? attr !== 'false' : DEFAULT_OPTIONS.closeOnEscKey;
   }
   get scrollable(): DialogOptions['scrollable'] {
     const attr = this.getAttribute('scrollable');
@@ -147,9 +147,9 @@ export class SxDialog extends SafeHTMLElement {
     if (attr === 'scrollbar') return 'scrollbar';
     return attr !== 'false';
   }
-  get overlay(): DialogOptions['overlay'] { 
+  get overlay(): DialogOptions['overlay'] {
     const attr = this.getAttribute('overlay');
-    return attr !== null ? attr !== 'false' : DEFAULT_OPTIONS.overlay; 
+    return attr !== null ? attr !== 'false' : DEFAULT_OPTIONS.overlay;
   }
   get overlayStyle(): DialogOptions['overlayStyle'] {
     return this.getAttribute('overlay-style') || DEFAULT_OPTIONS.overlayStyle;
@@ -477,7 +477,7 @@ export class SxDialog extends SafeHTMLElement {
       e.preventDefault();
       return;
     }
-    
+
     const firstElement = focusableElements[0];
     const lastElement = focusableElements[focusableElements.length - 1];
 
@@ -534,19 +534,19 @@ export class SxDialog extends SafeHTMLElement {
     // Đọc ID tiêu đề và nội dung để tự động cấu hình ARIA liên kết ngầm
     const titleEl = this.querySelector('[id*="title"], [class*="title"]');
     const descEl = this.querySelector('[id*="desc"], [class*="desc"]');
-    
+
     const labelAttr = titleEl ? `aria-labelledby="${titleEl.id || 'sx-dialog-title'}"` : '';
     const descAttr = descEl ? `aria-describedby="${descEl.id || 'sx-dialog-desc'}"` : '';
-    
+
     // Gán ID dự phòng nếu người dùng đặt class/tag mà quên điền ID để ARIA map trúng
     if (titleEl && !titleEl.id) titleEl.id = 'sx-dialog-title';
     if (descEl && !descEl.id) descEl.id = 'sx-dialog-desc';
 
     this.innerHTML = `
       ${this.overlay ? `<div class="sx-dialog-backdrop" style="${this.overlayStyle}"></div>` : ''}
-      <div class="sx-dialog-core" 
-           role="dialog" 
-           aria-modal="true" 
+      <div class="sx-dialog-core"
+           role="dialog"
+           aria-modal="true"
            aria-hidden="true"
            tabindex="-1"
            ${labelAttr}

@@ -1,3 +1,4 @@
+import "./marquee.css";
 import { SxMarquee, SxMarqueeInner, SxMarqueeItem } from "./marquee";
 
 export function registerMarquee() {

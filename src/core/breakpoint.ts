@@ -64,7 +64,7 @@ export class Breakpoint {
    * uses (`ctx.add({ kill: cleanup })`) rather than inventing a second one.
    */
   add(conditions: string | Record<string, string>, callback: BreakpointCallback): this {
-    if (this.dead) throw new Error("[six] cannot add() to a killed breakpoint()");
+    if (this.dead) throw new Error("[six-js] cannot add() to a killed breakpoint()");
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") return this;
 
     const single = typeof conditions === "string";

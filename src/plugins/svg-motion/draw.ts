@@ -116,12 +116,12 @@ export function drawSVG(target: TweenTarget, vars: SvgDrawVars = {}): DrawAnimat
   const { stagger, ...rest } = vars;
   const elements = resolveTargets(target).filter((el) => {
     if (isGeometryElement(el)) return true;
-    console.warn("[six] svgMotion.draw(): skipping non-geometry element (expected path/circle/ellipse/rect/line/polyline/polygon)", el);
+    console.warn("[six-js] drawSVG(): skipping non-geometry element", el);
     return false;
   });
 
   if (elements.length === 0) {
-    console.warn("[six] svgMotion.draw() requires at least one resolvable SVG shape element");
+    console.warn("[six-js] drawSVG() requires a resolvable target");
     const empty = new Timeline();
     rootTimeline.add(empty);
     return empty;

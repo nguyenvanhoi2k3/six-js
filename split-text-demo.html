@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>splitText() demo</title>
+    <title>SplitText demo</title>
     <link rel="stylesheet" href="./index.css" />
     <style>
       body {
@@ -166,10 +166,11 @@
     </section>
 
     <script type="module">
-      import { six, splitText } from "./dist/six-js.es.js";
+      import { six } from "./dist/index.js";
+      import { SplitText } from "./dist/SplitText.js";
 
       // 1. hero: chars stagger up, words fade/skew in behind them
-      const heroSplit = splitText("#heroTitle", {
+      const heroSplit = new SplitText("#heroTitle", {
         type: "words, chars, lines",
         wordsClass: "word",
         charsClass: "char",
@@ -186,7 +187,7 @@
       });
 
       // 2. overflow mask reveal, staggered by line
-      const revealSplit = splitText("#revealText", {
+      const revealSplit = new SplitText("#revealText", {
         type: "lines",
         linesClass: "line",
         overflow: true,
@@ -200,7 +201,7 @@
       });
 
       // 3. skip - the star rating icon is never shredded into chars/words
-      const skipSplit = splitText("#skipText", {
+      const skipSplit = new SplitText("#skipText", {
         type: "words",
         wordsClass: "word",
         skip: document.querySelector("#skipText .icon"),
@@ -212,7 +213,7 @@
         `first word aria-hidden: ${skipSplit.words[0].getAttribute("aria-hidden")}`;
 
       // 4. lifecycle playground
-      let lifecycleSplit = splitText("#lifecycleText", { type: "words", wordsClass: "word" });
+      let lifecycleSplit = new SplitText("#lifecycleText", { type: "words", wordsClass: "word" });
       six.from(lifecycleSplit.words, { opacity: 0, y: 15, duration: 0.5, stagger: 0.03 });
 
       const status = document.getElementById("status");
@@ -239,7 +240,7 @@
       // re-split, including the internal debounced one triggered by the resize watcher, so this
       // readout stays in sync without a second, independently-timed observer of its own.
       const lineCount = document.getElementById("lineCount");
-      const resizeSplit = splitText("#resizeText", {
+      const resizeSplit = new SplitText("#resizeText", {
         type: "lines",
         linesClass: "line",
         onSplit: (self) => (lineCount.textContent = `${self.lines.length} line(s)`),

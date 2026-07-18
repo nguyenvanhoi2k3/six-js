@@ -368,7 +368,7 @@ describe("OnScroll - integration", () => {
 
     // a plain number (e.g. a typo'd "sticky duration") is not a valid sticky value in this API
     expect(() => new OnScroll({ trigger, sticky: 0.7 as unknown as true })).not.toThrow();
-    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("sticky must be true"));
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("invalid `sticky` value"));
   });
 
   it("sticks a 'center center' trigger at its natural vertically-centered position, not the viewport top", () => {

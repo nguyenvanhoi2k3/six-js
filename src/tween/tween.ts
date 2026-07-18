@@ -23,7 +23,7 @@ export function resolveTargets(input: TweenTarget, scope?: Element | Document): 
   if (input == null) return [];
   if (typeof input === "string") {
     const found = Array.from((scope ?? document).querySelectorAll(input));
-    if (found.length === 0) console.warn(`[six] no elements matched selector "${input}"`);
+    if (found.length === 0) console.warn(`[six-js] no elements matched selector "${input}"`);
     return found;
   }
   if (input instanceof Element) return [input];

@@ -39,7 +39,7 @@ export function resolveScrollTarget(target: ScrollToTarget, offset: number, ctx:
   if (typeof target === "string") {
     const found = target.startsWith("#") ? document.getElementById(target.slice(1)) : document.querySelector(target);
     if (!found) {
-      console.warn(`[six] smoothScroll: scrollTo target "${target}" not found`);
+      console.warn(`[six-js] scrollTo target "${target}" not found`);
       return null;
     }
     node = found;

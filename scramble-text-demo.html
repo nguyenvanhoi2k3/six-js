@@ -210,11 +210,12 @@
     </section>
 
     <script type="module">
-      import { six } from "./dist/six-js.es.js";
+      import { six } from "./dist/index.js";
+      import { ScrambleText } from "./dist/ScrambleText.js";
 
       // 1. basic scramble reveal, character-by-character, left-to-right
       const runHero = () =>
-        six.scrambleText("#heroText", {
+        ScrambleText("#heroText", {
           text: "SIX.JS READY",
           duration: 1.4,
           ease: "quadOut",
@@ -225,22 +226,22 @@
 
       // 2. rightToLeft: same target text, opposite reveal direction
       const runDirection = () => {
-        six.scrambleText("#ltrText", { text: "REVEAL", duration: 1.6, ease: "none" });
-        six.scrambleText("#rtlText", { text: "REVEAL", duration: 1.6, ease: "none", rightToLeft: true });
+        ScrambleText("#ltrText", { text: "REVEAL", duration: 1.6, ease: "none" });
+        ScrambleText("#rtlText", { text: "REVEAL", duration: 1.6, ease: "none", rightToLeft: true });
       };
       runDirection();
       document.getElementById("btnDirection").addEventListener("click", runDirection);
 
       // 3. tweenLength true (grows smoothly) vs false (snaps to the new length immediately)
       const runLength = () => {
-        six.scrambleText("#lengthTrue", { text: "SIX.JS ANIMATION ENGINE", duration: 1.8, ease: "none", tweenLength: true });
-        six.scrambleText("#lengthFalse", { text: "SIX.JS ANIMATION ENGINE", duration: 1.8, ease: "none", tweenLength: false });
+        ScrambleText("#lengthTrue", { text: "SIX.JS ANIMATION ENGINE", duration: 1.8, ease: "none", tweenLength: true });
+        ScrambleText("#lengthFalse", { text: "SIX.JS ANIMATION ENGINE", duration: 1.8, ease: "none", tweenLength: false });
       };
       document.getElementById("btnLength").addEventListener("click", runLength);
 
       // 4. word-by-word reveal via delimiter: " " - whole words resolve at once, not per letter
       const runWords = () =>
-        six.scrambleText("#wordsText", {
+        ScrambleText("#wordsText", {
           text: "six js makes scrambling text easy",
           duration: 2,
           ease: "none",
@@ -251,7 +252,7 @@
 
       // 5. newClass/oldClass - revealed text turns green, still-scrambling text stays dim orange
       const runClasses = () =>
-        six.scrambleText("#classesText", {
+        ScrambleText("#classesText", {
           text: "STYLED REVEAL",
           duration: 2,
           ease: "none",
@@ -264,7 +265,7 @@
       // 6. odometer mode - vertical reels, with a per-character stagger wave landing left-to-right
       const runOdometer = () => {
         const score = String(Math.floor(Math.random() * 999999)).padStart(6, "0");
-        six.scrambleText("#odometerDigits", {
+        ScrambleText("#odometerDigits", {
           text: score,
           mode: "odometer",
           duration: 1.6,
@@ -273,7 +274,7 @@
           reelSize: 14,
           charStagger: 0.06,
         });
-        six.scrambleText("#odometerLetters", {
+        ScrambleText("#odometerLetters", {
           text: ["READY", "SET", "GO!!!", "DONE!"][Math.floor(Math.random() * 4)],
           mode: "odometer",
           duration: 1.4,

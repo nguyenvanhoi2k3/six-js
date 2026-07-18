@@ -28,7 +28,7 @@ export class Context {
   }
 
   run<T>(fn: (self: Context) => T): T {
-    if (this.dead) throw new Error("[six] cannot run a reverted context");
+    if (this.dead) throw new Error("[six-js] cannot run a reverted context");
 
     const prev = activeScope;
     activeScope = this;

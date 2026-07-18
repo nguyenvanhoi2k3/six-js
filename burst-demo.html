@@ -54,9 +54,11 @@
     <div class="space"></div>
 
     <script type="module">
-      import { six, splitText } from "./dist/six-js.es.js";
+      import { six } from "./dist/index.js";
+      import { SplitText } from "./dist/SplitText.js";
+      import { Burst } from "./dist/Burst.js";
       document.querySelector("#like").addEventListener("click", (e) => {
-        six.burst(e.currentTarget, {
+        Burst(e.currentTarget, {
           targets: "#heart",
           clone: 20,
           power: [400, 500],
@@ -72,12 +74,12 @@
         duration: 1.3,
         ease: "bounceOut",
         onComplete: () => {
-          const heroCharSplit = splitText(heroText, {
+          const heroCharSplit = new SplitText(heroText, {
             type: "chars",
             charsClass: "hero-char",
           });
          
-          six.burst(heroText, {
+          Burst(heroText, {
             targets: heroCharSplit.chars,
             spread: [-45, 45],
             power: [460, 600],

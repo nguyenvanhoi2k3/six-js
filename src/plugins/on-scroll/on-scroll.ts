@@ -95,7 +95,7 @@ export function resolveTriggerEdgeY(str: string, triggerRect: { top: number; hei
 function resolveElement(value: Element | string): Element {
   if (typeof value === "string") {
     const el = document.querySelector(value);
-    if (!el) throw new Error(`[six] OnScroll: trigger "${value}" not found`);
+    if (!el) throw new Error(`[six-js] OnScroll: trigger "${value}" not found`);
     return el;
   }
   return value;
@@ -297,7 +297,7 @@ export class OnScroll {
       const stickyTarget = this.vars.sticky === true ? this.triggerEl : typeof this.vars.sticky === "string" ? resolveElement(this.vars.sticky) : this.vars.sticky;
 
       if (!(stickyTarget instanceof Element)) {
-        console.warn(`[six] OnScroll: sticky must be true, a CSS selector, or an Element - got ${JSON.stringify(this.vars.sticky)}, ignoring`);
+        console.warn("[six-js] OnScroll: invalid `sticky` value, ignoring");
       } else {
         this.stickyHandle ??= setupSticky(stickyTarget as HTMLElement);
         // The element must stay exactly where it naturally sat in the viewport when it starts

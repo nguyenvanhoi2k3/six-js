@@ -210,12 +210,12 @@ export function burst(origin: Element | string, vars: BurstVars): BurstControlle
   const noop: BurstController = { kill() {} };
 
   if (resolvedElements.length === 0) {
-    console.warn("[six] burst() requires at least one resolvable target");
+    console.warn("[six-js] burst() requires a resolvable target");
     vars.onComplete?.();
     return noop;
   }
   if (!direct && !originEl) {
-    console.warn("[six] burst() requires a resolvable origin element when `clone` is set");
+    console.warn("[six-js] burst() requires a resolvable origin when `clone` is set");
     vars.onComplete?.();
     return noop;
   }

@@ -3,184 +3,52 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GSAP Sandbox</title>
-
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
-    <style>
-     html,
-body{
-    margin:0;
-    font-family:Inter,sans-serif;
-    background:#090909;
-    color:white;
-}
-
-.hero{
-
-    height:100vh;
-
-    display:flex;
-    flex-direction:column;
-
-    justify-content:center;
-    align-items:center;
-
-    overflow:hidden;
-
-}
-
-.orb{
-
-    width:180px;
-    height:180px;
-
-    border-radius:50%;
-
-    background:
-    radial-gradient(circle at 30% 30%,
-    #6be3ff,
-    #246bff,
-    #12003d);
-
-    filter:blur(0);
-
-    margin-bottom:40px;
-
-}
-
-h1{
-
-    font-size:72px;
-    margin:0;
-
-}
-
-p{
-
-    opacity:.65;
-
-    width:420px;
-
-    text-align:center;
-
-}
-
-.next{
-
-    height:100vh;
-
-    display:grid;
-
-    place-items:center;
-
-    font-size:48px;
-
-}
-    </style>
+    <title>Test</title>
+    <link rel="stylesheet" href="./index.css" />
+    <link rel="stylesheet" href="./dist/components.css" />
   </head>
+  <body><sx-dialog-trigger name="dialog1">Open</sx-dialog-trigger>
 
-  <body>
-    <section class="hero">
-
-    <div class="orb"></div>
-
-    <h1>Build Motion</h1>
-
-    <p>
-        Beautiful animations crafted with GSAP.
-    </p>
-
-</section>
-
-<section class="next">
-
-    <h2>Next Section</h2>
-
-</section>
-
-    <script>
-      gsap.registerPlugin(ScrollTrigger);
-
-     gsap.registerPlugin(ScrollTrigger);
-
-const tl = gsap.timeline({
-
-    scrollTrigger:{
-
-        trigger:".hero",
-
-        start:"top top",
-
-        end:"+=2500",
-
-        scrub:1,
-
-        pin:true,
-
-        markers:true
-
+<sx-dialog 
+  name="dialog1" 
+  effect="zoom" 
+  breakpoints="{
+    567: {
+      position: 'right',
+      effect: 'slide-left'
     }
+  }"
+>
+  <sx-close-cursor>x</sx-close-cursor>
+  <div class="content" style="background: #fff">
+    <h2>Dialog</h2>
+    <div>
+      Lorem ipsum dolor sit amet consectetur, adipisicing elit. Incidunt,
+      dolorum?
+    </div>
+    <sx-dialog-trigger name="dialog1">Đóng</sx-dialog-trigger>
+  </div>
+</sx-dialog>
+    <sx-slider name="slider-1" per-view="1" gap="10">
+      <sx-slider-track>
+        <sx-slider-slide>
+          <div class="slide">Slide 1</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide">Slide 2</div>
+        </sx-slider-slide>
+        <sx-slider-slide>
+          <div class="slide">Slide 3</div>
+        </sx-slider-slide>
+      </sx-slider-track>
+    </sx-slider>
 
-});
-
-tl
-
-.from(".orb",{
-
-    scale:.2,
-
-    opacity:0,
-
-    duration:1
-
-})
-
-.from("h1",{
-
-    y:120,
-
-    opacity:0,
-
-    duration:.8
-
-},"<0.2")
-
-.from("p",{
-
-    y:60,
-
-    opacity:0,
-
-    duration:.8
-
-})
-
-.to(".orb",{
-
-    scale:6,
-
-    filter:"blur(80px)",
-
-    duration:2
-
-},"+=0.2")
-
-.to("h1",{
-
-    y:-120,
-
-    opacity:0
-
-},"<")
-
-.to("p",{
-
-    y:80,
-
-    opacity:0
-
-},"<");
+    <script type="module">
+      import { six } from "./dist/index.js";
+      import { registerMarquee, registerSlider,registerDialog } from "./dist/Components.js";
+      registerMarquee();
+      registerSlider();
+      registerDialog()
     </script>
   </body>
 </html>

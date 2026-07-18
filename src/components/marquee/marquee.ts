@@ -19,7 +19,6 @@ export class SxMarquee extends SafeHTMLElement {
 
   constructor() {
     super();
-    this.attachShadow({ mode: "open" });
   }
 
   static get observedAttributes() {
@@ -76,7 +75,7 @@ export class SxMarquee extends SafeHTMLElement {
     this.inner = this.querySelector("sx-marquee-inner");
 
     if (!this.inner) {
-      console.warn("sx-marquee: Missing <sx-marquee-inner> child.");
+      console.warn("[six-js] sx-marquee: missing <sx-marquee-inner> child");
       return;
     }
 
@@ -149,45 +148,16 @@ export class SxMarquee extends SafeHTMLElement {
     }
   };
 
+  // Light-DOM wrapper (not a shadow root - see CLAUDE.md's Components section for why this
+  // reverted from an earlier shadow-DOM version): idempotent, so calling render() again (e.g. a
+  // reconnect) doesn't nest a second .container inside the first.
   private render() {
-    if (!this.shadowRoot) return;
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-          overflow: hidden;
-          width: 100%;
-          --sx-marquee-gap: 16px;
-        }
-        /* Khi cuộn dọc, sx-marquee cần có một chiều cao cố định kế thừa từ lớp cha */
-        :host([direction="up"]), :host([direction="down"]) {
-          height: 100%;
-        }
-        .container {
-          display: flex;
-          overflow: hidden;
-          width: 100%;
-          height: 100%;
-        }
-        :host([direction="up"]) .container, 
-        :host([direction="down"]) .container {
-          flex-direction: column;
-        }
-        ::slotted(sx-marquee-inner) {
-          display: flex !important;
-          flex-shrink: 0;
-          white-space: nowrap;
-          gap: var(--sx-marquee-gap) !important;
-          will-change: transform;
-        }
-        :host([direction="up"]) ::slotted(sx-marquee-inner), 
-        :host([direction="down"]) ::slotted(sx-marquee-inner) {
-          flex-direction: column !important;
-          white-space: normal;
-        }
-      </style>
-      <div class="container"><slot></slot></div>
-    `;
+    if (!this.querySelector(":scope > .container")) {
+      const container = document.createElement("div");
+      container.className = "container";
+      container.append(...Array.from(this.childNodes));
+      this.appendChild(container);
+    }
     this.updateGapVar();
   }
 

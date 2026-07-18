@@ -26,7 +26,6 @@
     "dist",
     "node_modules",
     "src/**/*.test.ts",
-    "src/components",
     "src/properties",
     "src/styles",
     "src/jsx.d.ts",

@@ -38,7 +38,7 @@ function normalizePercentForm(input: KeyframesPercentInput, topDuration: number,
     .map(([key, props]) => {
       const m = key.trim().match(/^(-?[\d.]+)%$/);
       if (!m) {
-        console.warn(`[six] keyframes: invalid position "${key}", expected e.g. "50%"`);
+        console.warn(`[six-js] keyframes: invalid position "${key}"`);
         return null;
       }
       return { pos: parseFloat(m[1]) / 100, props };

@@ -47,12 +47,12 @@ export function resolvePosition(position: TimelinePosition | undefined, ctx: Pos
     const [, label, sign, num] = m;
     const base = ctx.getLabel(label);
     if (base === undefined) {
-      console.warn(`[six] timeline: unknown label "${label}", appending at the current end`);
+      console.warn(`[six-js] timeline: unknown label "${label}"`);
       return ctx.end;
     }
     return Math.max(0, base + applySign(sign, num));
   }
 
-  console.warn(`[six] timeline: invalid position "${position}", appending at the current end`);
+  console.warn(`[six-js] timeline: invalid position "${position}"`);
   return ctx.end;
 }
