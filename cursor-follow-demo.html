@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cursor-follow demo</title>
+    <link rel="stylesheet" href="./index.css" />
+    <style>
+      svg {
+        width: 60px;
+        height: 60px;
+        position: fixed;
+        left: 0;
+        opacity: 0;
+        top: 0;
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+      }
+    </style>
+  </head>
+
+  <body>
+    <svg
+      viewBox="0 0 200 200"
+      width="100%"
+      height="100%"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <linearGradient id="og5" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#5ac8f5"></stop>
+          <stop offset="100%" stop-color="#6b7bff"></stop>
+        </linearGradient>
+      </defs>
+      <g
+        fill="none"
+        stroke="url(#og5)"
+        stroke-width="8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M58 40 148 82 108 92 128 140 108 148 88 100 58 132 Z"></path>
+      </g>
+    </svg>
+
+    <script type="module">
+      import { six } from "./dist/index.js";
+      const cursor = document.querySelector("svg");
+      
+      window.addEventListener("pointermove", (e) => {
+        six.to(cursor, {
+          x: e.clientX,
+          y: e.clientY,
+          duration: 0.2,
+          ease: "quadOut",
+          onStart: () => {
+            six.set(cursor, { opacity: 1 });
+          },
+        });
+      });
+    </script>
+  </body>
+</html>
