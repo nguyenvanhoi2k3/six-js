@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>scroll text emphasis demo</title>
+    <link rel="stylesheet" href="./index.css" />
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+      .spacer {
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.4;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .reading {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 25vh 24px;
+        font-size: clamp(22px, 3.4vw, 34px);
+        line-height: 1.7;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="spacer">cuộn xuống ↓</div>
+
+    <div class="reading">
+      <p id="text">
+        Chữ sẽ mờ nhạt lúc mới xuất hiện ở đáy màn hình, rồi đậm dần lên khi bạn cuộn tới, như thể ánh sáng đang rọi theo đúng nhịp đọc của bạn - mỗi từ tự sáng rõ đúng lúc mắt bạn lướt qua nó, không cần chạm hay bấm gì cả.
+      </p>
+    </div>
+
+    <div class="spacer" style="opacity: 0.15">— hết —</div>
+
+    <script type="module">
+      import { six, splitText } from "./dist/six-js.es.js";
+
+      // ONE master Timeline for the whole paragraph, synced to ONE scroll range - not one
+      // independent trigger per line. Independent per-line triggers (the previous version of this
+      // demo) each fire off their own position, so with a tall enough viewport several lines end
+      // up mid-reveal at once. A Timeline's DEFAULT child position is "sequence" - each `.to()`
+      // added with no explicit position starts only once the previous one's tweens have actually
+      // finished - so simply adding each line's char-reveal in order, with no position argument,
+      // is enough to guarantee line N+1 never starts before line N is fully lit: no manual
+      // sequencing math needed, it falls straight out of Timeline's own default behavior. Scroll
+      // then just scrubs ONE progress value (0..1) across that whole ordered sequence via `sync`.
+      const split = splitText("#text", { type: "chars, lines", charsClass: "char", linesClass: "line" });
+
+      six.set(split.chars, { opacity: 0.15 }); // dim by default
+
+      const master = six.timeline({
+        onScroll: {
+          trigger: document.getElementById("text"),
+          start: "top 95%",
+          end: "bottom 40%", 
+          sync: true,
+        },
+      });
+
+      split.lines.forEach((line) => {
+        const chars = six.utils.arrayOf(line.querySelectorAll(".char"));
+        if (!chars.length) return;
+
+        master.to(chars, {
+          opacity: 1,
+          ease: "none",
+          stagger: 0.5, // bigger gap between each character lighting up
+        });
+      });
+    </script>
+  </body>
+</html>

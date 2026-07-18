@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Animation } from "../core/animation";
-import { ticker, TickerListener } from "../core/ticker";
+import { Animation } from "../../core/animation";
+import { ticker, TickerListener } from "../../core/ticker";
 import { createDirectSync, createSmoothSync } from "./sync";
 
 class StubAnimation extends Animation {

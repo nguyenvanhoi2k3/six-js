@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ticker, TickerListener } from "../core/ticker";
+import { ticker, TickerListener } from "../../core/ticker";
 import { SmoothScroll } from "./smooth-scroll";
 
 function captureTick(): (deltaMs: number) => void {

@@ -1,4 +1,4 @@
-import { EaseFn } from "../easing/easing";
+import { EaseFn } from "../../easing/easing";
 
 /** Linearly interpolate between `from` and `to` by `t` (0-1, unclamped). */
 export function lerp(from: number, to: number, t: number): number {

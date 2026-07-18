@@ -1,4 +1,4 @@
-import { Animation } from "../core/animation";
+import { Animation } from "../../core/animation";
 import { addResizeListener, addScrollListener, getScroll, getViewportSize, removeResizeListener, removeScrollListener, resolveScroller, Scroller } from "./observer";
 import { createDirectSync, createSmoothSync, SyncController } from "./sync";
 import { StickyHandle, setupSticky } from "./sticky";
@@ -166,6 +166,24 @@ export class OnScroll {
     return this.resolvedAxis() === "x" ? { top: rect.left, height: rect.width } : { top: rect.top, height: rect.height };
   }
 
+  /**
+   * Viewport-relative offset of the scroller's own edge along the active axis - 0 for `window`,
+   * otherwise a nested scroller Element's own on-screen position. `getScroll()` for an Element
+   * scroller reads its local `scrollTop`/`scrollLeft` (a small range starting at 0, unrelated to
+   * where the container sits on the page), while `triggerEl.getBoundingClientRect()` is always
+   * viewport-relative (i.e. it bakes in the container's own page offset). Combining those two
+   * directly - as `resolvePositionValue` needs to, the same way it safely does for `window` where
+   * both quantities already share one coordinate space - would put the trigger's position on a
+   * different numeric scale than the scroller's live scroll value, so thresholds like `startY`
+   * could end up outside any value the scroller can ever reach. Subtracting this offset first
+   * re-bases the trigger's rect onto the scroller's own client box, mirroring how `rect.top` is
+   * already naturally viewport(=scroller)-relative in the `window` case.
+   */
+  private scrollerEdgeOffset(): number {
+    if (this.scroller === window) return 0;
+    return this.axisRect((this.scroller as Element).getBoundingClientRect()).top;
+  }
+
   private measureSyncSourceEdges(): void {
     const anim = this.vars.syncTo!;
     const savedTime = anim.totalTime() as number;
@@ -220,10 +238,11 @@ export class OnScroll {
       return relativeBase + (relMatch[1] === "-" ? -offset : offset);
     }
 
-    const rect = this.triggerEl.getBoundingClientRect();
+    const rect = this.axisRect(this.triggerEl.getBoundingClientRect());
     const scrollY = getScroll(this.scroller, this.resolvedAxis());
     const viewportSize = getViewportSize(this.scroller, this.resolvedAxis());
-    return resolvePositionString(resolved, this.axisRect(rect), scrollY, viewportSize);
+    const relativeRect = { top: rect.top - this.scrollerEdgeOffset(), height: rect.height };
+    return resolvePositionString(resolved, relativeRect, scrollY, viewportSize);
   }
 
   /** Viewport-relative pixel offset (from the top of the viewport) that a debug marker line for

@@ -1,7 +1,7 @@
-import { ticker, TickerListener } from "../core/ticker";
-import { getActiveScope } from "../core/context";
-import { EaseFn, resolveEase } from "../easing/easing";
-import { clamp } from "../utils/utils";
+import { ticker, TickerListener } from "../../core/ticker";
+import { getActiveScope } from "../../core/context";
+import { EaseFn, resolveEase } from "../../easing/easing";
+import { clamp } from "../../utils/utils";
 import { addResizeListener, Axis, getMaxScroll, getScroll, getViewportSize, invalidateReads, removeResizeListener, resolveScroller, Scroller, setScroll } from "../on-scroll/observer";
 import { MotionVars, ScrollMotion } from "./motion";
 import { normalizeWheel } from "./wheel";

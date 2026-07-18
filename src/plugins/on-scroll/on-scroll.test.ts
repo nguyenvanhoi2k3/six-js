@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { parseEdge, resolvePositionString, resolveTriggerEdgeY, resolveViewportEdgeOffset, OnScroll } from "./on-scroll";
 import { invalidateReads } from "./observer";
-import { Tween } from "../tween/tween";
+import { Tween } from "../../tween/tween";
 
 describe("parseEdge", () => {
   it("resolves top/center/bottom keywords to ratios", () => {

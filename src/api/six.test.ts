@@ -3,7 +3,7 @@ import { six, OnScroll } from "./six";
 import { rootTimeline } from "../core/root";
 import { Tween } from "../tween/tween";
 import { Timeline } from "../timeline/timeline";
-import { invalidateReads } from "../on-scroll/observer";
+import { invalidateReads } from "../plugins/on-scroll/observer";
 
 // rootTimeline is a real module-level singleton shared across every test in the process, so
 // each test captures its OWN starting point and only advances forward relative to it, rather

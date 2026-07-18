@@ -1,4 +1,4 @@
-import { getActiveScope } from "../core/context";
+import { getActiveScope } from "../../core/context";
 import { resolveSpecialCharsRegex } from "./char-split";
 import { resolveWordDelimiter, splitWordsAndChars, WordDelimiter } from "./split-chars-words";
 import { splitIntoLines } from "./split-lines";

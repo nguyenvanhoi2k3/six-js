@@ -5,8 +5,9 @@ import { rootTimeline } from "../core/root";
 import { GlobalDefaults, setDefaults } from "../core/defaults";
 import { Context, context } from "../core/context";
 import { Breakpoint, BreakpointCallback, BreakpointConditions, BreakpointContext, breakpoint } from "../core/breakpoint";
-import { OnScroll, OnScrollVars } from "../on-scroll/on-scroll";
-import { ScrollToOptions, SmoothScroll, smoothScroll, SmoothScrollVars } from "../smooth-scroll/smooth-scroll";
+import { OnScroll, OnScrollVars } from "../plugins/on-scroll/on-scroll";
+import { ScrollToOptions, SmoothScroll, smoothScroll, SmoothScrollVars } from "../plugins/smooth-scroll/smooth-scroll";
+import { burst, BurstController, BurstVars } from "../plugins/burst/burst";
 import { registerComponents } from "../components";
 import * as utils from "../utils/utils";
 import { VERSION } from "../version";
@@ -103,6 +104,7 @@ export const six = {
   context,
   breakpoint,
   smoothScroll,
+  burst,
   utils,
 };
 
@@ -112,4 +114,4 @@ export function enableElements(): void {
 }
 
 export { OnScroll, SmoothScroll };
-export type { Context, GlobalDefaults, Tween, Timeline, TweenVars, TimelineVars, OnScrollVars, Breakpoint, BreakpointConditions, BreakpointCallback, BreakpointContext, SmoothScrollVars, ScrollToOptions };
+export type { Context, GlobalDefaults, Tween, Timeline, TweenVars, TimelineVars, OnScrollVars, Breakpoint, BreakpointConditions, BreakpointCallback, BreakpointContext, SmoothScrollVars, ScrollToOptions, BurstVars, BurstController };

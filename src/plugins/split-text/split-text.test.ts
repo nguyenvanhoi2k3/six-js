@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { context } from "../core/context";
+import { context } from "../../core/context";
 import { splitText, SplitText } from "./split-text";
 
 describe("splitText / SplitText", () => {

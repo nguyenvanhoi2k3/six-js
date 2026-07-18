@@ -1,6 +1,6 @@
-import { ticker } from "../core/ticker";
-import { Animation } from "../core/animation";
-import { EASES } from "../easing/easing";
+import { ticker } from "../../core/ticker";
+import { Animation } from "../../core/animation";
+import { EASES } from "../../easing/easing";
 
 export interface SyncController {
   /** Scroll-driven: smoothed (or direct, for non-smooth mode). */
