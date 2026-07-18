@@ -8,6 +8,7 @@ import { Breakpoint, BreakpointCallback, BreakpointConditions, BreakpointContext
 import { OnScroll, OnScrollVars } from "../plugins/on-scroll/on-scroll";
 import { ScrollToOptions, SmoothScroll, smoothScroll, SmoothScrollVars } from "../plugins/smooth-scroll/smooth-scroll";
 import { burst, BurstController, BurstVars } from "../plugins/burst/burst";
+import { svgMotion, DrawAnimation, MorphAnimation, MotionPathAnimation, SvgDrawVars, SvgMorphVars, SvgMotionPathVars, SvgShapeInput } from "../plugins/svg-motion/svg-motion";
 import { registerComponents } from "../components";
 import * as utils from "../utils/utils";
 import { VERSION } from "../version";
@@ -105,6 +106,7 @@ export const six = {
   breakpoint,
   smoothScroll,
   burst,
+  svgMotion,
   utils,
 };
 
@@ -115,3 +117,4 @@ export function enableElements(): void {
 
 export { OnScroll, SmoothScroll };
 export type { Context, GlobalDefaults, Tween, Timeline, TweenVars, TimelineVars, OnScrollVars, Breakpoint, BreakpointConditions, BreakpointCallback, BreakpointContext, SmoothScrollVars, ScrollToOptions, BurstVars, BurstController };
+export type { DrawAnimation, MorphAnimation, MotionPathAnimation, SvgDrawVars, SvgMorphVars, SvgMotionPathVars, SvgShapeInput };

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svgMotion — scroll progress ring demo</title>
+    <link rel="stylesheet" href="./index.css" />
+    <style>
+      .hero {
+        height: 90vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        text-align: center;
+        padding: 0 24px;
+      }
+      .hero h1 {
+        font-size: clamp(28px, 5vw, 44px);
+      }
+      .hero p {
+        opacity: 0.65;
+        max-width: 480px;
+      }
+      .chapter {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 60px 24px;
+        border-top: 1px solid #201d3d;
+      }
+      .chapter h2 {
+        font-size: 22px;
+        color: #ffd166;
+      }
+      .chapter p {
+        max-width: 520px;
+        text-align: center;
+        opacity: 0.65;
+        font-size: 14px;
+      }
+
+      /* ---- fixed scroll-progress ring, bottom-right ---- */
+      #progress-ring {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        width: 64px;
+        height: 64px;
+        cursor: pointer;
+        z-index: 999;
+      }
+      #progress-ring svg {
+        width: 100%;
+        height: 100%;
+        /* start the fill at 12 o'clock instead of SVG's default 3 o'clock */
+        transform: rotate(-90deg);
+      }
+      #progress-track {
+        fill: none;
+        stroke: #201d3d;
+        stroke-width: 5;
+      }
+      #progress-fill {
+        fill: none;
+        stroke: #78a5ee;
+        stroke-width: 5;
+        stroke-linecap: butt; /* avoid the round-cap zero-length-dash dot at 0% - see CLAUDE.md */
+      }
+      #progress-label {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        color: #e1dcc9;
+        transform: rotate(0deg); /* counteract the ring svg's own rotate(-90deg) */
+        pointer-events: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="progress-ring" title="Back to top">
+      <svg viewBox="0 0 64 64">
+        <circle id="progress-track" cx="32" cy="32" r="27" />
+        <circle id="progress-fill" cx="32" cy="32" r="27" />
+      </svg>
+      <div id="progress-label">0%</div>
+    </div>
+
+    <div class="hero">
+      <h1>Scroll progress ring</h1>
+      <p>
+        The ring bottom-right fills as you scroll the whole page, built with
+        <code>six.svgMotion.draw()</code> scrubbed 1:1 to scroll position via
+        <code>OnScroll</code>. Click it to jump back to top.
+      </p>
+    </div>
+
+    <section class="chapter">
+      <h2>Chapter 1</h2>
+      <p>Keep scrolling - the ring tracks how far down the ENTIRE page you are, not just this section.</p>
+    </section>
+    <section class="chapter">
+      <h2>Chapter 2</h2>
+      <p>Scroll back up partway and watch the ring un-fill in perfect sync - it's a direct scrub, no lag.</p>
+    </section>
+    <section class="chapter">
+      <h2>Chapter 3</h2>
+      <p>This is exactly the "reading progress" pattern used on blogs/docs sites - just draw a circle instead of a line.</p>
+    </section>
+    <section class="chapter">
+      <h2>Chapter 4 - the end</h2>
+      <p>The ring should read 100% right about here.</p>
+    </section>
+
+    <script type="module">
+      import { six, OnScroll } from "./dist/six-js.es.js";
+
+      const progressDraw = six.svgMotion.draw("#progress-fill", {
+        duration: 1, // irrelevant under `sync: true` - see the onScroll demo's own note on this
+        ease: "none",
+      });
+
+      const label = document.getElementById("progress-label");
+
+      OnScroll.create({
+        animation: progressDraw,
+        trigger: document.body,
+        start: "top top", // whole-page scroll range: 0 at the very top...
+        end: "bottom bottom", // ...to 1 once scrolled all the way to the bottom
+        sync: true, // direct 1:1 scrub - no easing lag between scroll and fill
+        onUpdate: (self) => {
+          label.textContent = `${Math.round(self.progress() * 100)}%`;
+        },
+      });
+
+      document.getElementById("progress-ring").addEventListener("click", () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    </script>
+  </body>
+</html>

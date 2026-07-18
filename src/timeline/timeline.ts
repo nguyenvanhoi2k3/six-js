@@ -24,6 +24,25 @@ export interface TimelineVars extends AnimationVars {
 export type TimelineTweenVars = TweenVars & { stagger?: StaggerInput };
 
 /**
+ * The constant term in the reversed-playback branch of `toChildTotalTime`/`_childResumed`'s own
+ * inverse of it: for a reversed (`ts < 0`) child, totalTime is meant to start at `tDur` (the very
+ * end) and count DOWN as parentLocalTime increases - "playing backward from the end" is what
+ * reversing an as-yet-unrendered child means. That reference point only exists for a FINITE
+ * `tDur` - an infinite-repeat child (`repeat: -1`, `tDur === Infinity`) has no "end" to start
+ * from at all, so using `Infinity` here directly poisons every arithmetic expression downstream
+ * with `Infinity`/`NaN` (most visibly: `_childResumed` re-anchoring `child.startTime()` to
+ * `-Infinity`, permanently corrupting the child - reproduced by reversing any `repeat: -1`
+ * animation that had ever been paused/resumed once, e.g. an OnScroll-driven or manually
+ * play/pause/reverse-controlled loop). Falls back to 0 in that case - structurally identical to
+ * the forward-playback branch, i.e. "just keep counting from wherever totalTime already is,"
+ * which is the only sensible reading of "reversed" when there's no finite end to count down from.
+ */
+function reverseOffset(ts: number, tDur: number): number {
+  if (ts >= 0) return 0;
+  return Number.isFinite(tDur) ? tDur : 0;
+}
+
+/**
  * (parentLocalTime, child) -> child's own totalTime, expressed purely via Animation's public API
  * (no protected-field access needed). Callers must skip paused children entirely rather than
  * feeding them through this - multiplying by a speed of 0 would collapse totalTime to a
@@ -32,7 +51,7 @@ export type TimelineTweenVars = TweenVars & { stagger?: StaggerInput };
 function toChildTotalTime(parentLocalTime: number, child: Animation): number {
   const ts = child.speed() as number;
   const tDur = child.totalDuration() as number;
-  return (parentLocalTime - (child.startTime() as number)) * ts + (ts >= 0 ? 0 : tDur);
+  return (parentLocalTime - (child.startTime() as number)) * ts + reverseOffset(ts, tDur);
 }
 
 function currentLocalTimeOf(tl: Timeline): number {
@@ -156,7 +175,7 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
     const childTotalTime = child.totalTime() as number;
     const ts = child.speed() as number;
     const tDur = child.totalDuration() as number;
-    const offset = ts >= 0 ? 0 : tDur;
+    const offset = reverseOffset(ts, tDur);
     child.startTime(now - (childTotalTime - offset) / ts);
   }
 

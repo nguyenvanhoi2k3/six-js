@@ -241,6 +241,33 @@ describe("Timeline - rendering drives children via the coordinate transform", ()
     expect(a.totalTime()).toBeCloseTo(0.3);
   });
 
+  it("reverse()ing an infinite-repeat (repeat: -1) child re-anchors to a finite startTime, not -Infinity", () => {
+    // repeat: -1 means totalDuration() is Infinity (see cycle.ts's totalDurationOf) - the
+    // reversed-playback offset used to be `tDur` unconditionally (see reverseOffset()'s own doc
+    // comment), which poisoned the re-anchor arithmetic with Infinity/NaN for exactly this case.
+    const tl = new Timeline({ defaultPosition: "now", unbounded: true }); // matches rootTimeline
+    const a = new StubLeaf();
+    a.duration(1);
+    a.repeat(-1);
+
+    tl.totalTime(0, true);
+    tl.add(a); // starts "now" (0)
+
+    tl.totalTime(3.5, true); // several iterations in, never explicitly paused
+    a.reverse();
+
+    expect(Number.isFinite(a.startTime())).toBe(true);
+
+    // still renders sane, finite totalTime afterward - not NaN/-Infinity from here on
+    tl.totalTime(3.6, true);
+    expect(Number.isFinite(a.totalTime())).toBe(true);
+
+    // and a later play() still recovers forward playback cleanly, same as the finite-duration case
+    a.play();
+    tl.totalTime(3.9, true);
+    expect(Number.isFinite(a.totalTime())).toBe(true);
+  });
+
   it("re-anchoring a child inside a bounded nested timeline stays correct even after that nested timeline's own span was exceeded and it stopped being actively rendered", () => {
     const root = new Timeline({ defaultPosition: "now", unbounded: true }); // matches rootTimeline
     const childA = new StubLeaf();

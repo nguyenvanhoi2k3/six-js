@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>gift box burst demo</title>
+    <link rel="stylesheet" href="./index.css" />
+    <style>
+      body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 28px;
+        padding: 40px 24px;
+      }
+      h1 {
+        font-size: 28px;
+      }
+      p.hint {
+        max-width: 480px;
+        text-align: center;
+        opacity: 0.7;
+        font-size: 14px;
+      }
+
+      .stage {
+        position: relative;
+        width: 100%;
+        max-width: 460px;
+        height: 320px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        overflow: visible;
+      }
+      .ground {
+        position: absolute;
+        left: 10%;
+        right: 10%;
+        bottom: 38px;
+        height: 2px;
+        background: #201d3d;
+      }
+
+      /* ---- the gift box ---- */
+      .gift {
+        position: absolute;
+        left: 50%;
+        bottom: 40px;
+        width: 150px;
+        height: 116px;
+        transform: translateX(-50%); /* six's own x/y transform composes on top of this */
+        z-index: 5; /* above a freshly-spawned confetti piece (still "inside" the box - see .confetti-tpl) */
+      }
+      .box-body {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 150px;
+        height: 88px;
+        background: #4a6fd6;
+        border-radius: 6px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+      }
+      .box-lid {
+        position: absolute;
+        left: -8px;
+        bottom: 82px;
+        width: 166px;
+        height: 28px;
+        background: #5a7ee0;
+        border-radius: 6px;
+        transform-origin: 0% 100%; /* hinges from its bottom-left corner when it "pops open" */
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+      }
+      .ribbon-v {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 18px;
+        margin-left: -9px;
+        background: #ffd166;
+      }
+      .bow {
+        position: absolute;
+        left: 50%;
+        top: -20px;
+        width: 48px;
+        height: 34px;
+        margin-left: -24px;
+      }
+
+      /* Deep inside the box body (not up at the lid opening) - burst()'s upward spread is what
+         carries particles up and out through the now-open lid, reading as "shot from inside". */
+      .origin-marker {
+        position: absolute;
+        left: 50%;
+        bottom: 20px;
+        width: 1px;
+        height: 1px;
+      }
+
+      /* Every burst() clone keeps this class (cloneNode(true) copies it straight from the
+         template - see the 4 hidden <svg class="confetti-tpl"> below), so this applies
+         automatically and identically to every spawned piece with no JS involved. z-index isn't
+         interpolatable, but a CSS animation still switches it discretely at a keyframe stop: each
+         piece starts BELOW the box (z-index: 1 < .gift's 5) - hiding the instant-of-spawn pop deep
+         inside the box - then jumps ABOVE it (z-index: 10) a beat later, once it's had time to
+         travel far enough to read as "escaping"/"falling in front of" the box rather than
+         appearing out of nowhere on top of it.
+      */
+      .confetti-tpl {
+        z-index: 1;
+        animation: confetti-lift 0.7s linear forwards;
+      }
+      @keyframes confetti-lift {
+        0%,
+        15% {
+          z-index: 1;
+        }
+        16%,
+        100% {
+          z-index: 10;
+        }
+      }
+
+      button {
+        background: #1c1a33;
+        color: #e1dcc9;
+        border: 1px solid #3a3660;
+        border-radius: 8px;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      button:hover {
+        background: #2a2650;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>🎁 gift box → burst</h1>
+    <p class="hint">
+      A gift box falls in, lands with a squash, the lid pops open, then
+      <code>six.burst()</code> fires confetti out from the opening - a
+      <code>six.timeline()</code> sequencing three ordinary tweens plus one
+      <code>burst()</code> call.
+    </p>
+
+    <div class="stage">
+      <div class="ground"></div>
+      <div class="gift" id="gift">
+        <div class="box-lid" id="box-lid">
+          <div class="ribbon-v"></div>
+          <svg class="bow" viewBox="0 0 100 70">
+            <!-- tails, drawn first so the knot/loops overlap their top ends -->
+            <path d="M44,38 L36,66 L47,54 Z" fill="#e0a935" />
+            <path d="M56,38 L64,66 L53,54 Z" fill="#e0a935" />
+            <!-- two ribbon loops, folded back to meet at the center knot -->
+            <path d="M50,35 C41,8 12,3 4,18 C-3,31 16,41 50,35 Z" fill="#ffd166" />
+            <path d="M50,35 C59,8 88,3 96,18 C103,31 84,41 50,35 Z" fill="#ffd166" />
+            <path d="M50,35 C44,20 22,16 16,24 C11,31 24,37 50,35 Z" fill="#ffe6a8" />
+            <path d="M50,35 C56,20 78,16 84,24 C89,31 76,37 50,35 Z" fill="#ffe6a8" />
+            <!-- center knot -->
+            <circle cx="50" cy="35" r="10" fill="#e0a935" />
+          </svg>
+        </div>
+        <div class="box-body">
+          <div class="ribbon-v"></div>
+        </div>
+        <div class="origin-marker" id="origin-marker"></div>
+      </div>
+    </div>
+
+    <button id="replay">🎁 Unwrap again</button>
+
+    <!-- confetti templates - cloned by burst(), never shown themselves -->
+    <svg class="confetti-tpl" viewBox="0 0 24 24" width="18" height="18" style="display: none">
+      <polygon points="12,1 15,9 23,9 16.5,14 19,22 12,17 5,22 7.5,14 1,9 9,9" fill="#ffd166" />
+    </svg>
+    <svg class="confetti-tpl" viewBox="0 0 24 24" width="14" height="14" style="display: none">
+      <circle cx="12" cy="12" r="10" fill="#ffb4b4" />
+    </svg>
+    <svg class="confetti-tpl" viewBox="0 0 24 24" width="16" height="16" style="display: none">
+      <polygon points="12,2 22,12 12,22 2,12" fill="#c6ffb4" />
+    </svg>
+    <svg class="confetti-tpl" viewBox="0 0 24 24" width="16" height="16" style="display: none">
+      <rect x="4" y="9" width="16" height="6" rx="2" fill="#78a5ee" />
+    </svg>
+
+    <script type="module">
+      import { six } from "./dist/six-js.es.js";
+
+      const gift = document.getElementById("gift");
+      const lid = document.getElementById("box-lid");
+      const originMarker = document.getElementById("origin-marker");
+
+      let tl = null;
+      let currentBurst = null;
+
+      function playSequence() {
+        // clean up whatever the previous run left running, so replaying never leaves two
+        // generations of tweens/particles fighting over the same elements.
+        currentBurst?.kill();
+        tl?.kill();
+
+        six.set(gift, { y: -340 });
+        six.set(lid, { rotate: 0, x: 0, y: 0 });
+
+        tl = six.timeline();
+
+        // 1. fall in and land with a bounce
+        tl.to(gift, { y: 0, duration: 0.9, ease: "bounceOut" })
+          // 2. landing squash - flattens on impact, then springs back
+          .to(gift, { scaleX: 1.12, scaleY: 0.8, duration: 0.09, ease: "quadOut" })
+          .to(gift, { scaleX: 1, scaleY: 1, duration: 0.3, ease: "backOut" })
+          // 3. lid pops open (hinged at its bottom-left corner via CSS transform-origin)
+          .to(lid, { rotate: -115, x: -18, y: -22, duration: 0.45, ease: "backOut" }, "+=0.05")
+          // 4. burst the confetti out from deep inside the box, up through the open lid - "<"
+          // means "same start time as the previous step", so this fires the instant the lid
+          // starts popping open, not after it finishes rotating.
+          .call(() => {
+            currentBurst = six.burst(originMarker, {
+              targets: ".confetti-tpl",
+              clone: 28,
+              spread: [-20, 20], // mostly upward fan (0 = up), fairly wide
+              power: [620, 800],
+              gravity: 950,
+              scale: [0.6, 1.3],
+              rotationSpeed: [-260, 260],
+              stagger: 0.01,
+            });
+          }, "<");
+      }
+
+      playSequence();
+      document.getElementById("replay").addEventListener("click", playSequence);
+    </script>
+  </body>
+</html>
