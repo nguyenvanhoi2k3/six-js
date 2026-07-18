@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>scrambleText() demo</title>
+    <link rel="stylesheet" href="./index.css" />
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+      section {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        padding: 60px 24px;
+        border-bottom: 1px solid #24262c;
+        position: relative;
+      }
+      section h2 {
+        font-size: 15px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        opacity: 0.5;
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        margin: 0;
+      }
+      section p.hint {
+        font-size: 14px;
+        opacity: 0.55;
+        max-width: 640px;
+        text-align: center;
+        margin: 0;
+      }
+
+      button {
+        padding: 10px 16px;
+        border-radius: 6px;
+        border: 1px solid #3a3d44;
+        background: #1a1c20;
+        color: inherit;
+        cursor: pointer;
+        font-size: 14px;
+        font-family: monospace;
+      }
+      button:hover {
+        background: #26292f;
+      }
+      .controls {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      /* 1. hero */
+      .hero h1 {
+        font-family: monospace;
+        font-size: clamp(28px, 6vw, 64px);
+        text-align: center;
+        letter-spacing: 0.02em;
+      }
+
+      /* 2. direction */
+      .direction .row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+      }
+      .direction .label {
+        font-family: monospace;
+        font-size: 12px;
+        opacity: 0.5;
+      }
+      .direction p {
+        font-family: monospace;
+        font-size: 28px;
+        margin: 0;
+      }
+
+      /* 3. tweenLength */
+      .length p {
+        font-family: monospace;
+        font-size: 26px;
+        min-height: 1.4em;
+        margin: 0;
+      }
+
+      /* 4. delimiter */
+      .words p {
+        font-size: 24px;
+        max-width: 640px;
+        text-align: center;
+        line-height: 1.5;
+      }
+
+      /* 5. classes */
+      .classes p {
+        font-family: monospace;
+        font-size: 28px;
+        margin: 0;
+      }
+      .classes .revealed {
+        color: #7ee787;
+      }
+      .classes .scrambling {
+        color: #ffb454;
+        opacity: 0.7;
+      }
+
+      /* 6. odometer */
+      .odometer .board {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .odometer .digits,
+      .odometer .letters {
+        font-family: monospace;
+        font-weight: 700;
+        font-size: 48px;
+        background: #14161b;
+        border: 1px solid #2a2d33;
+        border-radius: 10px;
+        padding: 16px 24px;
+        letter-spacing: 0.05em;
+      }
+      .odometer .digits {
+        color: #78a5ee;
+      }
+      .odometer .letters {
+        color: #ffb454;
+        font-size: 34px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <section class="hero">
+      <h2>1. mode: "scramble" (default) - classic GSAP-style reveal</h2>
+      <h1 id="heroText">LOADING</h1>
+      <div class="controls">
+        <button id="btnHero">Scramble to "SIX.JS READY"</button>
+      </div>
+    </section>
+
+    <section class="direction">
+      <h2>2. rightToLeft - which end resolves first</h2>
+      <div class="row">
+        <span class="label">rightToLeft: false (default)</span>
+        <p id="ltrText">......</p>
+      </div>
+      <div class="row">
+        <span class="label">rightToLeft: true</span>
+        <p id="rtlText">......</p>
+      </div>
+      <div class="controls">
+        <button id="btnDirection">Replay both</button>
+      </div>
+    </section>
+
+    <section class="length">
+      <h2>3. tweenLength - interpolate character count, or snap to it</h2>
+      <div>
+        <div class="label" style="font-family: monospace; opacity: 0.5; font-size: 12px">tweenLength: true (default) - grows smoothly</div>
+        <p id="lengthTrue">SIX</p>
+      </div>
+      <div>
+        <div class="label" style="font-family: monospace; opacity: 0.5; font-size: 12px">tweenLength: false - length snaps immediately</div>
+        <p id="lengthFalse">SIX</p>
+      </div>
+      <div class="controls">
+        <button id="btnLength">Scramble to "SIX.JS ANIMATION ENGINE"</button>
+      </div>
+    </section>
+
+    <section class="words">
+      <h2>4. delimiter: " " - reveal word-by-word instead of character-by-character</h2>
+      <p id="wordsText">a b c d e</p>
+      <div class="controls">
+        <button id="btnWords">Scramble to real sentence</button>
+      </div>
+    </section>
+
+    <section class="classes">
+      <h2>5. newClass / oldClass - style the revealed vs. still-scrambling portions</h2>
+      <p id="classesText">......</p>
+      <div class="controls">
+        <button id="btnClasses">Replay</button>
+      </div>
+    </section>
+
+    <section class="odometer">
+      <h2>6. mode: "odometer" - vertical reel per character, like a digital clock/split-flap board</h2>
+      <p class="hint">Each character has its own masked strip that spins and lands on the correct letter/digit - not a GSAP feature, a six-js addition.</p>
+      <div class="board">
+        <div class="digits" id="odometerDigits">000000</div>
+        <div class="letters" id="odometerLetters">READY</div>
+      </div>
+      <div class="controls">
+        <button id="btnOdometer">Spin to a new score + word</button>
+      </div>
+    </section>
+
+    <script type="module">
+      import { six } from "./dist/six-js.es.js";
+
+      // 1. basic scramble reveal, character-by-character, left-to-right
+      const runHero = () =>
+        six.scrambleText("#heroText", {
+          text: "SIX.JS READY",
+          duration: 1.4,
+          ease: "quadOut",
+          chars: "upperCase",
+        });
+      runHero();
+      document.getElementById("btnHero").addEventListener("click", runHero);
+
+      // 2. rightToLeft: same target text, opposite reveal direction
+      const runDirection = () => {
+        six.scrambleText("#ltrText", { text: "REVEAL", duration: 1.6, ease: "none" });
+        six.scrambleText("#rtlText", { text: "REVEAL", duration: 1.6, ease: "none", rightToLeft: true });
+      };
+      runDirection();
+      document.getElementById("btnDirection").addEventListener("click", runDirection);
+
+      // 3. tweenLength true (grows smoothly) vs false (snaps to the new length immediately)
+      const runLength = () => {
+        six.scrambleText("#lengthTrue", { text: "SIX.JS ANIMATION ENGINE", duration: 1.8, ease: "none", tweenLength: true });
+        six.scrambleText("#lengthFalse", { text: "SIX.JS ANIMATION ENGINE", duration: 1.8, ease: "none", tweenLength: false });
+      };
+      document.getElementById("btnLength").addEventListener("click", runLength);
+
+      // 4. word-by-word reveal via delimiter: " " - whole words resolve at once, not per letter
+      const runWords = () =>
+        six.scrambleText("#wordsText", {
+          text: "six js makes scrambling text easy",
+          duration: 2,
+          ease: "none",
+          delimiter: " ",
+          chars: "lowerCase",
+        });
+      document.getElementById("btnWords").addEventListener("click", runWords);
+
+      // 5. newClass/oldClass - revealed text turns green, still-scrambling text stays dim orange
+      const runClasses = () =>
+        six.scrambleText("#classesText", {
+          text: "STYLED REVEAL",
+          duration: 2,
+          ease: "none",
+          newClass: "revealed",
+          oldClass: "scrambling",
+        });
+      runClasses();
+      document.getElementById("btnClasses").addEventListener("click", runClasses);
+
+      // 6. odometer mode - vertical reels, with a per-character stagger wave landing left-to-right
+      const runOdometer = () => {
+        const score = String(Math.floor(Math.random() * 999999)).padStart(6, "0");
+        six.scrambleText("#odometerDigits", {
+          text: score,
+          mode: "odometer",
+          duration: 1.6,
+          ease: "expoOut",
+          chars: "numeric",
+          reelSize: 14,
+          charStagger: 0.06,
+        });
+        six.scrambleText("#odometerLetters", {
+          text: ["READY", "SET", "GO!!!", "DONE!"][Math.floor(Math.random() * 4)],
+          mode: "odometer",
+          duration: 1.4,
+          ease: "expoOut",
+          reelSize: 10,
+          charStagger: 0.05,
+        });
+      };
+      runOdometer();
+      document.getElementById("btnOdometer").addEventListener("click", runOdometer);
+    </script>
+  </body>
+</html>
