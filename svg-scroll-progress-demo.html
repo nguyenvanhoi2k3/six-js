@@ -98,7 +98,7 @@
       <h1>Scroll progress ring</h1>
       <p>
         The ring bottom-right fills as you scroll the whole page, built with
-        <code>DrawSVG()</code> scrubbed 1:1 to scroll position via
+        <code>SvgMotion(target, { mode: "draw" })</code> scrubbed 1:1 to scroll position via
         <code>OnScroll</code>. Click it to jump back to top.
       </p>
     </div>
@@ -123,9 +123,10 @@
     <script type="module">
       import { six } from "./dist/index.js";
       import { OnScroll } from "./dist/OnScroll.js";
-      import { DrawSVG } from "./dist/SvgMotion.js";
+      import { SvgMotion } from "./dist/SvgMotion.js";
 
-      const progressDraw = DrawSVG("#progress-fill", {
+      const progressDraw = SvgMotion("#progress-fill", {
+        mode: "draw",
         duration: 1, // irrelevant under `sync: true` - see the onScroll demo's own note on this
         ease: "none",
       });

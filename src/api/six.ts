@@ -8,7 +8,7 @@ import { Breakpoint, BreakpointCallback, BreakpointConditions, BreakpointContext
 import { OnScroll, OnScrollVars } from "../plugins/on-scroll/on-scroll";
 import { ScrollToOptions, SmoothScroll, SmoothScrollVars } from "../plugins/smooth-scroll/smooth-scroll";
 import { BurstController, BurstVars } from "../plugins/burst/burst";
-import { DrawAnimation, MorphAnimation, MotionPathAnimation, SvgDrawVars, SvgMorphVars, SvgMotionPathVars, SvgShapeInput } from "../plugins/svg-motion/svg-motion";
+import { DrawAnimation, MorphAnimation, MotionPathAnimation, SvgMotionVars, SvgMotionDrawVars, SvgMotionMorphVars, SvgMotionPathVars, SvgShapeInput } from "../plugins/svg-motion/svg-motion";
 import { ScrambleTextAnimation, OdometerAnimation, ScrambleTextVars, ScrambleTextMode, OdometerVars } from "../plugins/scramble-text/scramble-text";
 import { ScrambleTextCharSet } from "../plugins/scramble-text/char-sets";
 import { watchForUnregisteredElements } from "../core/unregistered-elements";
@@ -110,5 +110,5 @@ export const six = {
 
 export { OnScroll, SmoothScroll };
 export type { Context, GlobalDefaults, Tween, Timeline, TweenVars, TimelineVars, OnScrollVars, Breakpoint, BreakpointConditions, BreakpointCallback, BreakpointContext, SmoothScrollVars, ScrollToOptions, BurstVars, BurstController };
-export type { DrawAnimation, MorphAnimation, MotionPathAnimation, SvgDrawVars, SvgMorphVars, SvgMotionPathVars, SvgShapeInput };
+export type { DrawAnimation, MorphAnimation, MotionPathAnimation, SvgMotionVars, SvgMotionDrawVars, SvgMotionMorphVars, SvgMotionPathVars, SvgShapeInput };
 export type { ScrambleTextAnimation, OdometerAnimation, ScrambleTextVars, ScrambleTextMode, ScrambleTextCharSet, OdometerVars };

@@ -121,7 +121,7 @@
   <body>
     <div class="hero">
       <h1>svgMotion × onScroll</h1>
-      <p>Scroll down. Each section below wires a <code>DrawSVG</code>/<code>MotionPath</code> animation to <code>OnScroll</code> manually - draw/motionPath don't have a built-in <code>onScroll</code> shorthand the way <code>six.to()</code> does, so you call <code>OnScroll.create({ animation, trigger, ... })</code> yourself.</p>
+      <p>Scroll down. Each section below wires an <code>SvgMotion</code> (draw/path mode) animation to <code>OnScroll</code> manually - SvgMotion doesn't have a built-in <code>onScroll</code> shorthand the way <code>six.to()</code> does, so you call <code>OnScroll.create({ animation, trigger, ... })</code> yourself.</p>
     </div>
 
     <div class="filler">↓ keep scrolling ↓</div>
@@ -202,11 +202,11 @@
     <script type="module">
       import { six } from "./dist/index.js";
       import { OnScroll } from "./dist/OnScroll.js";
-      import { DrawSVG, MotionPath } from "./dist/SvgMotion.js";
+      import { SvgMotion } from "./dist/SvgMotion.js";
 
       // ---------------- 1. draw, toggle reveal ----------------
 
-      const sigDraw = DrawSVG("#sig2", { duration: 1.6, ease: "sineInOut" });
+      const sigDraw = SvgMotion("#sig2", { mode: "draw", duration: 1.6, ease: "sineInOut" });
       OnScroll.create({
         animation: sigDraw,
         trigger: "#sig-wrap",
@@ -221,7 +221,7 @@
       // equal scroll distance cover UNEQUAL amounts of the drawing, which reads as laggy/uneven
       // scrubbing - the scrub itself (native scroll, or `sync: <seconds>` smoothing) is what
       // should feel eased, not the underlying progress mapping.
-      const scrubDraw = DrawSVG("#scrub-path", { duration: 1, ease: "none" });
+      const scrubDraw = SvgMotion("#scrub-path", { mode: "draw", duration: 1, ease: "none" });
       OnScroll.create({
         animation: scrubDraw,
         trigger: "#scrub-section",
@@ -232,7 +232,8 @@
 
       // ---------------- 3. draw, staggered letters, toggle reveal ----------------
 
-      const lettersDraw = DrawSVG(".letter2", {
+      const lettersDraw = SvgMotion(".letter2", {
+        mode: "draw",
         duration: 1,
         ease: "cubicOut",
         stagger: 0.25,
@@ -243,9 +244,10 @@
         start: "top 75%",
       });
 
-      // ---------------- 4. motionPath, scrubbed flight ----------------
+      // ---------------- 4. motion path, scrubbed flight ----------------
 
-      const planeMotion = MotionPath(".plane2", {
+      const planeMotion = SvgMotion(".plane2", {
+        mode: "path",
         path: "#wave2",
         duration: 1,
         ease: "none", // same reasoning as the scrub draw above

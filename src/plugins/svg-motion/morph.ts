@@ -4,7 +4,7 @@ import { getDefaults } from "../../core/defaults";
 import { rootTimeline } from "../../core/root";
 import { resolveGeometry, shapeToPath, SvgShapeInput } from "./svg-geometry";
 
-export interface SvgMorphVars extends AnimationVars {
+export interface MorphVars extends AnimationVars {
   duration?: number;
   ease?: string | EaseFn;
   /** Sample points used to approximate both shapes for interpolation - higher is smoother/more faithful at some extra one-time cost (paid once, in `_onInit`, never per-frame). Default 120. */
@@ -135,7 +135,7 @@ export class MorphAnimation extends Animation {
   private toPoints: Point[] = [];
   private closed = false;
 
-  constructor(target: SvgShapeInput, toShape: SvgShapeInput, vars: SvgMorphVars = {}) {
+  constructor(target: SvgShapeInput, toShape: SvgShapeInput, vars: MorphVars = {}) {
     super(vars);
     const defaults = getDefaults();
     this.el = resolveGeometry(target);
@@ -173,8 +173,8 @@ export class MorphAnimation extends Animation {
   }
 }
 
-/** `six.svgMotion.morph(target, toShape, vars)` - animates `target`'s own `d` into `toShape`'s. */
-export function morphSVG(target: SvgShapeInput, toShape: SvgShapeInput, vars: SvgMorphVars = {}): MorphAnimation {
+/** `SvgMotion(target, { mode: "morph", toShape, ... })` - animates `target`'s own `d` into `toShape`'s. */
+export function morphSVG(target: SvgShapeInput, toShape: SvgShapeInput, vars: MorphVars = {}): MorphAnimation {
   const anim = new MorphAnimation(target, toShape, vars);
   rootTimeline.add(anim);
   return anim;

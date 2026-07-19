@@ -7,7 +7,7 @@ import { resolveTargets, TweenTarget } from "../../tween/tween";
 import { computeStaggerDelay, StaggerInput } from "../../timeline/stagger";
 import { isGeometryElement } from "./svg-geometry";
 
-export interface SvgDrawVars extends AnimationVars {
+export interface DrawVars extends AnimationVars {
   duration?: number;
   ease?: string | EaseFn;
   /**
@@ -37,7 +37,7 @@ function parseRatio(v: string | number): number {
   return t.endsWith("%") ? parseFloat(t) / 100 : parseFloat(t);
 }
 
-function parseWindow(value: SvgDrawVars["from"], fallback: Window): Window {
+function parseWindow(value: DrawVars["from"], fallback: Window): Window {
   if (value === undefined) return fallback;
   if (Array.isArray(value)) return [parseRatio(value[0]), parseRatio(value[1])];
   if (typeof value === "string") {
@@ -62,7 +62,7 @@ export class DrawAnimation extends Animation {
   private toWindow: Window;
   private length = 0;
 
-  constructor(target: Element, vars: SvgDrawVars = {}) {
+  constructor(target: Element, vars: DrawVars = {}) {
     super(vars);
     const defaults = getDefaults();
     this.el = target;
@@ -106,22 +106,22 @@ export class DrawAnimation extends Animation {
 }
 
 /**
- * `six.svgMotion.draw(target, vars)` - `target` resolves like any other six-js target (selector,
- * Element, list); resolving to more than one shape (e.g. every letter path in an outlined SVG
- * word) builds one DrawAnimation per shape and groups them in a Timeline, same "reuse Timeline,
- * don't invent a group type" principle `six.to()`'s own stagger support uses - so a whole
- * multi-letter draw-in can still be paused/reversed/killed as one unit.
+ * `SvgMotion(target, { mode: "draw", ... })` - `target` resolves like any other six-js target
+ * (selector, Element, list); resolving to more than one shape (e.g. every letter path in an
+ * outlined SVG word) builds one DrawAnimation per shape and groups them in a Timeline, same
+ * "reuse Timeline, don't invent a group type" principle `six.to()`'s own stagger support uses -
+ * so a whole multi-letter draw-in can still be paused/reversed/killed as one unit.
  */
-export function drawSVG(target: TweenTarget, vars: SvgDrawVars = {}): DrawAnimation | Timeline {
+export function drawSVG(target: TweenTarget, vars: DrawVars = {}): DrawAnimation | Timeline {
   const { stagger, ...rest } = vars;
   const elements = resolveTargets(target).filter((el) => {
     if (isGeometryElement(el)) return true;
-    console.warn("[six-js] drawSVG(): skipping non-geometry element", el);
+    console.warn('[six-js] SvgMotion({ mode: "draw" }): skipping non-geometry element', el);
     return false;
   });
 
   if (elements.length === 0) {
-    console.warn("[six-js] drawSVG() requires a resolvable target");
+    console.warn('[six-js] SvgMotion({ mode: "draw" }) requires a resolvable target');
     const empty = new Timeline();
     rootTimeline.add(empty);
     return empty;

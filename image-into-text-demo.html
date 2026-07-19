@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>image → merges into text demo</title>
+    <link rel="stylesheet" href="./index.css" />
+    <style>
+      /* Light theme, on purpose - overrides index.css's shared dark theme for this page only,
+         to match the reference design (bold black-on-white statement headline). */
+      body {
+        font-family: sans-serif;
+        background: #fdfdfb;
+        color: #0b0b0f;
+      }
+
+      /* The image is a fixed overlay, not a child of either frame - see the script's own note
+         on why the merge needs it decoupled from both sections' own DOM boxes. */
+      #heroImg {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        z-index: 10;
+      }
+      .scroll-hint {
+        position: fixed;
+        left: 50%;
+        bottom: 40px;
+        transform: translateX(-50%);
+        margin: 0;
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 13px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+        pointer-events: none;
+        z-index: 11;
+      }
+
+      /* ---- frame 1: just reserves the "full image at rest" scroll room - the image itself
+         lives outside this frame (see #heroImg above), this is pure empty layout space ---- */
+      #imageFrame {
+        height: 100vh;
+      }
+
+      /* ---- frame 2: the sentence with the gap the image merges into ---- */
+      #textFrame {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 15vh 24px;
+      }
+      .text-block {
+        max-width: 1100px;
+        text-align: left;
+      }
+      .text-block p {
+        font-size: clamp(32px, 6vw, 84px);
+        line-height: 1.18;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .img-slot {
+        display: inline-block;
+        width: 210px;
+        height: 150px;
+        vertical-align: middle;
+        margin: 0 10px;
+        transform: translateY(-0.06em); /* nudge to sit on the line the way the docked image will */
+      }
+
+      /* ---- next section, reached once the page scrolls past frame 2 ---- */
+      .next-section {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 60px 24px;
+        border-top: 1px solid #eee;
+      }
+      .next-section h2 {
+        font-size: 22px;
+        color: #1d4ed8;
+      }
+      .next-section p {
+        max-width: 520px;
+        text-align: center;
+        opacity: 0.6;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <img id="heroImg" alt="" />
+    <p class="scroll-hint">cuộn xuống ↓</p>
+
+    <section id="imageFrame"></section>
+
+    <section id="textFrame">
+      <div class="text-block">
+        <p>
+          Chúng tôi tạo ra
+          <span class="img-slot" id="imgSlot"></span>
+          trải nghiệm cho con người, thương hiệu và sản phẩm số.
+        </p>
+      </div>
+    </section>
+
+    <section class="next-section">
+      <h2>Section kế tiếp</h2>
+      <p>Ảnh đã ráp vừa khít vào khoảng trống chừa sẵn trong câu chữ - cuộn tiếp là sang thẳng section này.</p>
+    </section>
+
+    <script type="module">
+      import { OnScroll } from "./dist/OnScroll.js";
+
+      const heroImg = document.getElementById("heroImg");
+      const imgSlot = document.getElementById("imgSlot");
+      const textFrame = document.getElementById("textFrame");
+      const scrollHint = document.querySelector(".scroll-hint");
+
+      // Self-contained placeholder photo (inline SVG data URI) so this demo has zero network
+      // dependency.
+      const placeholderSvg = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000">
+          <defs>
+            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3a3660" />
+              <stop offset="100%" stop-color="#78a5ee" />
+            </linearGradient>
+          </defs>
+          <rect width="1600" height="1000" fill="url(#sky)" />
+          <circle cx="1180" cy="260" r="120" fill="#ffd166" />
+          <polygon points="0,1000 300,560 560,780 820,420 1100,700 1600,500 1600,1000" fill="#201d3d" />
+          <polygon points="0,1000 260,760 520,860 780,640 1080,820 1600,700 1600,1000" fill="#0A0D14" />
+        </svg>
+      `;
+      heroImg.src = "data:image/svg+xml," + encodeURIComponent(placeholderSvg.trim());
+
+      const lerp = (a, b, t) => a + (b - a) * t;
+
+      // #heroImg is a `position: fixed` overlay that lives OUTSIDE both #imageFrame and
+      // #textFrame - not nested in either. #textFrame scrolls into view under completely
+      // ordinary document flow (it isn't pinned/sticky), so the slot's viewport position is
+      // itself constantly moving throughout the merge - a precomputed FLIP-style start/end
+      // target (measured once) would immediately drift out of alignment with it. Instead the
+      // image is re-targeted from the slot's LIVE getBoundingClientRect() on every scroll tick
+      // (`render()`, driven by OnScroll's onUpdate - no `animation`/Tween involved, this trigger
+      // is used purely for its scroll-progress callback), blended from "full screen" to
+      // "wherever the slot currently sits" by merge progress.
+      //
+      // Once progress reaches 1, heroImg is handed off from `position: fixed` (viewport-relative)
+      // to `position: absolute` at the slot's own DOCUMENT coordinate (its current viewport
+      // position + the scrollY at that instant). From that point on, ordinary page scrolling
+      // alone keeps it glued exactly to the slot with no further JS - that handoff is what makes
+      // it read as "merged into" the text and continuing to scroll with it, rather than a
+      // separate fixed layer that happens to line up for one frame and then drifts away.
+      function render(p) {
+        const slotRect = imgSlot.getBoundingClientRect();
+
+        if (p >= 1) {
+          heroImg.style.position = "absolute";
+          heroImg.style.left = `${slotRect.left + window.scrollX}px`;
+          heroImg.style.top = `${slotRect.top + window.scrollY}px`;
+          heroImg.style.width = `${slotRect.width}px`;
+          heroImg.style.height = `${slotRect.height}px`;
+          heroImg.style.borderRadius = "8px";
+          return;
+        }
+
+        heroImg.style.position = "fixed";
+        heroImg.style.left = `${lerp(0, slotRect.left, p)}px`;
+        heroImg.style.top = `${lerp(0, slotRect.top, p)}px`;
+        heroImg.style.width = `${lerp(window.innerWidth, slotRect.width, p)}px`;
+        heroImg.style.height = `${lerp(window.innerHeight, slotRect.height, p)}px`;
+        heroImg.style.borderRadius = `${lerp(0, 8, p)}px`;
+      }
+
+      const trigger = OnScroll.create({
+        trigger: textFrame,
+        start: "top bottom", // merge begins the instant #textFrame's top touches the viewport's bottom edge
+        end: "top top", // ...and completes exactly when it reaches the viewport's top edge
+        onUpdate: (self) => render(self.progress()),
+      });
+
+      // OnScroll's onEnter/onLeave callbacks only fire on a live scroll CROSSING - a page loaded
+      // (or reloaded) already scrolled into/past the merge range never crosses anything, so it
+      // needs one manual sync to match wherever scroll actually starts.
+      render(trigger.progress());
+
+      // Plain scroll listener (not OnScroll) for the hold-phase hint fade-out - cheap, and
+      // unrelated to the merge trigger's own [start, end] range.
+      window.addEventListener("scroll", () => {
+        const t = Math.min(1, window.scrollY / window.innerHeight);
+        scrollHint.style.opacity = String(1 - t);
+      });
+
+      let resizeTimer;
+      window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          trigger.refresh();
+          render(trigger.progress());
+        }, 150);
+      });
+    </script>
+  </body>
+</html>

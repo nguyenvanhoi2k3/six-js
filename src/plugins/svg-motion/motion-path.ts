@@ -8,7 +8,7 @@ import { computeStaggerDelay, StaggerInput } from "../../timeline/stagger";
 import { getTransformCache, renderTransform } from "../../animate/transform-cache";
 import { resolveGeometry, SvgShapeInput } from "./svg-geometry";
 
-export interface SvgMotionPathVars extends AnimationVars {
+export interface MotionPathVars extends AnimationVars {
   duration?: number;
   ease?: string | EaseFn;
   /** The guide curve - an SVGGeometryElement, a CSS selector resolving to one, or a raw path `d` string (materialized into a detached, never-rendered `<path>` - the guide doesn't need to be visible). */
@@ -57,7 +57,7 @@ export class MotionPathAnimation extends Animation {
   private baseX = 0;
   private baseY = 0;
 
-  constructor(target: Element, vars: SvgMotionPathVars) {
+  constructor(target: Element, vars: MotionPathVars) {
     super(vars);
     const defaults = getDefaults();
     this.target = target;
@@ -115,17 +115,17 @@ export class MotionPathAnimation extends Animation {
 }
 
 /**
- * `six.svgMotion.motionPath(target, vars)` - `target` resolves like any other six-js target;
+ * `SvgMotion(target, { mode: "path", ... })` - `target` resolves like any other six-js target;
  * resolving to more than one element (e.g. a flock of icons following the same route) builds one
  * MotionPathAnimation per element and groups them in a Timeline - see drawSVG's own doc comment
  * for why (same "reuse Timeline, don't invent a group type" principle).
  */
-export function motionPath(target: TweenTarget, vars: SvgMotionPathVars): MotionPathAnimation | Timeline {
+export function motionPath(target: TweenTarget, vars: MotionPathVars): MotionPathAnimation | Timeline {
   const { stagger, ...rest } = vars;
   const elements = resolveTargets(target);
 
   if (elements.length === 0) {
-    console.warn("[six-js] motionPath() requires a resolvable target");
+    console.warn('[six-js] SvgMotion({ mode: "path" }) requires a resolvable target');
     const empty = new Timeline();
     rootTimeline.add(empty);
     return empty;
