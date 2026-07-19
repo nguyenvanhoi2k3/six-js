@@ -82,6 +82,36 @@ function isNumericLike(value: unknown): boolean {
   return /^[+-]?[\d.]+[a-z%]*$/i.test(v) || /^[+-]=/.test(v);
 }
 
+const CSS_MATH_FN_RE = /^(calc|min|max|clamp)\(/i;
+
+/** True for a CSS math function (`calc()`/`min()`/`max()`/`clamp()`) - these can't be parsed as
+ * a plain `value+unit` pair (see `parseNumeric`'s regex), but they ARE a single resolvable length,
+ * unlike a genuinely discrete string (`"none"`, a keyword, ...) - so a property whose end value is
+ * one of these still gets a numeric track, not a snap-at-the-end discrete one; see
+ * `resolveCssMathExpression` for how it's turned into an actual number. */
+export function isCssMathExpression(value: unknown): boolean {
+  return typeof value === "string" && CSS_MATH_FN_RE.test(value.trim());
+}
+
+/**
+ * Resolves a CSS math expression to its computed pixel value by delegating to the browser's own
+ * CSS engine - writes it to `target`'s inline style and reads the resolved value back via
+ * `getComputedStyle`, rather than reimplementing CSS's own `calc()`/`min()`/`max()`/`clamp()`
+ * evaluation (which would also need to duplicate its `vw`/`vh`/`rem`/`em`/`%` unit resolution).
+ * Restores the element's prior inline `cssText` immediately after reading, so the probe write
+ * never survives past this synchronous call - no visible flash, since nothing repaints between
+ * the write and the restore within the same synchronous task.
+ */
+export function resolveCssMathExpression(target: Element, prop: string, raw: string): string {
+  if (typeof getComputedStyle === "undefined") return raw;
+  const el = target as HTMLElement;
+  const prevCssText = el.style.cssText;
+  (el.style as unknown as Record<string, string>)[prop] = raw;
+  const resolved = (getComputedStyle(el) as unknown as Record<string, string>)[prop];
+  el.style.cssText = prevCssText;
+  return resolved || raw;
+}
+
 export function parseNumeric(value: string | number, fallbackUnit = ""): ParsedValue {
   if (typeof value === "number") return { value, unit: fallbackUnit };
   const match = String(value).trim().match(/^([+-]?[\d.]+)([a-z%]*)$/i);
@@ -167,7 +197,7 @@ function cssVariableHandler(prop: string, sampleValue: unknown): PropertyHandler
 function genericStyleHandler(prop: string, sampleValue: unknown): PropertyHandler {
   const unit = UNITLESS_PROPS.has(prop) ? "" : "px";
 
-  if (isNumericLike(sampleValue)) {
+  if (isNumericLike(sampleValue) || isCssMathExpression(sampleValue)) {
     return {
       kind: "numeric",
       isTransform: false,

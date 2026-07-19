@@ -1,4 +1,4 @@
-import { parseNumeric, PropertyHandler, resolveHandler } from "../animate/registry";
+import { isCssMathExpression, parseNumeric, PropertyHandler, resolveCssMathExpression, resolveHandler } from "../animate/registry";
 import { interpolateColor, parseColor, RGBA } from "../animate/color";
 import { canInterpolateComplex, interpolateComplexString } from "../animate/complex-string";
 import { convertToPx } from "../animate/unit-convert";
@@ -97,8 +97,19 @@ export function collectPropertyKeys(vars: Record<string, unknown>, fromVars?: Re
   return [...keys];
 }
 
+// A `calc()`/`min()`/`max()`/`clamp()` end/start value can't be parsed by `parseNumeric` as-is
+// (it's not a plain `value+unit` pair) - resolve it to its actual computed pixel value first, via
+// the browser's own CSS engine, so it flows through the exact same numeric path as any other
+// length from here on (interpolated smoothly, not degraded to a start/end discrete snap).
+function resolveMathRaw(target: Element, prop: string, isTransform: boolean, raw: unknown): unknown {
+  if (isTransform || typeof raw !== "string" || !isCssMathExpression(raw)) return raw;
+  return resolveCssMathExpression(target, prop, raw);
+}
+
 function buildNumericTrack(target: Element, prop: string, handler: Extract<PropertyHandler, { kind: "numeric" }>, rawStart: unknown, rawEnd: unknown): NumericTrack {
   const current = handler.get(target);
+  rawStart = resolveMathRaw(target, prop, handler.isTransform, rawStart);
+  rawEnd = resolveMathRaw(target, prop, handler.isTransform, rawEnd);
 
   let startVal: number;
   let startUnit: string;
@@ -173,7 +184,7 @@ function buildTrack(target: Element, prop: string, handler: PropertyHandler, raw
 // it's a shorthand that expands into both, each getting its own track (and its own overwrite
 // tracking by `prop`), so a later tween touching only "scaleX" can still surgically overwrite
 // just that half via "auto".
-const SCALE_EXPANSION: Record<string, string[]> = { scale: ["scaleX", "scaleY"] };
+export const SCALE_EXPANSION: Record<string, string[]> = { scale: ["scaleX", "scaleY"] };
 
 export function buildTracks(targets: readonly Element[], vars: Record<string, unknown>, mode: TweenMode, fromVars?: Record<string, unknown>): PropertyTrack[] {
   const keys = collectPropertyKeys(vars, fromVars);

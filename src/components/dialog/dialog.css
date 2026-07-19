@@ -72,6 +72,7 @@ sx-dialog > .sx-dialog-core {
   display: flex;
   flex-direction: column;
   outline: none;
+  overflow-x: auto;
   overflow-y: auto;
 }
 

@@ -3,6 +3,7 @@ import { forwards, insertSorted, ListHandle, removeNode } from "../core/linked-l
 import { PositionContext, resolvePosition as resolvePositionString, TimelinePosition } from "./position-parser";
 import { computeStaggerDelay, StaggerInput } from "./stagger";
 import { resolveTargets, Tween, TweenMode, TweenTarget, TweenVars } from "../tween/tween";
+import { SCALE_EXPANSION } from "../tween/property-track";
 
 export type { TimelinePosition } from "./position-parser";
 
@@ -60,12 +61,22 @@ function currentLocalTimeOf(tl: Timeline): number {
   return toChildTotalTime(currentLocalTimeOf(parent), tl);
 }
 
+/** "scale" has no track of its own (see SCALE_EXPANSION in property-track.ts) - widen it to the
+ * two keys it actually expands into, so the conflict check below still catches e.g. one child
+ * writing "scale" and a later one writing "scaleX" on the same target. */
+function expandConflictKeys(keys: string[]): string[] {
+  const out = new Set(keys);
+  for (const k of keys) for (const expanded of SCALE_EXPANSION[k] ?? []) out.add(expanded);
+  return [...out];
+}
+
 export class Timeline extends Animation implements AnimationParent, ListHandle<Animation> {
   private _firstChild: Animation | null = null;
   private _lastChild: Animation | null = null;
   private _cursor = 0;
   private _lastAdded: Animation | null = null;
   private _lastRenderedLocal = 0;
+  private _everRendered = false;
   private readonly _labels = new Map<string, number>();
   private readonly _defaultPositionMode: "sequence" | "now";
   private readonly _unbounded: boolean;
@@ -205,6 +216,34 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
 
   // ---- tween sugar ----
 
+  /**
+   * A not-yet-reached child is safe to preview its OWN progress-0 state (matching GSAP's default
+   * `immediateRender: true` for `.from()`/`.fromTo()`) UNLESS it shares a (target, prop) pair with
+   * an earlier sibling in this timeline. That specific overlap is genuinely unsafe (see the long
+   * comment on Tween's constructor `renderInitial` param): a premature write would either clobber
+   * the earlier sibling's just-computed live value, or - for a `.to()`/`.fromTo()` child - corrupt
+   * what THIS child reads back as its own "current" baseline, since track-building reads the live
+   * DOM value. "unknown" (a keyframe tween, on either side - its real per-segment prop names
+   * aren't cheaply enumerable, see `Tween.propertyKeys()`) is treated as a conflict, i.e. the same
+   * always-deferred behavior this method didn't exist to relax in the first place. Used by
+   * `_renderIteration`'s first-ever-render preview pass below, NOT at construction time - see
+   * that method's own comment for why timing matters here.
+   */
+  private hasEagerRenderConflict(self: Tween, targets: readonly Element[], props: string[] | "unknown"): boolean {
+    if (props === "unknown") return true;
+    const wanted = expandConflictKeys(props);
+    for (const child of forwards(this)) {
+      if (child === self) continue;
+      if (!(child instanceof Tween)) continue; // nested Timeline: not recursed into, conservative by omission
+      const childTargets = child.targetElements();
+      if (!targets.some((t) => childTargets.includes(t))) continue;
+      const childProps = child.propertyKeys();
+      if (childProps === "unknown") return true;
+      if (expandConflictKeys(childProps).some((p) => wanted.includes(p))) return true;
+    }
+    return false;
+  }
+
   private addTweens(target: TweenTarget, vars: TimelineTweenVars, mode: TweenMode, fromVars: Record<string, unknown> | undefined, position?: TimelinePosition): this {
     const { stagger, ...rest } = vars;
     const merged: TweenVars = { ...this._childDefaults, ...rest };
@@ -212,7 +251,9 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
     // Resolve the position BEFORE constructing anything, so a child scheduled anywhere other
     // than this timeline's actual current moment is built with renderInitial=false - see the
     // long comment on Tween's constructor for why a premature self-render at a non-"now"
-    // position corrupts shared per-element state instead of just being a harmless no-op.
+    // position corrupts shared per-element state instead of just being a harmless no-op. A
+    // future child still gets its own one-time "from" preview, just not synchronously here - see
+    // _renderIteration's first-ever-render pass.
     const start = this.resolvePosition(position);
     const renderInitial = Math.abs(start - currentLocalTimeOf(this)) < 1e-9;
 
@@ -286,6 +327,17 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
     // future child simply happens to iterate later in start-time order.
     const lo = Math.min(this._lastRenderedLocal, localTime);
     const hi = Math.max(this._lastRenderedLocal, localTime);
+    // Only on the very FIRST render this timeline ever gets (whether that's a tiny natural tick
+    // or a big explicit seek) - a still-future child otherwise shows nothing but its own
+    // untouched natural/CSS state for however long it takes the playhead to actually reach it,
+    // then visibly snaps to its own "from" value the instant it starts, before animating back up
+    // (a real, reported glitch, not cosmetic nitpicking - most visible on a `.from()` a few steps
+    // into a sequence). Gated on `isFirstRender` specifically (not "every render") so a same-
+    // script DOM mutation made between construction and this first frame is still correctly
+    // picked up by anything genuinely deferred (see hasEagerRenderConflict) - only the VERY first
+    // pass can safely assume nothing has started animating yet.
+    const isFirstRender = !this._everRendered;
+    this._everRendered = true;
     this._lastRenderedLocal = localTime;
 
     for (const child of forwards(this)) {
@@ -293,7 +345,15 @@ export class Timeline extends Animation implements AnimationParent, ListHandle<A
 
       const start = child.startTime() as number;
       const end = child.endTime();
-      if (end < lo || start > hi) continue; // fully outside the range this render pass covers
+      if (end < lo || start > hi) {
+        if (isFirstRender && start > hi && child instanceof Tween) {
+          const props = child.propertyKeys();
+          if (!this.hasEagerRenderConflict(child, child.targetElements(), props)) {
+            child.render(0, true, force);
+          }
+        }
+        continue; // fully outside the range this render pass covers
+      }
       if ((child.totalDuration() as number) === 0 && start <= lo) continue;
 
       child.render(toChildTotalTime(localTime, child), suppressEvents, force);

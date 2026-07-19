@@ -499,3 +499,39 @@ describe("Timeline - chained .to() calls on the same target/property", () => {
     expect(el.style.opacity).toBe("0.6"); // (0.2 -> 1) halfway, using the value read at its real start
   });
 });
+
+describe("Timeline - first-render preview of not-yet-reached .from() children", () => {
+  it("shows a later segment's own from-value on the timeline's very first (tiny) render, not just once its own turn arrives", () => {
+    // Regression test: two .from() calls on DIFFERENT elements, chained sequentially. Before this
+    // fix, the second element sat at its natural/CSS font-size the whole time segment 1 played,
+    // then visibly snapped down to its "from" value the instant segment 2 started, before
+    // animating back up - a reported double-motion glitch. A real page load ticks gradually from
+    // t=0 (unlike a big totalTime() seek, which happens to already cover both segments) - a tiny
+    // first tick reproduces that gap.
+    const a = document.createElement("div");
+    a.style.fontSize = "40px";
+    const b = document.createElement("div");
+    b.style.fontSize = "40px";
+
+    const tl = new Timeline();
+    tl.from(a, { fontSize: 0, duration: 0.5, ease: "none" });
+    tl.from(b, { fontSize: 0, duration: 0.5, ease: "none" }); // sequential: starts at 0.5
+
+    tl.totalTime(0.01, true); // first, tiny tick - segment 2 (start 0.5) is nowhere near in range
+
+    expect(a.style.fontSize).toBe("0.8px"); // segment 1, genuinely in progress
+    expect(b.style.fontSize).toBe("0px"); // previewed at its own from-value, not left at 40px
+  });
+
+  it("still defers the preview when it would conflict with an earlier same-target/prop sibling", () => {
+    const el = document.createElement("div");
+    el.style.opacity = "1";
+    const tl = new Timeline();
+    tl.to(el, { opacity: 0.2, duration: 1, ease: "none" });
+    tl.to(el, { opacity: 0.8, duration: 1, ease: "none" }); // same target+prop, sequential
+
+    tl.totalTime(0.01, true); // first, tiny tick
+
+    expect(el.style.opacity).toBe("0.992"); // segment 1 only, unaffected by segment 2's own from-value
+  });
+});

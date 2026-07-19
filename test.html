@@ -7,48 +7,43 @@
     <link rel="stylesheet" href="./index.css" />
     <link rel="stylesheet" href="./dist/components.css" />
   </head>
-  <body><sx-dialog-trigger name="dialog1">Open</sx-dialog-trigger>
+  <body>
+    <sx-dialog-trigger name="dialog1">Open</sx-dialog-trigger>
 
-<sx-dialog 
-  name="dialog1" 
-  effect="zoom" 
-  breakpoints="{
-    567: {
-      position: 'right',
-      effect: 'slide-left'
-    }
-  }"
->
-  <sx-close-cursor>x</sx-close-cursor>
-  <div class="content" style="background: #fff">
-    <h2>Dialog</h2>
-    <div>
-      Lorem ipsum dolor sit amet consectetur, adipisicing elit. Incidunt,
-      dolorum?
-    </div>
-    <sx-dialog-trigger name="dialog1">Đóng</sx-dialog-trigger>
-  </div>
-</sx-dialog>
-    <sx-slider name="slider-1" per-view="1" gap="10">
-      <sx-slider-track>
-        <sx-slider-slide>
-          <div class="slide">Slide 1</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide">Slide 2</div>
-        </sx-slider-slide>
-        <sx-slider-slide>
-          <div class="slide">Slide 3</div>
-        </sx-slider-slide>
-      </sx-slider-track>
-    </sx-slider>
-
+    <sx-dialog name="dialog1">
+      <sx-close-cursor>x</sx-close-cursor>
+      <div
+        class="content"
+        style="background: #fff; height: 90vh; overflow: auto; width: 40vw"
+      >
+        <h2>Dialog</h2>
+        <div style="font-size: 100px">
+          Lorem, ipsum dolor sit amet consectetur adipisicing elit. Assumenda
+          fugit iure repellendus voluptatum, cum illo ipsum est a nobis.
+          Corrupti quaerat, alias error assumenda maiores voluptate deleniti
+          culpa consequuntur odio? Ea velit similique sapiente praesentium
+          minima corrupti hic ipsum facilis, odio numquam dolorum assumenda.
+          Quos accusamus veritatis at amet aut ipsa esse natus, molestiae
+          doloribus nemo deleniti odit soluta, similique laborum labore
+          provident ab expedita numquam adipisci! Obcaecati est nobis sit
+          placeat veniam, dolore iusto debitis. Fuga molestiae rerum eum aliquam
+          quos commodi error iusto nostrum asperiores magni, beatae numquam et
+          alias, aut consectetur ab ipsum ducimus blanditiis, autem dolore.
+        </div>
+        <sx-dialog-trigger name="dialog1">Đóng</sx-dialog-trigger>
+      </div>
+    </sx-dialog>
+<div class="space"></div>
     <script type="module">
       import { six } from "./dist/index.js";
-      import { registerMarquee, registerSlider,registerDialog } from "./dist/Components.js";
+      import {
+        registerMarquee,
+        registerSlider,
+        registerDialog,
+      } from "./dist/Components.js";
       registerMarquee();
       registerSlider();
-      registerDialog()
+      registerDialog();
     </script>
   </body>
 </html>

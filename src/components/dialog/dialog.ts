@@ -86,7 +86,20 @@ export class SxDialog extends SafeHTMLElement {
   }
 
   private static preventScrollIfLocked = (e: Event): void => {
-    if (SxDialog.needsWheelTouchLock() && e.cancelable) e.preventDefault();
+    if (!SxDialog.needsWheelTouchLock() || !e.cancelable) return;
+
+    // The lock is meant to freeze the BACKGROUND page only - a wheel/touchmove originating
+    // inside an open dialog's own .sx-dialog-core is that dialog's legitimate internal scroll
+    // (overflow-y: auto in dialog.css) and must be allowed through, or the dialog's own content
+    // becomes unscrollable the moment it opens (this same capture-phase listener intercepts
+    // every wheel/touchmove on the page, including ones targeting the dialog itself).
+    const target = e.target as Node | null;
+    const isInsideOpenDialogCore = target !== null && SxDialog.openStack.some(
+      (d) => d.dialogCoreEl && d.dialogCoreEl.contains(target),
+    );
+    if (isInsideOpenDialogCore) return;
+
+    e.preventDefault();
   };
 
   private static ensureScrollLockListeners(): void {
