@@ -30,6 +30,7 @@ const targets = [
   { name: "ScrambleText", entry: "src/entries/umd/scramble-text.ts", fileName: "ScrambleText.umd.js" },
   { name: "Burst", entry: "src/entries/umd/burst.ts", fileName: "Burst.umd.js" },
   { name: "SvgMotion", entry: "src/entries/umd/svg-motion.ts", fileName: "SvgMotion.umd.js" },
+  { name: "Parallax", entry: "src/entries/umd/parallax.ts", fileName: "Parallax.umd.js" },
   { name: "Components", entry: "src/entries/umd/components.ts", fileName: "Components.umd.js" },
 ];
 

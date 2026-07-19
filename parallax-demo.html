@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Parallax() demo</title>
+    <link rel="stylesheet" href="./index.css" />
+    <style>
+      .hero {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: radial-gradient(circle at 50% 40%, #171b2b 0%, #0a0d14 70%);
+      }
+
+      .layer {
+        position: absolute;
+        border-radius: 50%;
+        will-change: transform;
+      }
+
+      /* Background layer - drifts the OPPOSITE way from the cursor (negative strength), for a
+         "deep behind everything" illusion - barely moves relative to the foreground. */
+      .layer-bg1 {
+        width: 420px;
+        height: 420px;
+        top: 8%;
+        left: 8%;
+        background: #24304d;
+        filter: blur(2px);
+        opacity: 0.5;
+      }
+      .layer-bg2 {
+        width: 320px;
+        height: 320px;
+        bottom: 6%;
+        right: 10%;
+        background: #2d1f3d;
+        filter: blur(2px);
+        opacity: 0.5;
+      }
+
+      /* Midground - small positive drift. */
+      .layer-mid1 {
+        width: 140px;
+        height: 140px;
+        top: 20%;
+        right: 20%;
+        background: #5ac8f5;
+        opacity: 0.85;
+      }
+      .layer-mid2 {
+        width: 90px;
+        height: 90px;
+        bottom: 22%;
+        left: 18%;
+        background: #6b7bff;
+        opacity: 0.85;
+      }
+
+      /* Foreground - largest drift, feels "closest" to the cursor. */
+      .layer-fg1 {
+        width: 46px;
+        height: 46px;
+        top: 34%;
+        left: 30%;
+        background: #ffd166;
+      }
+      .layer-fg2 {
+        width: 34px;
+        height: 34px;
+        bottom: 32%;
+        right: 30%;
+        background: #ff6b6b;
+      }
+      .layer-fg3 {
+        width: 26px;
+        height: 26px;
+        top: 60%;
+        left: 55%;
+        background: #b4ffb4;
+      }
+
+      .hero-copy {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        pointer-events: none;
+      }
+      .hero-copy h1 {
+        font-size: clamp(32px, 6vw, 72px);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin-bottom: 12px;
+      }
+      .hero-copy p {
+        opacity: 0.6;
+        font-size: 16px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <section class="hero">
+      <div class="layer layer-bg1" sx-parallax-strength="-15"></div>
+      <div class="layer layer-bg2" sx-parallax-strength="-20"></div>
+
+      <div class="layer layer-mid1" sx-parallax-strength="25"></div>
+      <div class="layer layer-mid2" sx-parallax-strength="30"></div>
+
+      <div class="layer layer-fg1" sx-parallax-strength="60"></div>
+      <div class="layer layer-fg2" sx-parallax-strength="75"></div>
+      <div class="layer layer-fg3" sx-parallax-strength="90"></div>
+
+      <div class="hero-copy" >
+        <h1>Move your mouse</h1>
+        <p>Parallax() — each shape drifts by its own sx-parallax-strength</p>
+      </div>
+    </section>
+    <div class="space"></div>
+    <script type="module">
+      import { Parallax } from "./dist/Parallax.js";
+
+      // strength is per-element via sx-parallax-strength above; vars.strength here is only the
+      // fallback for a .layer with no attribute of its own (none in this demo, but shown for
+      // completeness).
+      Parallax(".layer", { strength: 30, lerp: 0.08 });
+    </script>
+  </body>
+</html>

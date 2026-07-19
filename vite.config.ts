@@ -17,6 +17,7 @@ const libEntries: Record<string, string> = {
   ScrambleText: resolve(srcRoot, "entries/scramble-text.ts"),
   Burst: resolve(srcRoot, "entries/burst.ts"),
   SvgMotion: resolve(srcRoot, "entries/svg-motion.ts"),
+  Parallax: resolve(srcRoot, "entries/parallax.ts"),
   Components: resolve(srcRoot, "components/index.ts"),
 };
 

@@ -58,6 +58,11 @@
       "import": "./dist/SvgMotion.js",
       "require": "./dist/SvgMotion.umd.js"
     },
+    "./Parallax": {
+      "types": "./dist/Parallax.d.ts",
+      "import": "./dist/Parallax.js",
+      "require": "./dist/Parallax.umd.js"
+    },
     "./Components": {
       "types": "./dist/Components.d.ts",
       "import": "./dist/Components.js",
