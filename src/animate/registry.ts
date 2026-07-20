@@ -51,17 +51,43 @@ const TRANSFORM_ALIASES: Record<string, TransformKey> = {
 // x/y have no separate "xPercent"/"yPercent" property name - a percent-translate (for
 // self-relative centering, e.g. -50%) and a px-translate can still both be set on the same axis
 // at once, but which cache field a call writes to is decided by the value's own unit rather than
-// by a dedicated property name. Only an explicit "N%" string routes here; a plain number or a
-// "px"/unitless value (including relative "+=N") always stays on the px field.
+// by a dedicated property name. An explicit "N%" string always routes here.
 const PERCENT_TRANSLATE_KEYS: Record<string, TransformKey> = { x: "xPercent", y: "yPercent" };
 
 function isPercentValue(value: unknown): boolean {
   return typeof value === "string" && /%\s*$/.test(value.trim());
 }
 
-function resolveTransformKey(prop: string, sampleValue: unknown): TransformKey | undefined {
-  if (isPercentValue(sampleValue) && prop in PERCENT_TRANSLATE_KEYS) {
-    return PERCENT_TRANSLATE_KEYS[prop];
+// A bare "0" (number or "0"/"0px" string) is the one case where the incoming value carries no
+// real unit information of its own - it's the origin, equally "0px" or "0%". Anything else
+// (a non-zero bare number, e.g. `y: 50`) is unambiguous and always means px, matching how this
+// value would read outside a transform property.
+function isZeroValue(value: unknown): boolean {
+  if (typeof value === "number") return value === 0;
+  if (typeof value !== "string") return false;
+  const v = value.trim();
+  return v === "0" || /^0(px)?$/i.test(v);
+}
+
+// Which cache field a percent-translate prop's current *live* offset actually lives in - so a
+// bare "0" end value (see isZeroValue) can continue animating whichever field the element is
+// actually offset in, instead of always assuming px. This is what makes
+// `six.set(el, { y: "120%" })` followed by `six.to(el, { y: 0 })` genuinely return to the
+// origin: without this, `y: 0` unconditionally targets the (already-zero) px field, silently
+// leaving the "120%" offset in place forever - a real, easy-to-hit footgun, found live from a
+// user's exact `y: "120%"` -> `y: 0` reveal animation never returning to rest.
+function activePercentField(target: Element, prop: string): TransformKey | undefined {
+  const percentKey = PERCENT_TRANSLATE_KEYS[prop];
+  if (!percentKey) return undefined;
+  const pxKey = TRANSFORM_ALIASES[prop];
+  const cache = getTransformCache(target);
+  return cache[percentKey] !== 0 && (!pxKey || cache[pxKey] === 0) ? percentKey : undefined;
+}
+
+function resolveTransformKey(target: Element, prop: string, sampleValue: unknown): TransformKey | undefined {
+  if (prop in PERCENT_TRANSLATE_KEYS) {
+    if (isPercentValue(sampleValue)) return PERCENT_TRANSLATE_KEYS[prop];
+    if (isZeroValue(sampleValue)) return activePercentField(target, prop) ?? TRANSFORM_ALIASES[prop];
   }
   return TRANSFORM_ALIASES[prop];
 }
@@ -276,7 +302,7 @@ function plainPropertyHandler(prop: string, sampleValue: unknown): PropertyHandl
 
 /** Resolves how to read/write `prop` on `target`. `sampleValue` (the end value from tween vars) helps decide numeric vs discrete when the current DOM state alone is ambiguous (e.g. `width: "auto"` animating to `200`). */
 export function resolveHandler(target: Element, prop: string, sampleValue?: unknown): PropertyHandler {
-  const transformKey = resolveTransformKey(prop, sampleValue);
+  const transformKey = resolveTransformKey(target, prop, sampleValue);
   if (transformKey) return transformHandler(transformKey);
 
   if (COLOR_PROPS.has(prop)) return colorHandler(prop);

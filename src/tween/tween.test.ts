@@ -31,6 +31,32 @@ describe("Tween - to()", () => {
   });
 });
 
+describe("Tween - percent-translate reset", () => {
+  it("y: '120%' then y: 0 animates the percent offset itself back to the origin", () => {
+    const el = document.createElement("div");
+    new Tween(el, { y: "120%", duration: 0 });
+    expect(el.style.transform).toBe("translate(0%, 120%)");
+
+    const tw = new Tween(el, { y: 0, duration: 1, ease: "none" });
+    tw.totalTime(0.5, true);
+    expect(el.style.transform).toBe("translate(0%, 60%)");
+
+    tw.totalTime(1, true);
+    expect(el.style.transform).toBe("none");
+  });
+
+  it("y: 50 (px) after y: '120%' resets only the px field, leaving the percent offset as-is", () => {
+    const el = document.createElement("div");
+    new Tween(el, { y: "120%", duration: 0 });
+    new Tween(el, { y: 40, duration: 0 });
+    expect(el.style.transform).toBe("translate(0%, 120%) translate(0px, 40px)");
+
+    const tw = new Tween(el, { y: 0, duration: 1, ease: "none" });
+    tw.totalTime(1, true);
+    expect(el.style.transform).toBe("translate(0%, 120%)");
+  });
+});
+
 describe("Tween - from()", () => {
   it("shows the from-value immediately on construction, before any tick", () => {
     const el = document.createElement("div");

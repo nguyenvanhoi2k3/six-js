@@ -102,18 +102,13 @@
     <section class="demo-row">
       <h2>3. Field - pulls from a radius around the button, not just on hover</h2>
       <p class="hint">The pull ramps up as the cursor gets closer, before it's even over the button.</p>
-      <button class="magnetic field" data-radius="140">Get close</button>
+      <button class="magnetic field" data-radius="240">Get close</button>
     </section>
 
     <script type="module">
       import { six } from "./dist/index.js";
 
       // ---------------- 1. basic: pull only while the cursor is actually over the button ----------------
-      // Re-calling six.to() on every pointermove (same pattern as cursor-follow-demo.html) means
-      // each call starts a fresh tween from wherever the button currently is toward the new
-      // target - since duration is short and pointermove fires often, this reads as a smooth
-      // chase rather than a jump. `elasticOut` on release is what sells the "magnetic snap-back"
-      // feeling - a plain ease would just look like a slide back to place.
       function magneticHover(el, { strength = 0.4, duration = 0.5, releaseDuration = 0.6 } = {}) {
         el.addEventListener("pointermove", (e) => {
           const rect = el.getBoundingClientRect();
@@ -128,8 +123,7 @@
       magneticHover(document.querySelector(".basic"));
 
       // ---------------- 2. layered: button + inner label pulled at different strengths ----------------
-      // Same mechanics as #1, just applied to two elements at once with different multipliers -
-      // the label "escaping" faster than its own button reads as depth/parallax, not just movement.
+
       const layeredBtn = document.querySelector(".layered");
       const layeredContent = layeredBtn.querySelector(".magnetic-content");
 
@@ -146,13 +140,7 @@
       });
 
       // ---------------- 3. field: reacts from a radius, not just direct hover ----------------
-      // A single window-level pointermove listener (rather than one scoped to the button) is what
-      // lets this react BEFORE the cursor is actually over it - distance to the button's own
-      // center decides both whether it's "in field" at all and how strong the pull is (falls off
-      // linearly to 0 at the radius edge). `wasInField` gates the release tween to fire exactly
-      // once on the exit transition - without it, every single mousemove while outside the radius
-      // would re-fire a fresh `{x:0,y:0}` tween, continuously restarting the elastic release
-      // before it ever gets to actually bounce.
+
       const fieldBtn = document.querySelector(".field");
       const fieldRadius = Number(fieldBtn.dataset.radius) || 140;
       let wasInField = false;
@@ -166,9 +154,9 @@
 
         if (inField) {
           const pull = 1 - dist / fieldRadius; // 1 at dead center, 0 at the radius edge
-          six.to(fieldBtn, { x: dx * pull * 0.5, y: dy * pull * 0.5, duration: 0.4, ease: "quadOut" });
+          six.to(fieldBtn, { x: dx * pull * 0.8, y: dy * pull * 0.8, duration: 0.4, ease: "quadOut" });
         } else if (wasInField) {
-          six.to(fieldBtn, { x: 0, y: 0, duration: 0.6, ease: "elasticOut" });
+          six.to(fieldBtn, { x: 0, y: 0, duration: 0.4, ease: "circOut" });
         }
         wasInField = inField;
       });

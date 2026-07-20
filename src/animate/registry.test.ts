@@ -32,6 +32,27 @@ describe("resolveHandler - transform properties", () => {
     resolveHandler(el, "x", "-50%").set(el, { value: -50, unit: "%" });
     expect(getTransformCache(el).xPercent).toBe(-50);
   });
+
+  it("a bare 0 end value for x/y continues animating whichever field (px or percent) currently holds the live offset", () => {
+    const el = document.createElement("div");
+
+    // currently offset via the percent field only (e.g. six.set(el, { y: "120%" })) - a bare
+    // "0" should resolve back to that same field, not the untouched (already-zero) px field.
+    getTransformCache(el).yPercent = 120;
+    const backToOrigin = resolveHandler(el, "y", 0);
+    expect(backToOrigin.kind).toBe("numeric");
+    if (backToOrigin.kind !== "numeric") throw new Error("unreachable");
+    expect(backToOrigin.transformKey).toBe("yPercent");
+
+    // once the px field is also live, "0" falls back to resetting px (the default/primary field)
+    // rather than guessing which of the two the caller means.
+    getTransformCache(el).y = 40;
+    expect((resolveHandler(el, "y", 0) as { transformKey: string }).transformKey).toBe("y");
+
+    // a non-zero bare number is unambiguous and always means px, regardless of cache state.
+    getTransformCache(el).y = 0;
+    expect((resolveHandler(el, "y", 50) as { transformKey: string }).transformKey).toBe("y");
+  });
 });
 
 describe("resolveHandler - color properties", () => {
