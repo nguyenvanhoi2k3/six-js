@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>sx-accordion demo</title>
+    <link rel="stylesheet" href="./index.css" />
+    <link rel="stylesheet" href="./dist/components.css" />
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+      section {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        padding: 80px 24px;
+        border-bottom: 1px solid #24262c;
+        position: relative;
+      }
+      section h2 {
+        font-size: 15px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        opacity: 0.5;
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        margin: 0;
+        max-width: calc(100% - 48px);
+      }
+      section p.hint {
+        font-size: 14px;
+        opacity: 0.55;
+        max-width: 640px;
+        text-align: center;
+        margin: 0;
+      }
+      button {
+        padding: 10px 16px;
+        border-radius: 6px;
+        border: 1px solid #3a3d44;
+        background: #1a1c20;
+        color: inherit;
+        cursor: pointer;
+        font-size: 14px;
+        font-family: monospace;
+      }
+      button:hover {
+        background: #26292f;
+      }
+      .controls {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      /* ---- accordion visual chrome - this is demo-page CSS, not part of the library's own
+         accordion.css (which only handles structure/animation, not look and feel) ---- */
+      sx-accordion {
+        width: min(90vw, 560px);
+        border: 1px solid #2a2d33;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #14161b;
+      }
+      sx-accordion-item {
+        border-bottom: 1px solid #2a2d33;
+      }
+      sx-accordion-item:last-child {
+        border-bottom: none;
+      }
+      sx-accordion-trigger {
+        padding: 16px 20px;
+        font-weight: 600;
+        color: #e1dcc9;
+      }
+      sx-accordion-trigger:hover {
+        background: #1a1c20;
+      }
+      sx-accordion-trigger[aria-disabled="true"]:hover {
+        background: none;
+      }
+      .sx-accordion-content-inner {
+        padding: 0 20px 16px;
+        color: #a8a29a;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      /* 4. log */
+      .log {
+        width: min(90vw, 560px);
+        height: 160px;
+        overflow-y: auto;
+        background: #0f1013;
+        border: 1px solid #2a2d33;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-family: monospace;
+        font-size: 12px;
+        color: #7ee787;
+      }
+      .log div {
+        opacity: 0.85;
+      }
+    </style>
+  </head>
+
+  <body>
+    <section class="basic">
+      <h2>1. single-select (default) - opening one closes the others</h2>
+      <p class="hint">
+        Click a question, or focus a trigger and use ArrowUp / ArrowDown / Home / End. The second
+        item starts open via <code>sx-open</code> in the markup.
+      </p>
+      <sx-accordion id="basicAccordion">
+        <sx-accordion-item>
+          <sx-accordion-trigger>What is six-js?</sx-accordion-trigger>
+          <sx-accordion-content>
+            A small animation engine (GSAP-inspired) plus a handful of independent, framework-agnostic
+            web components like this accordion.
+          </sx-accordion-content>
+        </sx-accordion-item>
+        <sx-accordion-item sx-open>
+          <sx-accordion-trigger>Does it support keyboard navigation?</sx-accordion-trigger>
+          <sx-accordion-content>
+            Yes - Enter/Space toggles the focused trigger, and ArrowUp/ArrowDown/Home/End move focus
+            between triggers, matching the WAI-ARIA Accordion pattern.
+          </sx-accordion-content>
+        </sx-accordion-item>
+        <sx-accordion-item>
+          <sx-accordion-trigger>Can I close every item?</sx-accordion-trigger>
+          <sx-accordion-content>
+            In single-select mode, yes - clicking the currently open item's trigger again collapses
+            it, leaving nothing open.
+          </sx-accordion-content>
+        </sx-accordion-item>
+        <sx-accordion-item disabled>
+          <sx-accordion-trigger>This item is disabled</sx-accordion-trigger>
+          <sx-accordion-content>You should never be able to focus or open this one.</sx-accordion-content>
+        </sx-accordion-item>
+      </sx-accordion>
+    </section>
+
+    <section class="multiple">
+      <h2>2. multiple - every item toggles independently</h2>
+      <sx-accordion multiple id="multiAccordion">
+        <sx-accordion-item sx-open>
+          <sx-accordion-trigger>Section A</sx-accordion-trigger>
+          <sx-accordion-content>Content A can stay open at the same time as B and C.</sx-accordion-content>
+        </sx-accordion-item>
+        <sx-accordion-item sx-open>
+          <sx-accordion-trigger>Section B</sx-accordion-trigger>
+          <sx-accordion-content>Content B, likewise independent of its siblings.</sx-accordion-content>
+        </sx-accordion-item>
+        <sx-accordion-item>
+          <sx-accordion-trigger>Section C</sx-accordion-trigger>
+          <sx-accordion-content>Content C - try opening this while A/B stay open.</sx-accordion-content>
+        </sx-accordion-item>
+      </sx-accordion>
+      <div class="controls">
+        <button id="btnOpenAll">Open all (via .open = true)</button>
+        <button id="btnCloseAll">Close all (via .hide())</button>
+      </div>
+    </section>
+
+    <section class="duration">
+      <h2>3. custom duration + longer content (height animates to its real size)</h2>
+      <sx-accordion duration="0.6" style="width: min(90vw, 560px)">
+        <sx-accordion-item sx-open>
+          <sx-accordion-trigger>Slow 600ms open, with a tall panel</sx-accordion-trigger>
+          <sx-accordion-content>
+            <p>
+              Lorem ipsum dolor sit amet consectetur adipisicing elit. Assumenda fugit iure
+              repellendus voluptatum, cum illo ipsum est a nobis. Corrupti quaerat, alias error
+              assumenda maiores voluptate deleniti culpa consequuntur odio.
+            </p>
+            <p>
+              Ea velit similique sapiente praesentium minima corrupti hic ipsum facilis, odio
+              numquam dolorum assumenda. Quos accusamus veritatis at amet aut ipsa esse natus.
+            </p>
+          </sx-accordion-content>
+        </sx-accordion-item>
+        <sx-accordion-item>
+          <sx-accordion-trigger>A short one, same accordion</sx-accordion-trigger>
+          <sx-accordion-content>Short content, same 600ms duration.</sx-accordion-content>
+        </sx-accordion-item>
+      </sx-accordion>
+    </section>
+
+    <section class="nested">
+      <h2>4. nested accordion inside a panel (own keyboard/exclusivity scope)</h2>
+      <p class="hint">
+        Arrow-key navigation and single-select exclusivity inside the inner accordion never leak
+        out to the outer one, and vice versa.
+      </p>
+      <sx-accordion id="outerAccordion">
+        <sx-accordion-item sx-open>
+          <sx-accordion-trigger>Outer item (open by default)</sx-accordion-trigger>
+          <sx-accordion-content>
+            <sx-accordion>
+              <sx-accordion-item sx-open>
+                <sx-accordion-trigger>Inner item 1</sx-accordion-trigger>
+                <sx-accordion-content>Inner content 1.</sx-accordion-content>
+              </sx-accordion-item>
+              <sx-accordion-item>
+                <sx-accordion-trigger>Inner item 2</sx-accordion-trigger>
+                <sx-accordion-content>Inner content 2.</sx-accordion-content>
+              </sx-accordion-item>
+            </sx-accordion>
+          </sx-accordion-content>
+        </sx-accordion-item>
+        <sx-accordion-item>
+          <sx-accordion-trigger>Another outer item</sx-accordion-trigger>
+          <sx-accordion-content>Opening this closes the first outer item, but never touches the inner accordion's own state.</sx-accordion-content>
+        </sx-accordion-item>
+      </sx-accordion>
+    </section>
+
+    <section class="events">
+      <h2>5. lifecycle events</h2>
+      <p class="hint">
+        <code>sx-accordion-before-open</code> / <code>after-open</code> / <code>before-close</code> /
+        <code>after-close</code> bubble from whichever item toggled - open the console or watch the
+        log below.
+      </p>
+      <div class="log" id="eventLog"></div>
+    </section>
+
+    <script type="module">
+      import { registerAccordion } from "./dist/Components.js";
+      registerAccordion();
+
+      const log = document.getElementById("eventLog");
+      const write = (msg) => {
+        const line = document.createElement("div");
+        line.textContent = msg;
+        log.appendChild(line);
+        log.scrollTop = log.scrollHeight;
+      };
+
+      for (const name of [
+        "sx-accordion-before-open",
+        "sx-accordion-after-open",
+        "sx-accordion-before-close",
+        "sx-accordion-after-close",
+      ]) {
+        document.addEventListener(name, (e) => write(`${name} -> value="${e.detail.value}"`));
+      }
+
+      const multiAccordion = document.getElementById("multiAccordion");
+      document.getElementById("btnOpenAll").addEventListener("click", () => {
+        multiAccordion.querySelectorAll(":scope > sx-accordion-item").forEach((item) => {
+          item.open = true;
+        });
+      });
+      document.getElementById("btnCloseAll").addEventListener("click", () => {
+        multiAccordion.querySelectorAll(":scope > sx-accordion-item").forEach((item) => {
+          item.hide();
+        });
+      });
+    </script>
+  </body>
+</html>

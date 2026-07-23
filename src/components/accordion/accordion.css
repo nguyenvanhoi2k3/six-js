@@ -1,0 +1,72 @@
+/* six-js\src\components\accordion\accordion.css
+   Part of the single combined `components.css` (see CLAUDE.md's Components section) - light-DOM
+   only, no shadow root: a consumer must explicitly `import "@six-js/core/components.css"` (or
+   `<link>` it) once for any `sx-*` tag to be styled at all - not auto-injected by registerX(). */
+
+sx-accordion {
+  display: block;
+}
+
+sx-accordion-item {
+  display: block;
+}
+
+sx-accordion-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75em;
+  cursor: pointer;
+  user-select: none;
+}
+
+sx-accordion-trigger[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+sx-accordion-trigger:focus-visible {
+  outline: 2px solid Highlight;
+  outline-offset: 2px;
+}
+
+/* Default expand/collapse indicator - purely decorative and CSS-only (no extra DOM node), so a
+   consumer supplying their own icon markup inside the trigger can simply override or hide this
+   with their own CSS (e.g. `sx-accordion-trigger::after { content: none; }`). */
+sx-accordion-trigger::after {
+  content: "";
+  flex-shrink: 0;
+  width: 0.5em;
+  height: 0.5em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform var(--sx-accordion-duration, 250ms) ease;
+}
+
+sx-accordion-item[sx-open] > sx-accordion-trigger::after {
+  transform: rotate(-135deg);
+}
+
+sx-accordion-content {
+  display: block;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    height var(--sx-accordion-duration, 250ms) cubic-bezier(0.4, 0, 0.2, 1),
+    opacity var(--sx-accordion-duration, 250ms) ease;
+}
+
+sx-accordion-item[sx-open] > sx-accordion-content {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  sx-accordion-content,
+  sx-accordion-trigger::after {
+    /* Not a literal 0s: some engines have historically skipped firing transitionend for an
+       exactly-zero-duration transition, and accordion-content.ts's cleanup relies on that event
+       (falling back to a timer only as a safety net) to settle height back to auto after open. */
+    transition-duration: 0.01ms !important;
+  }
+}
